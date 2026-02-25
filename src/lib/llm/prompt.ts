@@ -1,4 +1,4 @@
-import { SCHEMA_CONTEXT } from "@/lib/schema-context";
+import { SCHEMA_CONTEXT } from "@/lib/llm/schema-context";
 
 interface NLSparqlPair {
   nl: string;
