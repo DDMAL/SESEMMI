@@ -6,6 +6,7 @@ const envSchema = z.object({
   LLM_MODEL: z.string().default("gemini-2.5-flash-lite"),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  FEATURE_RAG_ENABLED: z.coerce.boolean().default(false),
 });
 
 export const env = envSchema.parse(process.env);
