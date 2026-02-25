@@ -1,10 +1,25 @@
 # Stage 1 — Install dependencies
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
+RUN apk upgrade --no-cache
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Stage 2 — Build
+# Stage 2 — Development (source mounted at runtime via volume)
+FROM node:22-alpine AS dev
+WORKDIR /app
+ENV NODE_ENV=development
+# Copy node_modules from deps; source is bind-mounted at runtime.
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json* ./
+EXPOSE 3000
+ENV PORT=3000
+# Required on macOS Docker Desktop — inotify events don't propagate
+# reliably from the VM; polling ensures file changes trigger recompilation.
+ENV WATCHPACK_POLLING=true
+CMD ["npm", "run", "dev"]
+
+# Stage 3 — Build
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -15,7 +30,7 @@ ARG VIRTUOSO_ENDPOINT=http://placeholder:8890/sparql
 ENV VIRTUOSO_ENDPOINT=$VIRTUOSO_ENDPOINT
 RUN npm run build
 
-# Stage 3 — Production runner
+# Stage 4 — Production runner
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production

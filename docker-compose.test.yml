@@ -1,0 +1,21 @@
+# Test environment.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm app
+#    or: make test
+
+services:
+  app:
+    build:
+      # Use builder stage — runner lacks src/ and test infrastructure
+      target: builder
+    command: ["npm", "run", "test"]
+    environment:
+      - NODE_ENV=test
+      - VIRTUOSO_ENDPOINT=http://placeholder:8890/sparql
+      - LOG_LEVEL=error
+    healthcheck:
+      disable: true
+
+  # Prevent nginx from starting in the test environment
+  nginx:
+    profiles:
+      - donotstart

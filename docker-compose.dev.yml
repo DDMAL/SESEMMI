@@ -1,0 +1,40 @@
+# Development overrides.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+#    or: make dev-build
+
+services:
+  app:
+    build:
+      target: dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Bind-mount entire source for hot reload
+      - ./:/app
+      # Anonymous volume shadows node_modules with the Alpine-compiled
+      # version from the image — prevents macOS binaries from leaking in
+      - /app/node_modules
+      # Named volume persists .next incremental cache between restarts
+      - sesemmi_next_cache:/app/.next
+    env_file: .env
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  nginx:
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/dev/default.conf:/etc/nginx/conf.d/default.conf:ro
+    environment:
+      - HOST_NAME=${HOST_NAME:-localhost}
+
+volumes:
+  sesemmi_next_cache:

@@ -1,0 +1,26 @@
+# Base configuration — shared by all environments.
+# Do not use this file directly. Use an override:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sesemmi-app
+    networks:
+      - sesemmi
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: sesemmi-nginx
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - sesemmi
+
+networks:
+  sesemmi:
+    driver: bridge
