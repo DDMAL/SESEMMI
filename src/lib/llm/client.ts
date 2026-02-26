@@ -18,21 +18,20 @@ export interface TranslateResult {
   durationMs: number;
 }
 
-export async function translateToSparql(
-  userQuery: string,
-): Promise<TranslateResult> {
-  let examples: typeof FEW_SHOT_EXAMPLES;
-  if (flags.useRAG) {
-    // Phase 3 modules — don't exist yet. Dynamic import prevents crash when flag=false.
-    // @ts-expect-error — @/lib/rag/embed will be created in Phase 3
-    const { getEmbedding } = await import("@/lib/rag/embed");
-    // @ts-expect-error — @/lib/rag/retrieve will be created in Phase 3
-    const { findSimilarExamples } = await import("@/lib/rag/retrieve");
-    const embedding = await getEmbedding(userQuery);
-    examples = await findSimilarExamples(embedding, 5);
-  } else {
-    examples = FEW_SHOT_EXAMPLES;
-  }
+export async function translateToSparql(userQuery: string): Promise<TranslateResult> {
+  // let examples: typeof FEW_SHOT_EXAMPLES;
+  // if (flags.useRAG) {
+  //   // Phase 3 modules — don't exist yet. Dynamic import prevents crash when flag=false.
+  //   // @ts-expect-error — @/lib/rag/embed will be created in Phase 3
+  //   const { getEmbedding } = await import("@/lib/rag/embed");
+  //   // @ts-expect-error — @/lib/rag/retrieve will be created in Phase 3
+  //   const { findSimilarExamples } = await import("@/lib/rag/retrieve");
+  //   const embedding = await getEmbedding(userQuery);
+  //   examples = await findSimilarExamples(embedding, 5);
+  // } else {
+  //   examples = FEW_SHOT_EXAMPLES;
+  // }
+  const examples: typeof FEW_SHOT_EXAMPLES = FEW_SHOT_EXAMPLES;
 
   const start = performance.now();
 
