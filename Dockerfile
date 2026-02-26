@@ -28,6 +28,8 @@ COPY . .
 # Server-side env vars are read from the runtime container environment, not baked in.
 ARG VIRTUOSO_ENDPOINT=http://placeholder:8890/sparql
 ENV VIRTUOSO_ENDPOINT=$VIRTUOSO_ENDPOINT
+ARG LLM_API_KEY=placeholder
+ENV LLM_API_KEY=$LLM_API_KEY
 RUN npm run build
 
 # Stage 4 — Production runner
