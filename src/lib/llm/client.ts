@@ -1,12 +1,5 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateText } from "ai";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
-import { buildSystemPrompt } from "@/lib/llm/prompt";
-import { FEW_SHOT_EXAMPLES } from "@/lib/llm/examples";
-import { flags } from "@/lib/feature-flags";
-
-const google = createGoogleGenerativeAI({ apiKey: env.LLM_API_KEY });
 
 export interface TranslateResult {
   sparql: string;
@@ -19,46 +12,32 @@ export interface TranslateResult {
 }
 
 export async function translateToSparql(userQuery: string): Promise<TranslateResult> {
-  // let examples: typeof FEW_SHOT_EXAMPLES;
-  // if (flags.useRAG) {
-  //   // Phase 3 modules — don't exist yet. Dynamic import prevents crash when flag=false.
-  //   // @ts-expect-error — @/lib/rag/embed will be created in Phase 3
-  //   const { getEmbedding } = await import("@/lib/rag/embed");
-  //   // @ts-expect-error — @/lib/rag/retrieve will be created in Phase 3
-  //   const { findSimilarExamples } = await import("@/lib/rag/retrieve");
-  //   const embedding = await getEmbedding(userQuery);
-  //   examples = await findSimilarExamples(embedding, 5);
-  // } else {
-  //   examples = FEW_SHOT_EXAMPLES;
-  // }
-  const examples: typeof FEW_SHOT_EXAMPLES = FEW_SHOT_EXAMPLES;
-
-  const start = performance.now();
-
-  const { text, usage } = await generateText({
-    model: google(env.LLM_MODEL),
-    system: buildSystemPrompt(examples),
-    prompt: userQuery,
+  const res = await fetch(`${env.LLM_SERVICE_URL}/translate`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query: userQuery }),
   });
 
-  const durationMs = Math.round(performance.now() - start);
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: "LLM service error" }));
+    throw new Error(error.detail || `LLM service returned ${res.status}`);
+  }
+
+  const data = await res.json();
 
   logger.info({
     event: "llm_translation",
-    model: env.LLM_MODEL,
-    durationMs,
-    inputTokens: usage.inputTokens,
-    outputTokens: usage.outputTokens,
-    totalTokens: usage.totalTokens,
-    ragEnabled: flags.useRAG,
-    examplesUsed: examples.length,
+    durationMs: data.durationMs,
+    inputTokens: data.usage.inputTokens,
+    outputTokens: data.usage.outputTokens,
+    totalTokens: data.usage.totalTokens,
   });
 
-  // Strip markdown code fences if the LLM ignores the "raw SPARQL only" instruction
-  const cleaned = text
-    .replace(/^```sparql?\n?/i, "")
-    .replace(/\n?```$/i, "")
-    .trim();
-
-  return { sparql: cleaned, usage, durationMs };
+  return {
+    sparql: data.sparql,
+    usage: data.usage,
+    durationMs: data.durationMs,
+  };
 }

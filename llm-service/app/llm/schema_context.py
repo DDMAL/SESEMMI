@@ -1,93 +1,55 @@
-export const SCHEMA_CONTEXT = `The following are the available SPARQL prefixes, graph IRIs, and ontology for the SESEMMI LinkedMusic database.
+SCHEMA_CONTEXT = """I have a graph database containing musical linked data from various databases. As much of the information as possible is reconciled against Wikidata.
 
-When writing SPARQL queries, always include the relevant PREFIX declarations at the top. Here are all available prefixes:
+Please write me a SPARQL query to perform the following query:
+<<USER_INPUT>>
 
-Standard prefixes:
-PREFIX rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX owl:      <http://www.w3.org/2002/07/owl#>
-PREFIX skos:     <http://www.w3.org/2004/02/skos/core#>
-PREFIX xsd:      <http://www.w3.org/2001/XMLSchema#>
+When an entity is reconciled against Wikidata, wdt:P2888 is used to point to the reconciled Wikidata entity.
+When an entity has a wdt:P31 triple, it contains information about the subclass that the entity is a part of (e.g. for mb:Artist, the wdt:P31 can point to human, musical group, etc).
 
-Wikidata prefixes:
-PREFIX wd:       <http://www.wikidata.org/entity/>
-PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
+The steps you should follow are:
+1. Examine the ontology and extract the relevant parts.
+2. Using that ontology, figure out which Q-IDs you need and perform web searches to find them.
+3. Using the ontology and the Q-IDs, build the final SPARQL query.
 
-Graph name prefixes (used in GRAPH clauses and for rdf:type checks):
-PREFIX cdb:   <https://linkedmusic.ca/graphs/cantusdb/>
-PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
-PREFIX dtl:   <https://linkedmusic.ca/graphs/dig-that-lick/>
-PREFIX gj:    <https://linkedmusic.ca/graphs/theglobaljukebox/>
-PREFIX mb:    <https://linkedmusic.ca/graphs/musicbrainz/>
-PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
-PREFIX ts:    <https://linkedmusic.ca/graphs/thesession/>
+Please follow these instructions:
+- When asked to return a list of entities, please always return both the label (when available) and the URI for the entities.
+- When finding Q-IDs to match against, search the web to get the best and most accurate results.
+- Ensure that the Q-IDs that you've found are correct by performing another web search.
+- Please scan all entities across all databases to find out which one(s) correspond to the query, and only select the relevant databases and entities.
+- For any entity you search for within the LinkedMusic graph (not in Wikidata), please add a triple that uses the rdf:type property to explicitly verify its type.
+- Do not use Wikidata to verify the type of entities, please instead use the LinkedMusic types, using the rdf:type property.
+    - The only exception to this is when local entities have a wdt:P31 triple (like mb:Artist), then it is fine to check that triple using wdt:P31 in the local LinkedMusic graph, but never in a federated query.
+- If you need data that is not located in the LinkedMusic graph, i.e. when there is no property for the information you need directly present in the ontology I give you, please use a federated query with Wikidata using the <https://query.wikidata.org/sparql> endpoint, but only do so if the information doesn't appear at all in the LinkedMusic graph ontology.
+- Please ensure that you've fully reviewed the LinkedMusic ontology and extracted the relevant parts before performing federated queries.
+- Please also double-check that you're not trying to use properties that do not appear in the ontology, unless they are a part of a federated query.
+- When performing a federated query, ensure that the SPARQL query is efficient and will not create an unnecessarily high amount of requests.
+- When resolving a Wikidata Q-ID, you must use the provided ontology to determine the linking path.
+    - If a property's object is another defined class in the ontology (e.g., diamm:City wdt:P17 diamm:Country), your query must first navigate to that class and then use its wdt:P2888 property to get the Q-ID.
+    - If a property's object is described by a literal string (e.g., ts:Session wdt:P17 "country"@en), you should assume the property links directly to the Wikidata URI.
+- Once the SPARQL query is finalized, please re-read it and double-check that all QIDs are correct.
+- For MusicBrainz, very few mb:Recording entities are reconciled against Wikidata since Wikidata does not carry information about specific recordings, only about the actual songs, so it's better to match reconciled data against mb:Work entities rather than mb:Recording
 
-Entity-specific prefixes (used for actual entity URIs):
--- Cantus Database --
-PREFIX cdc:  <https://cantusdatabase.org/chant/>
-PREFIX cds:  <https://cantusdatabase.org/source/>
-PREFIX cii:  <https://cantusindex.org/id/>
+Please follow these constraints:
+- Do not use string matching; instead check against Wikidata Q-IDs. The only exception to this is when the query explicitly requests finding entities based on text/string content (e.g., 'find tracks with X in the title', 'find artists whose names contain Y', 'search for works with Z in the description'). In such cases, use appropriate SPARQL string matching functions like CONTAINS(), REGEX(), or similar.
+- Do not use the SELECT ... FROM syntax for named graphs. Please instead use the SELECT { GRAPH ... { ... } } syntax.
+- Do not put any triples verifying the type of entities (using wdt:P31 or rdf:type) in federated query SERVICE blocks.
+- Do not use Wikidata to retrieve labels unless directly asked to in the query. please prioritize as much as possible retrieving labels from the LinkedMusic database.
+- Do not put any federated query SERVICE blocks inside a GRAPH block.
+- Do not put any federated query SERVICE blocks inside an OPTIONAL block.
+- Do not use a nested SELECT clause inside a SERVICE block.
+- To avoid the Virtuoso error SP031, use a subquery before the SERVICE call for federated queries
+- To avoid the Virtuoso error SP031, ensure every variable is assigned a value in a valid scope before it's used in a FILTER, BIND, or OPTIONAL block.
 
--- DIAMM --
-PREFIX da:   <https://www.diamm.ac.uk/archives/>
-PREFIX de:   <https://www.diamm.ac.uk/sets/>
-PREFIX di:   <https://www.diamm.ac.uk/cities/>
-PREFIX dm:   <https://www.diamm.ac.uk/compositions/>
-PREFIX dn:   <https://www.diamm.ac.uk/countries/>
-PREFIX do:   <https://www.diamm.ac.uk/organizations/>
-PREFIX dp:   <https://www.diamm.ac.uk/people/>
-PREFIX dr:   <https://www.diamm.ac.uk/regions/>
-PREFIX ds:   <https://www.diamm.ac.uk/sources/>
-
--- Dig That Lick --
-PREFIX dtls: <https://dig-that-lick.hfm-weimar.de/similarity_search/details?melid=>
-PREFIX dtlt: <http://www.dtl.org/JE/tracks/>
-
--- The Global Jukebox --
-PREFIX gjb:  <https://linkedmusic.ca/graphs/theglobaljukebox/sources/>
-PREFIX gjc:  <https://theglobaljukebox.org/culture/>
-PREFIX gje:  <https://linkedmusic.ca/graphs/theglobaljukebox/ensembles/>
-PREFIX gjh:  <https://linkedmusic.ca/graphs/theglobaljukebox/phonotactics/>
-PREFIX gji:  <https://linkedmusic.ca/graphs/theglobaljukebox/instruments/>
-PREFIX gjm:  <https://linkedmusic.ca/graphs/theglobaljukebox/minutage/>
-PREFIX gjp:  <https://linkedmusic.ca/graphs/theglobaljukebox/parlametrics/>
-PREFIX gjs:  <https://theglobaljukebox.org/song/>
-
--- MusicBrainz --
-PREFIX mbae: <https://musicbrainz.org/area/>
-PREFIX mbat: <https://musicbrainz.org/artist/>
-PREFIX mbcd: <https://musicbrainz.org/cdtoc/>
-PREFIX mbev: <https://musicbrainz.org/event/>
-PREFIX mbge: <https://musicbrainz.org/genre/>
-PREFIX mbin: <https://musicbrainz.org/instrument/>
-PREFIX mbla: <https://musicbrainz.org/label/>
-PREFIX mbpl: <https://musicbrainz.org/place/>
-PREFIX mbrc: <https://musicbrainz.org/recording/>
-PREFIX mbrg: <https://musicbrainz.org/release-group/>
-PREFIX mbrl: <https://musicbrainz.org/release/>
-PREFIX mbse: <https://musicbrainz.org/series/>
-PREFIX mbwo: <https://musicbrainz.org/work/>
-
--- RISM --
-PREFIX ri:   <https://rism.online/institutions/>
-PREFIX rp:   <https://rism.online/people/>
-PREFIX rs:   <https://rism.online/sources/>
-
--- The Session --
-PREFIX tst:  <https://thesession.org/tunes/>
-PREFIX tsr:  <https://thesession.org/recordings/>
-PREFIX tse:  <https://thesession.org/events/>
-PREFIX tss:  <https://thesession.org/sessions/>
+Please remember that the SPARQL query will not work, and you will have failed your task, if you do not follow these constraints and instructions. Please also be very diligent with your search for the correct Q-IDs, as they are one of the key parts of the SPARQL query.
 
 Here are the 7 databases currently in LinkedMusic, and the IRIs for their RDF graphs:
-- All triples for Cantus Database are stored in the <https://linkedmusic.ca/graphs/cantusdb/> graph, and their entity types use the "cdb:" prefix.
-- All triples for DIAMM are stored in the <https://linkedmusic.ca/graphs/diamm/> graph, and their entity types use the "diamm:" prefix.
-- All triples for Dig That Lick are stored in the <https://linkedmusic.ca/graphs/dig-that-lick/> graph, and their entity types use the "dtl:" prefix.
-- All triples for The Session are stored in the <https://linkedmusic.ca/graphs/thesession/> graph, and their entity types use the "ts:" prefix.
-- All triples for The Global Jukebox are stored in the <https://linkedmusic.ca/graphs/theglobaljukebox/> graph, and their entity types use the "gj:" prefix.
-- All triples for MusicBrainz are stored in the <https://linkedmusic.ca/graphs/musicbrainz/> graph, and their entity types use the "mb:" prefix.
-- All triples for RISM are stored in the <https://linkedmusic.ca/graphs/rism/> graph, and their entity types use the "rism:" prefix.
+- All triples for Cantus Database are stored in the <https://linkedmusic.ca/graphs/cantusdb/> graph, and their entity types use the `cdb:` prefix.
+- All triples for DIAMM are stored in the <https://linkedmusic.ca/graphs/diamm/> graph, and their entity types use the `diamm:` prefix.
+- All triples for Dig That Lick are stored in the <https://linkedmusic.ca/graphs/dig-that-lick/> graph, and their entity types use the `dtl:` prefix.
+- All triples for The Session are stored in the <https://linkedmusic.ca/graphs/thesession/> graph, and their entity types use the `ts:` prefix.
+- All triples for The Global Jukebox are stored in the <https://linkedmusic.ca/graphs/theglobaljukebox/> graph, and their entity types use the `gj:` prefix.
+- All triples for MusicBrainz are stored in the <https://linkedmusic.ca/graphs/musicbrainz/> graph, and their entity types use the `mb:` prefix.
+- All triples for RISM are stored in the <https://linkedmusic.ca/graphs/rism/> graph, and their entity types use the `rism:` prefix.
 
 The following is a graph representation of the ontology of all the data in the database, for all 5 databases. Here is how to interpret this ontology:
 - The subject are the LinkedMusic entity types (accessed using rdf:type)
@@ -641,4 +603,5 @@ rism:Person
 	wdt:P40	rism:Person ;
 	wdt:P1889	rism:Person .
 
-`;
+REMEMBER: Please find the correct QIDs
+"""
