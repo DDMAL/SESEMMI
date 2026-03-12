@@ -2,13 +2,37 @@
 
 import { useState } from "react";
 import { Spinner } from "@/components/Spinner";
+import type { Step, StepStatus } from "@/hooks/useTranslate";
 
 interface NLInputProps {
   onTranslate: (query: string) => void;
   isPending: boolean;
+  steps?: Step[];
 }
 
-export function NLInput({ onTranslate, isPending }: NLInputProps) {
+function StepIcon({ status }: { status: StepStatus }) {
+  if (status === "running") return <Spinner className="h-3 w-3 shrink-0 text-indigo-400" />;
+  if (status === "done")
+    return (
+      <svg
+        aria-hidden="true"
+        className="h-3 w-3 shrink-0 text-emerald-500"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+          clipRule="evenodd"
+        />
+      </svg>
+    );
+  if (status === "error")
+    return <span className="h-3 w-3 shrink-0 text-center text-[10px] leading-none text-red-400">✕</span>;
+  return <span className="h-3 w-3 shrink-0 rounded-full border border-slate-300" />;
+}
+
+export function NLInput({ onTranslate, isPending, steps = [] }: NLInputProps) {
   const [query, setQuery] = useState("");
 
   const handleSubmit = () => {
@@ -88,6 +112,47 @@ export function NLInput({ onTranslate, isPending }: NLInputProps) {
           disabled={isPending}
         />
       </div>
+
+      {steps.length > 0 && (
+        <div
+          className="overflow-hidden rounded-xl"
+          style={{ background: "rgba(79,70,229,0.04)", border: "1px solid rgba(99,102,241,0.15)" }}
+        >
+          <div
+            className="flex items-center px-3 py-1.5"
+            style={{ borderBottom: "1px solid rgba(99,102,241,0.1)" }}
+          >
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-indigo-400">
+              {isPending ? "Processing…" : "Done"}
+            </span>
+          </div>
+          <div className="divide-y divide-indigo-50">
+            {steps.map((s) => (
+              <div key={s.step} className="flex items-start gap-2.5 px-3 py-2">
+                <div className="mt-0.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center">
+                  <StepIcon status={s.status} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-medium text-slate-700">{s.label}</span>
+                    {s.detail && (
+                      <span className="text-[11px] text-slate-400">{s.detail}</span>
+                    )}
+                  </div>
+                  {s.step === "generate" && s.tokens && (
+                    <pre className="mt-1.5 max-h-36 overflow-y-auto font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-all text-slate-500">
+                      {s.tokens}
+                      {s.status === "running" && (
+                        <span className="animate-pulse text-indigo-400">▋</span>
+                      )}
+                    </pre>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

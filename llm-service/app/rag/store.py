@@ -1,3 +1,7 @@
+import hashlib
+import re
+import uuid
+
 from langchain_postgres import PGVector
 from langchain_core.documents import Document
 from app.rag.embeddings import embeddings
@@ -5,6 +9,56 @@ from app.rag.corpus import RAG_CORPUS
 from app.config import settings
 
 _store: PGVector | None = None
+
+_IRI_TO_DB = {
+    "graphs/diamm/": "diamm",
+    "graphs/thesession/": "thesession",
+    "graphs/musicbrainz/": "musicbrainz",
+    "graphs/theglobaljukebox/": "theglobaljukebox",
+    "graphs/dig-that-lick/": "digthatlick",
+    "graphs/cantusdb/": "cantusdb",
+    "graphs/rism/": "rism",
+}
+
+
+def enrich_example(example: dict) -> dict:
+    sparql = example.get("sparql", "")
+
+    databases = [db for iri, db in _IRI_TO_DB.items() if iri in sparql]
+    has_federation = bool(re.search(r"\bSERVICE\b", sparql, re.IGNORECASE))
+    has_aggregation = bool(
+        re.search(r"\b(COUNT|AVG|SUM|GROUP\s+BY)\b", sparql, re.IGNORECASE)
+    )
+
+    graph_count = len(re.findall(r"\bGRAPH\b", sparql, re.IGNORECASE))
+    service_count = len(re.findall(r"\bSERVICE\b", sparql, re.IGNORECASE))
+    challenge_level = 1 if (graph_count + service_count) <= 1 else 2
+
+    patterns: list[str] = []
+    if len(databases) == 1:
+        patterns.append("single_graph")
+    if len(databases) > 1:
+        patterns.append("multi_graph")
+        patterns.append("cross_database")
+    if has_federation:
+        patterns.append("federated")
+    if has_aggregation:
+        patterns.append("aggregation")
+    if re.search(r"\b(CONTAINS|REGEX)\b", sparql, re.IGNORECASE):
+        patterns.append("string_match")
+
+    return {
+        "databases": databases,
+        "challenge_level": challenge_level,
+        "patterns": patterns,
+        "has_federation": has_federation,
+        "has_aggregation": has_aggregation,
+    }
+
+
+def _example_id(ex: dict) -> str:
+    digest = hashlib.sha256((ex["nl"] + ex["sparql"]).encode()).digest()[:16]
+    return str(uuid.UUID(bytes=digest))
 
 
 def get_vector_store() -> PGVector:
@@ -22,7 +76,11 @@ def get_vector_store() -> PGVector:
 async def seed_store() -> None:
     store = get_vector_store()
     docs = [
-        Document(page_content=ex["nl"], metadata={"sparql": ex["sparql"]})
+        Document(
+            page_content=ex["nl"],
+            metadata={"sparql": ex["sparql"], **enrich_example(ex)},
+        )
         for ex in RAG_CORPUS
     ]
-    store.add_documents(docs)
+    ids = [_example_id(ex) for ex in RAG_CORPUS]
+    store.add_documents(docs, ids=ids)

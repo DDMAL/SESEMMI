@@ -28,6 +28,23 @@ WHERE {
 }""",
     },
     {
+        "nl": "Find all sessions in The Session that took place in 2015",
+        "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
+SELECT ?event ?eventLabel ?start
+WHERE {
+  GRAPH <https://linkedmusic.ca/graphs/thesession/> {
+    ?event a ts:Events ;
+           wdt:P580 ?start .
+    OPTIONAL { ?event rdfs:label ?eventLabel . }
+    FILTER (YEAR(?start) = 2015)
+  }
+}
+LIMIT 100""",
+    },
+    {
         "nl": "Find all MusicBrainz recordings made by Taylor Swift",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX wd:   <http://www.wikidata.org/entity/>
@@ -281,6 +298,27 @@ WHERE {
     ?country wdt:P30 wd:Q15 .
   }
 }""",
+    },
+    {
+        "nl": "Find all solos Charlie Parker performed in New York City in Dig That Lick",
+        "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX dtl:  <https://linkedmusic.ca/graphs/dig-that-lick/>
+SELECT DISTINCT ?solo ?track ?trackLabel
+WHERE {
+  GRAPH dtl: {
+    ?solo rdf:type dtl:Solo ;
+          wdt:P175 wd:Q103767 ;
+          wdt:P361 ?track .
+    ?track rdf:type dtl:Track ;
+           wdt:P8546 wd:Q60 .
+    OPTIONAL { ?track rdfs:label ?trackLabel }
+  }
+}
+ORDER BY ?trackLabel ?solo
+""",
     },
     {
         "nl": "Count how many solos were done by artists of each gender in Dig That Lick",

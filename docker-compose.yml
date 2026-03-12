@@ -9,6 +9,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: sesemmi-app
+    depends_on:
+      llm:
+        condition: service_healthy
     networks:
       - sesemmi
 
