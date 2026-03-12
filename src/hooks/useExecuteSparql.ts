@@ -13,7 +13,9 @@ export function useExecuteSparql() {
         const data = await res.json().catch(() => ({ error: "Request failed" }));
         throw new Error(data.error || `HTTP ${res.status}`);
       }
-      return res.json();
+      const data = await res.json();
+      console.log(data);
+      return data;
     },
   });
 }

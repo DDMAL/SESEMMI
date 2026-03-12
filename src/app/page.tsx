@@ -107,26 +107,27 @@ export default function Home() {
 
       {/* Main content */}
       <main className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
-        {/* Top row — NL Input + SPARQL Editor side by side */}
-        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-5">
-          {/* NL Input glass panel */}
-          <section className="rounded-2xl p-5" style={glassPanel}>
-            <NLInput onTranslate={handleTranslate} isPending={translate.isPending} />
-            {translate.isError && (
-              <p className="mt-2 text-xs text-red-500">{translate.error.message}</p>
-            )}
-          </section>
+        {/* NL Input glass panel */}
+        <section className="rounded-2xl p-5" style={glassPanel}>
+          <NLInput
+            onTranslate={handleTranslate}
+            isPending={translate.isPending}
+            steps={translate.steps}
+          />
+          {translate.isError && (
+            <p className="mt-2 text-xs text-red-500">{translate.error?.message}</p>
+          )}
+        </section>
 
-          {/* SPARQL Editor glass panel */}
-          <section className="flex flex-col rounded-2xl p-5" style={glassPanel}>
-            <SparqlEditor
-              value={sparql}
-              onChange={setSparql}
-              onExecute={handleExecute}
-              isPending={execute.isPending}
-            />
-          </section>
-        </div>
+        {/* SPARQL Editor glass panel */}
+        <section className="flex flex-col rounded-2xl p-5" style={glassPanel}>
+          <SparqlEditor
+            value={sparql}
+            onChange={setSparql}
+            onExecute={handleExecute}
+            isPending={execute.isPending}
+          />
+        </section>
 
         {/* Bottom — Results table full width */}
         <section className="flex flex-1 flex-col rounded-2xl p-5" style={glassPanel}>

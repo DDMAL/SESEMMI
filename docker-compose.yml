@@ -9,6 +9,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: sesemmi-app
+    depends_on:
+      llm:
+        condition: service_healthy
     networks:
       - sesemmi
 
@@ -17,6 +20,24 @@ services:
     container_name: sesemmi-nginx
     depends_on:
       app:
+        condition: service_healthy
+      llm:
+        condition: service_healthy
+    networks:
+      - sesemmi
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: sesemmi-postgres
+    networks:
+      - sesemmi
+
+  llm:
+    build:
+      context: ./llm-service
+    container_name: sesemmi-llm
+    depends_on:
+      postgres:
         condition: service_healthy
     networks:
       - sesemmi

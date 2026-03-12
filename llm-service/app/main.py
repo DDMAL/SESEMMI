@@ -1,0 +1,144 @@
+import json
+import os
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
+
+from app.config import settings
+from app.llm.chain import translate_to_sparql
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if settings.rag_enabled:
+        from app.rag.store import seed_store
+
+        await seed_store()
+    if settings.langsmith_tracing and settings.langsmith_api_key:
+        os.environ["LANGSMITH_TRACING"] = "true"
+        os.environ["LANGSMITH_API_KEY"] = settings.langsmith_api_key
+        os.environ["LANGSMITH_PROJECT"] = settings.langsmith_project
+    yield
+
+
+app = FastAPI(title="SESEMI LLM Service", lifespan=lifespan)
+
+
+class TranslateRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=2000)
+
+
+class TranslateResponse(BaseModel):
+    sparql: str
+    usage: dict
+    durationMs: int
+    graphs: list[str] | None = None
+    confidence: str | None = None
+    assumptions: list[str] | None = None
+    resultCount: int | None = None
+    executionError: str | None = None
+    results: dict | None = None
+
+
+@app.post("/translate", response_model=TranslateResponse)
+async def translate(req: TranslateRequest):
+    try:
+        if settings.graph_enabled:
+            from app.graph.builder import run_graph  # lazy import
+
+            result = await run_graph(req.query)
+        else:
+            result = await translate_to_sparql(req.query)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+_STEP_LABELS = {
+    "intake": "Routing query",
+    "retrieve": "Retrieving context",
+    "generate": "Generating SPARQL",
+    "validate": "Validating",
+    "execute": "Executing",
+    "answer": "Scoring confidence",
+}
+
+
+def _step_detail(name: str, output: dict) -> str:
+    if name == "intake":
+        intent = output.get("intent", "")
+        graphs = ", ".join(output.get("target_graphs") or [])
+        return f"{intent} · {graphs}" if graphs else intent
+    if name == "retrieve":
+        qids = output.get("resolved_qids") or {}
+        n = len(qids)
+        return f"{n} QID{'s' if n != 1 else ''} resolved" if qids else ""
+    if name == "validate":
+        errors = output.get("validation_errors") or []
+        return "✓ valid" if not errors else f"✗ {errors[0]}"
+    if name == "execute":
+        err = output.get("execution_error")
+        if err:
+            return f"✗ {err[:80]}"
+        count = output.get("result_count", 0)
+        return f"{count} result{'s' if count != 1 else ''}"
+    if name == "answer":
+        return output.get("confidence", "")
+    return ""
+
+
+@app.post("/translate/stream")
+async def translate_stream(req: TranslateRequest):
+    async def event_stream():
+        try:
+            from app.graph.builder import build_graph
+
+            graph = build_graph()
+            initial_state = {
+                "user_query": req.query,
+                "repair_count": 0,
+                "max_repairs": settings.max_repair_iterations,
+            }
+            sparql = ""
+            confidence = "medium"
+            async for event in graph.astream_events(initial_state, version="v2"):
+                etype = event["event"]
+                name = event.get("name", "")
+                if etype == "on_chain_start" and name in _STEP_LABELS:
+                    yield f"event: step_start\ndata: {json.dumps({'step': name, 'label': _STEP_LABELS[name]})}\n\n"
+                elif etype == "on_chain_end" and name in _STEP_LABELS:
+                    out = (event.get("data") or {}).get("output") or {}
+                    if name == "generate" and "sparql" in out:
+                        sparql = out["sparql"]
+                    if name == "answer":
+                        confidence = out.get("confidence", confidence)
+                    detail = _step_detail(name, out)
+                    yield f"event: step_done\ndata: {json.dumps({'step': name, 'label': _STEP_LABELS[name], 'detail': detail})}\n\n"
+                elif etype == "on_chat_model_stream":
+                    if (event.get("metadata") or {}).get("langgraph_node") == "generate":
+                        chunk = (event.get("data") or {}).get("chunk")
+                        if chunk:
+                            raw = getattr(chunk, "content", "")
+                            if isinstance(raw, list):
+                                text = "".join(
+                                    part["text"] if isinstance(part, dict) and "text" in part else ""
+                                    for part in raw
+                                )
+                            else:
+                                text = raw or ""
+                        else:
+                            text = ""
+                        if text:
+                            yield f"event: token\ndata: {json.dumps({'text': text})}\n\n"
+            yield f"event: done\ndata: {json.dumps({'sparql': sparql, 'confidence': confidence})}\n\n"
+        except Exception as e:
+            yield f"event: error\ndata: {json.dumps({'message': str(e)})}\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
