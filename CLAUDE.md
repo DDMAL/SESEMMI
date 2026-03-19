@@ -34,50 +34,73 @@ make prod             # Start production stack
 
 ## Architecture
 
-**Request flow:** User NL input → `POST /api/translate` (LLM) → SPARQL editor (editable) → `POST /api/execute` (Virtuoso) → results table.
+**Request flow:** User NL input → `POST /api/translate` (Next.js proxy) → Python llm-service → LangGraph pipeline → SPARQL editor (editable) → `POST /api/execute` (Virtuoso) → results table.
 
-**Key directories:**
-- `src/app/api/` — Three route handlers: `translate`, `execute`, `health`
+**Streaming flow:** `POST /api/translate/stream` proxies SSE from Python `/translate/stream`, emitting `step_start`, `step_done`, `token`, `done`, and `error` events as the LangGraph graph runs.
+
+**Key Next.js directories:**
+- `src/app/api/` — Four route handlers: `translate`, `translate/stream`, `execute`, `health`
 - `src/components/` — UI: `NLInput`, `SparqlEditor`, `ResultsTable`, `Spinner`
 - `src/hooks/` — `useTranslate`, `useExecuteSparql` (React Query mutations)
-- `src/lib/llm/` — Google Gemini client, system prompt, 19 few-shot examples, schema context
+- `src/lib/llm/client.ts` — Thin HTTP client proxying to the Python llm-service (with 3-attempt retry)
 - `src/lib/sparql/` — Lightweight regex validator + Virtuoso HTTP client
 - `src/lib/` — `env.ts` (Zod env validation), `feature-flags.ts`, `rate-limit.ts`, `logger.ts`
 
 **Python LLM microservice** (`llm-service/`):
-- FastAPI service exposing `POST /translate` → `{ sparql, usage, durationMs }` and `GET /health`
-- Configured via `pydantic-settings` in `app/config.py` (env vars: `LLM_API_KEY`, `LLM_MODEL`, `DATABASE_URL`, `RAG_ENABLED`, `RAG_TOP_K`, `FEW_SHOT_ENABLED`)
-- Uses `langchain-google-genai` with `gemini-2.5-flash-lite` (same model as Next.js app)
-- RAG via `langchain-postgres` (pgvector) — seeded from `app/rag/corpus.py` on startup when `RAG_ENABLED=true`
+- FastAPI service exposing `POST /translate`, `POST /translate/stream`, and `GET /health`
+- Configured via `pydantic-settings` in `app/config.py`
 - Package manager: `uv`; formatter: `black`; test runner: `pytest` with `asyncio_mode = auto`
-- Migration in progress (see `LANGGRAPH_MIGRATION_PLAN.md`): replacing simple `prompt | model` chain with a LangGraph `StateGraph` pipeline (graph routing → RAG retrieval → generate → validate/repair loop)
 
-**Next.js LLM integration** (`src/lib/llm/`):
-- Model: `gemini-2.5-flash-lite` via `@ai-sdk/google`
-- `prompt.ts` builds the system prompt embedding schema context + few-shot examples
-- `schema-context.ts` contains all graph IRIs, prefixes, and ontology rules for the 7 databases
-- `examples.ts` contains 24 SPARQL examples covering single-graph, aggregation, federated, and cross-database queries
+**LangGraph pipeline** (`llm-service/app/graph/`):
+- Active by default (`GRAPH_ENABLED=true`); falls back to simple chain if disabled
+- Nodes: `intake` → `retrieve` → `generate` → `validate` → `execute` → `answer`
+- Conditional edges: after `validate`, loops back to `generate` on invalid SPARQL (up to `MAX_REPAIR_ITERATIONS`); after `answer`, semantic judge (`SEMANTIC_JUDGE_ENABLED`) can trigger a regeneration loop
+- State is typed in `app/graph/state.py` (`GraphState` TypedDict)
+- Graph tools: `sparql_execute` (runs query against Virtuoso), `wikidata` (resolves entity QIDs)
+- RAG via `langchain-postgres` (pgvector) — seeded on startup when `RAG_ENABLED=true`
+
+**LLM prompting** (`llm-service/app/llm/`):
+- Model: `gemini-2.5-flash-lite` via `langchain-google-genai`
+- `prompt.py` builds the system prompt; `schema_context.py` has all graph IRIs, prefixes, and ontology rules; `examples.py` has SPARQL few-shot examples
 - Prompt instructs the model to output raw SPARQL only (no markdown fences)
-- Feature flag `FEATURE_RAG_ENABLED` enables dynamic example selection (Phase 3)
 
 **SPARQL validation** (`src/lib/sparql/validate.ts`):
 - Lightweight regex-based pre-check (empty, missing SELECT/CONSTRUCT/ASK/DESCRIBE, unbalanced braces, missing WHERE)
-- Not a full parser—defers complex syntax errors to Virtuoso response
+- Not a full parser — defers complex syntax errors to Virtuoso response
 
 **Rate limiting** (`src/lib/rate-limit.ts`):
 - In-memory Map per IP; translate: 10 req/min, execute: 20 req/min
 
 ## Environment Variables
 
-Validated at startup via Zod in `src/lib/env.ts`:
+**Next.js** (validated at startup via Zod in `src/lib/env.ts`):
 
 | Variable | Required | Default |
 |---|---|---|
 | `VIRTUOSO_ENDPOINT` | yes | — |
+| `LLM_SERVICE_URL` | no | `http://llm:8000` |
 | `LLM_API_KEY` | yes | — |
-| `LLM_MODEL` | no | `gemini-2.5-flash-lite` |
 | `LOG_LEVEL` | no | `info` |
-| `FEATURE_RAG_ENABLED` | no | `false` |
+
+**Python llm-service** (via `pydantic-settings` in `app/config.py`):
+
+| Variable | Default |
+|---|---|
+| `LLM_API_KEY` | required |
+| `LLM_MODEL` | `gemini-2.5-flash-lite` |
+| `EMBEDDING_MODEL` | `gemini-embedding-001` |
+| `GRAPH_ENABLED` | `true` |
+| `RAG_ENABLED` | `false` |
+| `RAG_TOP_K` | `5` |
+| `FEW_SHOT_ENABLED` | `false` |
+| `DATABASE_URL` | `postgresql+psycopg://postgres:postgres@postgres:5432/sesemmi` |
+| `VIRTUOSO_ENDPOINT` | `http://virtuoso:8890/sparql` |
+| `MAX_REPAIR_ITERATIONS` | `3` |
+| `SEMANTIC_JUDGE_ENABLED` | `true` |
+| `SPARQL_TIMEOUT` | `120` (seconds) |
+| `LANGSMITH_TRACING` | `false` |
+| `LANGSMITH_API_KEY` | `None` |
+| `LANGSMITH_PROJECT` | `sesemmi-agent` |
 
 Copy `.env.example` to `.env.local` for local development.
 

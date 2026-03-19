@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+.pytest_cache/
 
 # next.js
 /.next/
@@ -43,6 +44,11 @@ next-env.d.ts
 
 # python
 __pycache__/
+.venv/
+.langgraph_api/
 
 # llm
 .claude
+
+# docs
+.docs/
