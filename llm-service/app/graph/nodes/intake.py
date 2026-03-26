@@ -1,7 +1,7 @@
 import logging
 from typing import Literal
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
 from pydantic import BaseModel
 
 from app.config import settings
@@ -75,10 +75,13 @@ Query: {user_query}"""
 
 
 async def intake_node(state: GraphState) -> dict:
-    model = ChatGoogleGenerativeAI(
+    model = ChatOllama(
         model=settings.llm_model,
-        google_api_key=settings.llm_api_key,
+        base_url=settings.ollama_base_url,
         temperature=0,
+        num_ctx=settings.ollama_num_ctx,
+        num_thread=settings.ollama_num_thread,
+        think=settings.ollama_think,
     )
     structured = model.with_structured_output(IntakeClassification)
     prompt = _PROMPT_TEMPLATE.format(db_list=_DB_LIST, user_query=state["user_query"])

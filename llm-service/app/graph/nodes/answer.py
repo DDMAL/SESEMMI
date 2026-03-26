@@ -1,6 +1,6 @@
 import logging
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
 from pydantic import BaseModel
 
 from app.config import settings
@@ -64,10 +64,13 @@ async def answer_node(state: GraphState) -> dict:
         )
         sample = bindings[:5]
 
-        judge_model = ChatGoogleGenerativeAI(
+        judge_model = ChatOllama(
             model=settings.llm_model,
-            google_api_key=settings.llm_api_key,
+            base_url=settings.ollama_base_url,
             temperature=0,
+            num_ctx=settings.ollama_num_ctx,
+            num_thread=settings.ollama_num_thread,
+            think=settings.ollama_think,
         ).with_structured_output(_JudgeVerdict)
 
         judge_prompt = _JUDGE_PROMPT.format(
