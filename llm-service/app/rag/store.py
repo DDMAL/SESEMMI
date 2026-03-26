@@ -4,7 +4,7 @@ import uuid
 
 from langchain_postgres import PGVector
 from langchain_core.documents import Document
-from app.rag.embeddings import embeddings
+from app.rag.embeddings import get_embeddings
 from app.rag.corpus import RAG_CORPUS
 from app.config import settings
 
@@ -65,7 +65,7 @@ def get_vector_store() -> PGVector:
     global _store
     if _store is None:
         _store = PGVector(
-            embeddings=embeddings,
+            embeddings=get_embeddings(),
             collection_name="sparql_examples",
             connection=settings.database_url,
             use_jsonb=True,
@@ -74,7 +74,17 @@ def get_vector_store() -> PGVector:
 
 
 async def seed_store() -> None:
-    store = get_vector_store()
+    global _store
+    # Drop and recreate the collection on every startup to handle embedding
+    # model changes (e.g., dimension shifts between Gemini and Ollama).
+    # Safe because the corpus is static (24 hardcoded examples).
+    _store = PGVector(
+        embeddings=get_embeddings(),
+        collection_name="sparql_examples",
+        connection=settings.database_url,
+        use_jsonb=True,
+        pre_delete_collection=True,
+    )
     docs = [
         Document(
             page_content=ex["nl"],
@@ -83,4 +93,4 @@ async def seed_store() -> None:
         for ex in RAG_CORPUS
     ]
     ids = [_example_id(ex) for ex in RAG_CORPUS]
-    store.add_documents(docs, ids=ids)
+    _store.add_documents(docs, ids=ids)

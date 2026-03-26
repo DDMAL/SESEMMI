@@ -1,7 +1,7 @@
 import re
 import time
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
 
 from app.config import settings
 from app.llm.examples import FEW_SHOT_EXAMPLES
@@ -62,10 +62,13 @@ async def translate_to_sparql(
         examples = []
 
     prompt = build_prompt_template()
-    model = ChatGoogleGenerativeAI(
+    model = ChatOllama(
         model=settings.llm_model,
-        google_api_key=settings.llm_api_key,
+        base_url=settings.ollama_base_url,
         temperature=0,
+        num_ctx=settings.ollama_num_ctx,  # context length
+        num_thread=settings.ollama_num_thread,
+        think=settings.ollama_think,
     )
     chain = prompt | model
 

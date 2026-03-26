@@ -1,7 +1,14 @@
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_ollama import OllamaEmbeddings
 from app.config import settings
 
-embeddings = GoogleGenerativeAIEmbeddings(
-    model=settings.embedding_model,
-    google_api_key=settings.llm_api_key,
-)
+_embeddings = None
+
+
+def get_embeddings():
+    global _embeddings
+    if _embeddings is None:
+        _embeddings = OllamaEmbeddings(
+            model=settings.embedding_model,
+            base_url=settings.ollama_base_url,
+        )
+    return _embeddings

@@ -1,7 +1,7 @@
 import logging
 
 from langchain_core.messages import HumanMessage, ToolMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
 
 from app.config import settings
 from app.graph.state import GraphState
@@ -79,10 +79,13 @@ async def generate_node(state: GraphState) -> dict:
     prompt_text = _build_prompt(state, is_repair, repair_count)
 
     mentions_entities = state.get("mentions_entities", False)
-    base_model = ChatGoogleGenerativeAI(
+    base_model = ChatOllama(
         model=settings.llm_model,
-        google_api_key=settings.llm_api_key,
+        base_url=settings.ollama_base_url,
         temperature=0,
+        num_ctx=settings.ollama_num_ctx,
+        num_thread=settings.ollama_num_thread,
+        think=settings.ollama_think,
     )
     model = base_model.bind_tools([wikidata_qid_lookup]) if mentions_entities else base_model
 

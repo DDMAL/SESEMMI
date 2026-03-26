@@ -32,6 +32,41 @@ services:
     networks:
       - sesemmi
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: sesemmi-ollama
+    volumes:
+      - sesemmi_ollama_models:/root/.ollama
+    networks:
+      - sesemmi
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  ollama-init:
+    # One-shot: pulls models into the shared volume.
+    # Skips download on subsequent runs if the model is already cached.
+    # Also pulls the embedding model when RAG_ENABLED=true.
+    image: ollama/ollama:latest
+    container_name: sesemmi-ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    env_file: .env
+    entrypoint: >
+      sh -c "
+        OLLAMA_HOST=http://ollama:11434 ollama pull ${LLM_MODEL:-qwen3:1.7b};
+        if [ \"${RAG_ENABLED:-false}\" = \"true\" ]; then
+          OLLAMA_HOST=http://ollama:11434 ollama pull ${EMBEDDING_MODEL:-nomic-embed-text};
+        fi
+      "
+    networks:
+      - sesemmi
+    restart: "no"
+
   llm:
     build:
       context: ./llm-service
@@ -39,9 +74,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      ollama-init:
+        condition: service_completed_successfully
     networks:
       - sesemmi
 
 networks:
   sesemmi:
     driver: bridge
+
+volumes:
+  sesemmi_ollama_models:
