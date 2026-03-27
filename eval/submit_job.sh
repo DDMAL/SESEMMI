@@ -31,6 +31,10 @@ export RAG_ENABLED="${RAG_ENABLED:-false}"
 export FEW_SHOT_ENABLED="${FEW_SHOT_ENABLED:-false}"
 export SPARQL_TIMEOUT="${SPARQL_TIMEOUT:-120}"
 
+# LangSmith (set LANGSMITH_API_KEY in ~/.bashrc, forwarded via sbatch --export=ALL)
+export LANGSMITH_TRACING="${LANGSMITH_TRACING:-true}"
+export LANGSMITH_PROJECT="${LANGSMITH_PROJECT:-sesemmi-eval}"
+
 # ── Paths ──
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 VENV_DIR="${PROJECT_DIR}/.venv-eval"
