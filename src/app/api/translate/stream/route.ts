@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query: body.query }),
+    cache: "no-store",
   }).catch((err) => {
     logger.error({ event: "api_error", route: "/api/translate/stream", error: String(err) });
     return null;
@@ -37,6 +38,7 @@ export async function POST(req: NextRequest) {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
       "X-Accel-Buffering": "no",
     },
   });

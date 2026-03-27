@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Disable the compression middleware so SSE chunks are flushed immediately
+  // in production standalone mode (the middleware wraps res.write() in a way
+  // that disrupts streaming even when no compression is applied).
+  compress: false,
 
   async headers() {
     return [
