@@ -8,6 +8,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --output=eval/runs/%x-%j.out
 #SBATCH --error=eval/runs/%x-%j.err
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=yinan.a.zhou@gmail.com
 
 # ── Configurable parameters (override via sbatch --export=ALL,...) ──
 EVAL_QUERY="${EVAL_QUERY:-}"            # single query mode (takes precedence over EVAL_DATA)
