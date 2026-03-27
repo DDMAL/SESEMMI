@@ -1,0 +1,12 @@
+[
+    {"id": "q-001", "query": "Find all compositions in DIAMM by Guillaume de Machaut"},
+    {"id": "q-002", "query": "How many tunes are in The Session?"},
+    {"id": "q-003", "query": "List recordings in MusicBrainz by Taylor Swift"},
+    {"id": "q-004", "query": "What chants in Cantus DB are in mode 1?"},
+    {"id": "q-005", "query": "Find jazz solos in Dig That Lick that use the blues scale"},
+    {"id": "q-006", "query": "How many sources are in RISM from the 18th century?"},
+    {"id": "q-007", "query": "Compare the number of compositions in DIAMM and RISM"},
+    {"id": "q-008", "query": "Find all sessions in The Session that originated in Ireland"},
+    {"id": "q-009", "query": "What recordings by The Global Jukebox are from West Africa?"},
+    {"id": "q-010", "query": "List all MusicBrainz artists who are also in Wikidata"}
+]
