@@ -38,7 +38,7 @@ export LANGSMITH_TRACING="${LANGSMITH_TRACING:-true}"
 export LANGSMITH_PROJECT="${LANGSMITH_PROJECT:-sesemmi-eval}"
 
 # ── Paths ──
-PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PROJECT_DIR="${SLURM_SUBMIT_DIR:-.}"
 VENV_DIR="${PROJECT_DIR}/.venv-eval"
 OUTPUT_DIR="${SCRATCH:-${PROJECT_DIR}}/sesemmi-evals"
 
