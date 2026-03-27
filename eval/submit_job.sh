@@ -48,7 +48,7 @@ trap cleanup EXIT
 # ── Module and venv setup ──
 echo "=== Setting up environment ==="
 module load python/3.11 2>/dev/null || module load python 2>/dev/null
-module load ollama 2>/dev/null  # may not exist; fall back to PATH or apptainer
+module load StdEnv/2023 apptainer/1.4.5
 
 if [ ! -d "$VENV_DIR" ]; then
     echo "Creating virtualenv at $VENV_DIR"
@@ -64,7 +64,7 @@ fi
 
 # ── Start Ollama ──
 echo "=== Starting Ollama ==="
-ollama serve &
+apptainer run --nv ~/ollama.sif serve &
 OLLAMA_PID=$!
 
 # Wait for Ollama to be ready
@@ -82,7 +82,7 @@ done
 
 # Pull model if not cached
 echo "Pulling model: $LLM_MODEL"
-ollama pull "$LLM_MODEL"
+apptainer run --nv ~/ollama.sif pull "$LLM_MODEL"
 
 # ── Start llm-service ──
 echo "=== Starting llm-service on port $SERVICE_PORT ==="
