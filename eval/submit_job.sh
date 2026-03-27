@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=sesemmi-eval
-#SBATCH --account=def-ichiro
+#SBATCH --account=def-ichiro_gpu
 #SBATCH --time=04:00:00
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
