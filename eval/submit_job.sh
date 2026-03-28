@@ -142,13 +142,16 @@ echo "=== Starting llm-service on port $SERVICE_PORT ==="
 UVICORN_PID=$!
 
 # Wait for llm-service health check
-for i in $(seq 1 60); do
+# When RAG_ENABLED=true, startup includes pgvector table creation (~30s) and
+# first-time embedding model load into GPU memory (~25s), so allow 180s.
+HEALTH_TIMEOUT=180
+for i in $(seq 1 $HEALTH_TIMEOUT); do
     if curl -sf "http://localhost:${SERVICE_PORT}/health" >/dev/null 2>&1; then
         echo "llm-service is ready"
         break
     fi
-    if [ "$i" -eq 60 ]; then
-        echo "ERROR: llm-service failed to start after 60s" >&2
+    if [ "$i" -eq "$HEALTH_TIMEOUT" ]; then
+        echo "ERROR: llm-service failed to start after ${HEALTH_TIMEOUT}s" >&2
         exit 1
     fi
     sleep 1
