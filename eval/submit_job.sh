@@ -29,8 +29,9 @@ export GRAPH_ENABLED="${GRAPH_ENABLED:-true}"
 export SEMANTIC_JUDGE_ENABLED="${SEMANTIC_JUDGE_ENABLED:-true}"
 export MAX_REPAIR_ITERATIONS="${MAX_REPAIR_ITERATIONS:-3}"
 export VIRTUOSO_ENDPOINT="${VIRTUOSO_ENDPOINT:-https://virtuoso.simssa.ca/sparql}"
-export RAG_ENABLED="${RAG_ENABLED:-false}"
+export RAG_ENABLED="${RAG_ENABLED:-true}"
 export FEW_SHOT_ENABLED="${FEW_SHOT_ENABLED:-false}"
+export EMBEDDING_MODEL="${EMBEDDING_MODEL:-nomic-embed-text}"
 export SPARQL_TIMEOUT="${SPARQL_TIMEOUT:-120}"
 
 # LangSmith (set LANGSMITH_API_KEY in ~/.bashrc, forwarded via sbatch --export=ALL)
@@ -46,8 +47,9 @@ OUTPUT_DIR="${SCRATCH:-${PROJECT_DIR}}/sesemmi-evals"
 # ── Cleanup on exit ──
 cleanup() {
     echo "Cleaning up..."
-    [ -n "$UVICORN_PID" ] && kill "$UVICORN_PID" 2>/dev/null
-    [ -n "$OLLAMA_PID" ] && kill "$OLLAMA_PID" 2>/dev/null
+    [ -n "$UVICORN_PID" ]   && kill "$UVICORN_PID"   2>/dev/null
+    [ -n "$OLLAMA_PID" ]    && kill "$OLLAMA_PID"    2>/dev/null
+    [ -n "$POSTGRES_PID" ]  && kill "$POSTGRES_PID"  2>/dev/null
     wait 2>/dev/null
 }
 trap cleanup EXIT
@@ -90,6 +92,49 @@ done
 # Pull model if not cached
 echo "Pulling model: $LLM_MODEL"
 apptainer run --nv ~/ollama.sif pull "$LLM_MODEL"
+
+# ── Start PostgreSQL (only when RAG is enabled) ──
+if [ "${RAG_ENABLED}" = "true" ]; then
+    echo "=== Starting PostgreSQL ==="
+    PGPORT="${PGPORT:-15432}"  # non-standard port to avoid system conflicts
+    PGDATA="${SCRATCH:-${PROJECT_DIR}}/sesemmi-pgdata"
+    mkdir -p "$PGDATA"
+
+    # Initialize cluster if needed (idempotent)
+    if [ ! -f "$PGDATA/PG_VERSION" ]; then
+        apptainer exec ~/postgres-pgvector.sif initdb -D "$PGDATA"
+    fi
+
+    # Start postgres in background; -k "" disables Unix socket (read-only in Apptainer)
+    apptainer exec ~/postgres-pgvector.sif \
+        postgres -D "$PGDATA" -p "$PGPORT" -k "" &
+    POSTGRES_PID=$!
+
+    # Wait for it to be ready
+    for i in $(seq 1 30); do
+        if apptainer exec ~/postgres-pgvector.sif \
+               pg_isready -h localhost -p "$PGPORT" >/dev/null 2>&1; then
+            echo "PostgreSQL is ready"
+            break
+        fi
+        if [ "$i" -eq 30 ]; then
+            echo "ERROR: PostgreSQL failed to start after 30s" >&2
+            exit 1
+        fi
+        sleep 1
+    done
+
+    # Create database (idempotent)
+    apptainer exec ~/postgres-pgvector.sif \
+        psql -h localhost -p "$PGPORT" -d postgres \
+        -c "CREATE DATABASE sesemmi;" 2>/dev/null || true
+
+    export DATABASE_URL="postgresql+psycopg://$(whoami)@localhost:${PGPORT}/sesemmi"
+
+    # Pull embedding model
+    echo "Pulling embedding model: $EMBEDDING_MODEL"
+    apptainer run --nv ~/ollama.sif pull "$EMBEDDING_MODEL"
+fi
 
 # ── Start llm-service ──
 echo "=== Starting llm-service on port $SERVICE_PORT ==="
