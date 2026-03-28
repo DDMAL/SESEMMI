@@ -1,3 +1,19 @@
+# Normalize non-standard package version strings (e.g., '3+computecanada' on HPC systems)
+# before langsmith loads — it calls tuple(map(int, version.split("."))) which crashes
+# on non-semver strings (langsmith/client.py _default_retry_config).
+import importlib.metadata as _importlib_metadata
+import re as _re
+
+_orig_metadata_version = _importlib_metadata.version
+
+
+def _safe_metadata_version(package: str) -> str:
+    ver = _orig_metadata_version(package)
+    return _re.split(r"[+\-]", ver)[0]
+
+
+_importlib_metadata.version = _safe_metadata_version
+
 import json
 import os
 from contextlib import asynccontextmanager
