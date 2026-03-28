@@ -54,7 +54,7 @@ trap cleanup EXIT
 
 # ── Module and venv setup ──
 echo "=== Setting up environment ==="
-module load python/3.11 2>/dev/null || module load python 2>/dev/null
+module load python/3.12 2>/dev/null || module load python 2>/dev/null
 module load StdEnv/2023 apptainer/1.4.5
 
 if [ ! -d "$VENV_DIR" ]; then
