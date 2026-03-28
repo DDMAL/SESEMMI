@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=sesemmi-eval
 #SBATCH --account=def-ichiro_gpu
-#SBATCH --time=03:00:00
+#SBATCH --time=01:00:00
 #SBATCH --partition=gpubase_bygpu_b1
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
@@ -38,7 +38,8 @@ export LANGSMITH_TRACING="${LANGSMITH_TRACING:-true}"
 export LANGSMITH_PROJECT="${LANGSMITH_PROJECT:-sesemmi-eval}"
 
 # ── Paths ──
-PROJECT_DIR="${SLURM_SUBMIT_DIR:-.}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="${SLURM_SUBMIT_DIR:-$(dirname "$SCRIPT_DIR")}"
 VENV_DIR="${PROJECT_DIR}/.venv-eval"
 OUTPUT_DIR="${SCRATCH:-${PROJECT_DIR}}/sesemmi-evals"
 
@@ -92,10 +93,8 @@ apptainer run --nv ~/ollama.sif pull "$LLM_MODEL"
 
 # ── Start llm-service ──
 echo "=== Starting llm-service on port $SERVICE_PORT ==="
-cd "$PROJECT_DIR/llm-service"
-uvicorn app.main:app --host 0.0.0.0 --port "$SERVICE_PORT" &
+(cd "$PROJECT_DIR/llm-service" && uvicorn app.main:app --host 0.0.0.0 --port "$SERVICE_PORT") &
 UVICORN_PID=$!
-cd "$PROJECT_DIR"
 
 # Wait for llm-service health check
 for i in $(seq 1 60); do
