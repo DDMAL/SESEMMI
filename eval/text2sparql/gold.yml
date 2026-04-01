@@ -1,0 +1,64 @@
+# Gold SPARQL queries for text2sparql evaluation.
+#
+# Each key maps a question ID (from questions.yml) to the reference SPARQL query.
+# The submit_eval.sh script converts this to the JSON format text2sparql-client expects.
+#
+# To add ground truth, replace the TODO comments with valid SPARQL queries
+# that return correct results when executed against https://virtuoso.simssa.ca/sparql
+queries:
+  1: |
+    PREFIX wd:    <http://www.wikidata.org/entity/>
+    PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+    PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+    SELECT ?composition
+    WHERE {
+      GRAPH diamm: {
+        ?composer wdt:P2888 wd:Q447968 .
+        ?composition wdt:P86 ?composer .
+      }
+    }
+    LIMIT 100
+  2: |
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
+    SELECT (COUNT(?tune) AS ?tuneCount)
+    WHERE {
+      GRAPH ts: {
+        ?tune a ts:Tune .
+      }
+    }
+  3: |
+    PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX wd:   <http://www.wikidata.org/entity/>
+    PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+    PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+    SELECT ?recording
+    WHERE {
+      GRAPH mb: {
+        ?artist a mb:Artist ;
+                wdt:P2888 wd:Q704041 .
+        ?recording a mb:Recording ;
+                   wdt:P175 ?artist .
+      }
+    }
+    LIMIT 100
+  4: |
+    PREFIX wd:   <http://www.wikidata.org/entity/>
+    PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+    PREFIX cdb:  <https://linkedmusic.ca/graphs/cantusdb/>
+    SELECT ?chant
+    WHERE {
+      GRAPH cdb: {
+        ?chant wdt:P826 wd:Q960729 .
+      }
+    }
+    LIMIT 100
+  5: |
+    PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX dtl:  <https://linkedmusic.ca/graphs/dig-that-lick/>
+    SELECT ?solo
+    WHERE {
+      GRAPH dtl: {
+        ?solo rdf:type dtl:Solo .
+      }
+    }
