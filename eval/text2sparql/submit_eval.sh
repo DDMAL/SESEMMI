@@ -260,16 +260,6 @@ else
     echo "No gold SPARQL file found at $GOLD_PATH, skipping ground truth evaluation"
 fi
 
-# Also run the original eval for backwards-compatible output (results.jsonl, summary.json)
-echo ""
-echo "--- Running legacy eval (run_eval.py) ---"
-python "$PROJECT_DIR/eval/run_eval.py" \
-    --data "$PROJECT_DIR/eval/queries.json" \
-    --service-url "http://localhost:${SERVICE_PORT}" \
-    --output-dir "$RUN_DIR" \
-    --run-name "legacy" \
-    --timeout "$EVAL_TIMEOUT"
-
 echo ""
 echo "=== Job complete ==="
 echo "Results: $RUN_DIR/"
