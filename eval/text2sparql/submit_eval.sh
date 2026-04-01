@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=sesemmi-t2s-eval
 #SBATCH --account=def-ichiro_gpu
-#SBATCH --time=01:00:00
+#SBATCH --time=02:00:00
 #SBATCH --partition=gpubase_bygpu_b1
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
