@@ -1,0 +1,20 @@
+dataset:
+  id: sesemmi
+  prefix: sesemmi
+
+questions:
+  - id: 1
+    question:
+      en: "Find all compositions in DIAMM by John Ward"
+  - id: 2
+    question:
+      en: "How many tunes are in The Session?"
+  - id: 3
+    question:
+      en: "List recordings in MusicBrainz by Eason Chan"
+  - id: 4
+    question:
+      en: "What chants in Cantus DB are in mode 1?"
+  - id: 5
+    question:
+      en: "Find jazz solos in Dig That Lick that use the blues scale"
