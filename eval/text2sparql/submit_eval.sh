@@ -50,10 +50,13 @@ mkdir -p "$RUN_DIR"
 # ── Cleanup on exit ──
 cleanup() {
     echo "Cleaning up..."
-    [ -n "$ADAPTER_PID" ]  && kill "$ADAPTER_PID"  2>/dev/null
-    [ -n "$UVICORN_PID" ]  && kill "$UVICORN_PID"  2>/dev/null
-    [ -n "$OLLAMA_PID" ]   && kill "$OLLAMA_PID"   2>/dev/null
-    [ -n "$POSTGRES_PID" ] && kill "$POSTGRES_PID" 2>/dev/null
+    for pid in $ADAPTER_PID $UVICORN_PID $OLLAMA_PID $POSTGRES_PID; do
+        [ -n "$pid" ] && kill "$pid" 2>/dev/null
+    done
+    sleep 2
+    for pid in $ADAPTER_PID $UVICORN_PID $OLLAMA_PID $POSTGRES_PID; do
+        [ -n "$pid" ] && kill -9 "$pid" 2>/dev/null
+    done
     wait 2>/dev/null
 }
 trap cleanup EXIT
