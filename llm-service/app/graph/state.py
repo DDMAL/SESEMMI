@@ -29,7 +29,7 @@ class GraphState(TypedDict, total=False):
     result_count: int
     results: dict | None
 
-    # Semantic judge (answer node, optional)
+    # Semantic judge (judge node, optional)
     judge_feedback: str | None  # LLM judge's reason if results don't satisfy intent
 
     # Loop control
