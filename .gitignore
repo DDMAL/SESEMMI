@@ -55,3 +55,8 @@ eval/runs/
 
 # docs
 docs/
+
+# DRAC
+.venv-eval/
+responses.db
+retries.log
