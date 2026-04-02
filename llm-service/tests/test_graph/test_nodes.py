@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from langchain_core.messages import AIMessage
 
-from app.graph.nodes.answer import answer_node
+from app.graph.nodes.judge import answer_node
 from app.graph.nodes.execute import execute_node
 from app.graph.nodes.generate import generate_node
 from app.graph.nodes.intake import IntakeClassification, intake_node
@@ -310,13 +310,24 @@ async def test_generate_tool_loop_exhaustion_forces_final_call():
     # First _MAX_TOOL_ITERATIONS responses all have tool_calls; the final forced call returns SPARQL.
     tool_response = AIMessage(
         content="",
-        tool_calls=[{"name": "wikidata_qid_lookup", "args": {"entity_name": "Ireland"}, "id": "call_1"}],
+        tool_calls=[
+            {
+                "name": "wikidata_qid_lookup",
+                "args": {"entity_name": "Ireland"},
+                "id": "call_1",
+            }
+        ],
     )
     final_response = AIMessage(content=good_sparql)
 
     mock_model = AsyncMock()
     # Return tool_response 3 times, then good SPARQL on the 4th (forced) call
-    mock_model.ainvoke.side_effect = [tool_response, tool_response, tool_response, final_response]
+    mock_model.ainvoke.side_effect = [
+        tool_response,
+        tool_response,
+        tool_response,
+        final_response,
+    ]
 
     mock_chat = MagicMock()
     mock_chat.bind_tools.return_value = mock_model
@@ -330,9 +341,13 @@ async def test_generate_tool_loop_exhaustion_forces_final_call():
         "extracted_entities": ["entity"],
     }
 
-    with patch("app.graph.nodes.generate.ChatGoogleGenerativeAI", return_value=mock_chat):
+    with patch(
+        "app.graph.nodes.generate.ChatGoogleGenerativeAI", return_value=mock_chat
+    ):
         with patch("app.graph.nodes.generate.wikidata_qid_lookup") as mock_tool:
-            mock_tool.ainvoke = AsyncMock(return_value=[{"qid": "Q27", "label": "Ireland"}])
+            mock_tool.ainvoke = AsyncMock(
+                return_value=[{"qid": "Q27", "label": "Ireland"}]
+            )
             result = await generate_node(state)
 
     assert result["sparql"]
@@ -459,8 +474,6 @@ async def test_validate_aggregation_missing_count():
     )
 
 
-
-
 # ---------------------------------------------------------------------------
 # Execute node
 # ---------------------------------------------------------------------------
@@ -521,7 +534,7 @@ async def test_answer_high_confidence():
         "result_count": 3,
         "results": {"results": {"bindings": [{}, {}, {}]}},
     }
-    with patch("app.graph.nodes.answer.settings") as mock_settings:
+    with patch("app.graph.nodes.judge.settings") as mock_settings:
         mock_settings.semantic_judge_enabled = False
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
@@ -541,7 +554,7 @@ async def test_answer_low_confidence_max_repairs():
         "results": None,
         "repair_count": 3,
     }
-    with patch("app.graph.nodes.answer.settings") as mock_settings:
+    with patch("app.graph.nodes.judge.settings") as mock_settings:
         mock_settings.semantic_judge_enabled = False
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
@@ -581,13 +594,13 @@ async def test_answer_judge_satisfied():
     mock_chat, _ = _mock_judge_llm(satisfied=True)
     state = {**_JUDGE_STATE, "repair_count": 0}
 
-    with patch("app.graph.nodes.answer.settings") as mock_settings:
+    with patch("app.graph.nodes.judge.settings") as mock_settings:
         mock_settings.semantic_judge_enabled = True
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
         with patch(
-            "app.graph.nodes.answer.ChatGoogleGenerativeAI", return_value=mock_chat
+            "app.graph.nodes.judge.ChatGoogleGenerativeAI", return_value=mock_chat
         ):
             result = await answer_node(state)
 
@@ -600,13 +613,13 @@ async def test_answer_judge_unsatisfied_repairs_left():
     mock_chat, _ = _mock_judge_llm(satisfied=False, reason="Missing time filter")
     state = {**_JUDGE_STATE, "repair_count": 0, "max_repairs": 3}
 
-    with patch("app.graph.nodes.answer.settings") as mock_settings:
+    with patch("app.graph.nodes.judge.settings") as mock_settings:
         mock_settings.semantic_judge_enabled = True
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
         with patch(
-            "app.graph.nodes.answer.ChatGoogleGenerativeAI", return_value=mock_chat
+            "app.graph.nodes.judge.ChatGoogleGenerativeAI", return_value=mock_chat
         ):
             result = await answer_node(state)
 
@@ -618,13 +631,13 @@ async def test_answer_judge_unsatisfied_exhausted():
     mock_chat, _ = _mock_judge_llm(satisfied=False, reason="Still wrong")
     state = {**_JUDGE_STATE, "repair_count": 3, "max_repairs": 3}
 
-    with patch("app.graph.nodes.answer.settings") as mock_settings:
+    with patch("app.graph.nodes.judge.settings") as mock_settings:
         mock_settings.semantic_judge_enabled = True
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
         with patch(
-            "app.graph.nodes.answer.ChatGoogleGenerativeAI", return_value=mock_chat
+            "app.graph.nodes.judge.ChatGoogleGenerativeAI", return_value=mock_chat
         ):
             result = await answer_node(state)
 

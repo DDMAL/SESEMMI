@@ -115,7 +115,7 @@ def _judge_mock(*verdicts: tuple[bool, str]):
 
 
 def _answer_settings(*, semantic_judge_enabled: bool = False):
-    """Return a settings mock suitable for patching app.graph.nodes.answer.settings."""
+    """Return a settings mock suitable for patching app.graph.nodes.judge.settings."""
     s = MagicMock()
     s.semantic_judge_enabled = semantic_judge_enabled
     s.llm_model = "gemini-2.5-flash-lite"
@@ -131,7 +131,7 @@ def _answer_settings(*, semantic_judge_enabled: bool = False):
 
 async def test_happy_path():
     """
-    Full graph: intake → retrieve → generate → validate → execute → answer.
+    Full graph: intake → retrieve → generate → validate → execute → judge.
     Valid SPARQL + Virtuoso 200 → confidence='high', results populated, no repairs.
     """
     with (
@@ -144,7 +144,7 @@ async def test_happy_path():
             return_value=_generate_mock(_VALID_SPARQL),
         ),
         patch(
-            "app.graph.nodes.answer.settings",
+            "app.graph.nodes.judge.settings",
             new=_answer_settings(semantic_judge_enabled=False),
         ),
         patch(
@@ -155,7 +155,11 @@ async def test_happy_path():
     ):
         graph = build_graph()
         final = await graph.ainvoke(
-            {"user_query": "Find DIAMM manuscripts", "repair_count": 0, "max_repairs": 3}
+            {
+                "user_query": "Find DIAMM manuscripts",
+                "repair_count": 0,
+                "max_repairs": 3,
+            }
         )
 
     assert final["confidence"] == "high"
@@ -181,7 +185,7 @@ async def test_repair_loop_invalid_then_valid():
             return_value=_generate_mock(_INVALID_SPARQL, _VALID_SPARQL),
         ),
         patch(
-            "app.graph.nodes.answer.settings",
+            "app.graph.nodes.judge.settings",
             new=_answer_settings(semantic_judge_enabled=False),
         ),
         patch(
@@ -192,7 +196,11 @@ async def test_repair_loop_invalid_then_valid():
     ):
         graph = build_graph()
         final = await graph.ainvoke(
-            {"user_query": "Find DIAMM manuscripts", "repair_count": 0, "max_repairs": 3}
+            {
+                "user_query": "Find DIAMM manuscripts",
+                "repair_count": 0,
+                "max_repairs": 3,
+            }
         )
 
     assert final["repair_count"] == 1
@@ -203,7 +211,7 @@ async def test_repair_loop_invalid_then_valid():
 async def test_max_repairs_exceeded():
     """
     Always-invalid SPARQL: with max_repairs=1 the graph generates twice
-    (original + 1 repair), then routes to answer with confidence='low'.
+    (original + 1 repair), then routes to judge with confidence='low'.
     """
     with (
         patch(
@@ -215,14 +223,18 @@ async def test_max_repairs_exceeded():
             return_value=_generate_mock(_INVALID_SPARQL, _INVALID_SPARQL),
         ),
         patch(
-            "app.graph.nodes.answer.settings",
+            "app.graph.nodes.judge.settings",
             new=_answer_settings(semantic_judge_enabled=False),
         ),
         patch("app.graph.nodes.execute.execute_sparql", new_callable=AsyncMock),
     ):
         graph = build_graph()
         final = await graph.ainvoke(
-            {"user_query": "Find DIAMM manuscripts", "repair_count": 0, "max_repairs": 1}
+            {
+                "user_query": "Find DIAMM manuscripts",
+                "repair_count": 0,
+                "max_repairs": 1,
+            }
         )
 
     assert final["confidence"] == "low"
@@ -244,7 +256,7 @@ async def test_execution_error_triggers_repair():
             return_value=_generate_mock(_VALID_SPARQL, _VALID_SPARQL),
         ),
         patch(
-            "app.graph.nodes.answer.settings",
+            "app.graph.nodes.judge.settings",
             new=_answer_settings(semantic_judge_enabled=False),
         ),
         patch(
@@ -255,7 +267,11 @@ async def test_execution_error_triggers_repair():
     ):
         graph = build_graph()
         final = await graph.ainvoke(
-            {"user_query": "Find DIAMM manuscripts", "repair_count": 0, "max_repairs": 3}
+            {
+                "user_query": "Find DIAMM manuscripts",
+                "repair_count": 0,
+                "max_repairs": 3,
+            }
         )
 
     assert final["repair_count"] == 1
@@ -280,7 +296,7 @@ async def test_structural_intent_check_triggers_repair():
             return_value=_generate_mock(_VALID_SPARQL, _VALID_SPARQL_WITH_COUNT),
         ),
         patch(
-            "app.graph.nodes.answer.settings",
+            "app.graph.nodes.judge.settings",
             new=_answer_settings(semantic_judge_enabled=False),
         ),
         patch(
@@ -306,7 +322,7 @@ async def test_structural_intent_check_triggers_repair():
 
 async def test_semantic_judge_triggers_repair_then_satisfied():
     """
-    Semantic judge enabled: first answer unsatisfied → repair → second answer satisfied.
+    Semantic judge enabled: first judge unsatisfied → repair → second judge satisfied.
     Final repair_count=1, confidence='high', judge_feedback cleared.
     """
     with (
@@ -319,14 +335,14 @@ async def test_semantic_judge_triggers_repair_then_satisfied():
             return_value=_generate_mock(_VALID_SPARQL, _VALID_SPARQL),
         ),
         patch(
-            "app.graph.nodes.answer.ChatGoogleGenerativeAI",
+            "app.graph.nodes.judge.ChatGoogleGenerativeAI",
             return_value=_judge_mock(
                 (False, "Results don't cover the requested date range"),
                 (True, "Results now correctly cover the date range"),
             ),
         ),
         patch(
-            "app.graph.nodes.answer.settings",
+            "app.graph.nodes.judge.settings",
             new=_answer_settings(semantic_judge_enabled=True),
         ),
         patch(

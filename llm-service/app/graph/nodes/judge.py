@@ -33,10 +33,11 @@ You are evaluating whether a SPARQL query result satisfies the user's intent.
 Determine whether the sample results directly answer the user's question.
 - Set "satisfied" to true only if the results address what was asked.
 - Provide a brief "reason" explaining your assessment.
+- Note: wdt:P2888 is used for exact match (owl:sameAs equivalent in Wikidata).
 </instructions>"""
 
 
-async def answer_node(state: GraphState) -> dict:
+async def judge_node(state: GraphState) -> dict:
     updates: dict = {"judge_feedback": None}  # clear prior judge signal by default
 
     # Determine base confidence
@@ -63,9 +64,7 @@ async def answer_node(state: GraphState) -> dict:
         and not state.get("execution_error")
         and state.get("results")
     ):
-        bindings = (
-            state["results"].get("results", {}).get("bindings", [])
-        )
+        bindings = state["results"].get("results", {}).get("bindings", [])
         sample = bindings[:5]
 
         judge_model = ChatOllama(

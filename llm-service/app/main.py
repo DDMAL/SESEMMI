@@ -78,7 +78,7 @@ _STEP_LABELS = {
     "generate": "Generating SPARQL",
     "validate": "Validating",
     "execute": "Executing",
-    "answer": "Scoring confidence",
+    "judge": "Scoring confidence",
 }
 
 
@@ -100,7 +100,7 @@ def _step_detail(name: str, output: dict) -> str:
             return f"✗ {err[:80]}"
         count = output.get("result_count", 0)
         return f"{count} result{'s' if count != 1 else ''}"
-    if name == "answer":
+    if name == "judge":
         return output.get("confidence", "")
     return ""
 
@@ -128,18 +128,24 @@ async def translate_stream(req: TranslateRequest):
                     out = (event.get("data") or {}).get("output") or {}
                     if name == "generate" and "sparql" in out:
                         sparql = out["sparql"]
-                    if name == "answer":
+                    if name == "judge":
                         confidence = out.get("confidence", confidence)
                     detail = _step_detail(name, out)
                     yield f"event: step_done\ndata: {json.dumps({'step': name, 'label': _STEP_LABELS[name], 'detail': detail})}\n\n"
                 elif etype == "on_chat_model_stream":
-                    if (event.get("metadata") or {}).get("langgraph_node") == "generate":
+                    if (event.get("metadata") or {}).get(
+                        "langgraph_node"
+                    ) == "generate":
                         chunk = (event.get("data") or {}).get("chunk")
                         if chunk:
                             raw = getattr(chunk, "content", "")
                             if isinstance(raw, list):
                                 text = "".join(
-                                    part["text"] if isinstance(part, dict) and "text" in part else ""
+                                    (
+                                        part["text"]
+                                        if isinstance(part, dict) and "text" in part
+                                        else ""
+                                    )
                                     for part in raw
                                 )
                             else:

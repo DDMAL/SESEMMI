@@ -3,7 +3,7 @@ import time
 from langgraph.graph import END, START, StateGraph
 
 from app.config import settings
-from app.graph.nodes.answer import answer_node
+from app.graph.nodes.judge import judge_node
 from app.graph.nodes.execute import execute_node
 from app.graph.nodes.generate import generate_node
 from app.graph.nodes.intake import intake_node
@@ -19,10 +19,10 @@ def after_validate(state: GraphState) -> str:
         "max_repairs", settings.max_repair_iterations
     ):
         return "generate"
-    return "answer"
+    return "judge"
 
 
-def after_answer(state: GraphState) -> str:
+def after_judge(state: GraphState) -> str:
     if state.get("judge_feedback") is not None:
         return "generate"
     if state.get("execution_error") is not None and state.get(
@@ -39,7 +39,7 @@ def build_graph():
     builder.add_node("generate", generate_node)
     builder.add_node("validate", validate_node)
     builder.add_node("execute", execute_node)
-    builder.add_node("answer", answer_node)
+    builder.add_node("judge", judge_node)
 
     builder.add_edge(START, "intake")
     builder.add_edge("intake", "retrieve")
@@ -47,10 +47,10 @@ def build_graph():
     builder.add_edge("generate", "validate")
 
     builder.add_conditional_edges(
-        "validate", after_validate, ["execute", "generate", "answer"]
+        "validate", after_validate, ["execute", "generate", "judge"]
     )
-    builder.add_edge("execute", "answer")
-    builder.add_conditional_edges("answer", after_answer, ["intake", END])
+    builder.add_edge("execute", "judge")
+    builder.add_conditional_edges("judge", after_judge, ["intake", END])
 
     return builder.compile()
 
