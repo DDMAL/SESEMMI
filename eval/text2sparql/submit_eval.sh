@@ -245,8 +245,8 @@ print(f'Gold answers: {len(answers)} queries')
 
             echo "--- Step 5: Computing metrics ---"
             text2sparql evaluate "$RUN_NAME" \
-                --true-set "$RUN_DIR/true_results.json" \
-                --predicted-set "$RUN_DIR/pred_results.json" \
+                "$RUN_DIR/true_results.json" \
+                "$RUN_DIR/pred_results.json" \
                 -o "$RUN_DIR/metrics.json"
 
             echo ""
