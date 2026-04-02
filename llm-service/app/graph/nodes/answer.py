@@ -17,19 +17,23 @@ class _JudgeVerdict(BaseModel):
 _JUDGE_PROMPT = """\
 You are evaluating whether a SPARQL query result satisfies the user's intent.
 
-User question: {user_query}
+<user_question>
+{user_query}
+</user_question>
 
-SPARQL query:
-```sparql
+<sparql_query>
 {sparql}
-```
+</sparql_query>
 
-Sample results (up to 5 rows):
+<sample_results description="up to 5 rows">
 {sample_results}
+</sample_results>
 
-Does the result satisfy the user's question?
-- satisfied: true if the results directly answer what was asked
-- reason: brief explanation of your assessment"""
+<instructions>
+Determine whether the sample results directly answer the user's question.
+- Set "satisfied" to true only if the results address what was asked.
+- Provide a brief "reason" explaining your assessment.
+</instructions>"""
 
 
 async def answer_node(state: GraphState) -> dict:

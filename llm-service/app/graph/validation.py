@@ -70,7 +70,7 @@ def validate_sparql(sparql: str, target_graphs: list[str] | None = None) -> list
 def validate_intent(
     sparql: str,
     intent: str,
-    mentions_entities: bool,
+    has_entities: bool,
     needs_federation: bool,
 ) -> list[str]:
     errors: list[str] = []
@@ -80,31 +80,10 @@ def validate_intent(
         if not re.search(r"\b(COUNT|SUM|AVG|GROUP\s+BY)\b", upper):
             errors.append("Intent 'aggregation' requires COUNT, SUM, AVG, or GROUP BY")
 
-    if intent == "comparison":
-        select_vars = re.findall(
-            r"SELECT\s+(.*?)\s*WHERE", sparql, re.IGNORECASE | re.DOTALL
-        )
-        has_multi = False
-        if select_vars:
-            vars_in_select = re.findall(r"\?[a-zA-Z]\w*", select_vars[0])
-            has_multi = len(vars_in_select) > 1
-        if not has_multi and "ORDER BY" not in upper:
-            errors.append(
-                "Intent 'comparison' requires multiple SELECT variables or ORDER BY"
-            )
-
-    if intent == "cross_graph":
-        graph_iris = re.findall(r"GRAPH\s+<([^>]+)>", sparql, re.IGNORECASE)
-        graph_iris += re.findall(r"GRAPH\s+(\w+:\S+)\s*\{", sparql, re.IGNORECASE)
-        if len(set(graph_iris)) < 2:
-            errors.append(
-                "Intent 'cross_graph' must reference \u2265 2 distinct graph IRIs"
-            )
-
-    if mentions_entities:
+    if has_entities:
         if not re.search(r"\bwd:Q\d+\b", sparql):
             errors.append(
-                "mentions_entities=True but no Wikidata QID (wd:Q\\d+) found in query"
+                "Extracted entities present but no Wikidata QID (wd:Q\\d+) found in query"
             )
 
     if needs_federation:

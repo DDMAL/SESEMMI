@@ -1,3 +1,4 @@
+# This is used as non-graph fallback when GRAPH_ENABLED=false
 SCHEMA_CONTEXT = """I have a graph database containing musical linked data from various databases. As much of the information as possible is reconciled against Wikidata.
 
 Please write me a SPARQL query to perform the following query:

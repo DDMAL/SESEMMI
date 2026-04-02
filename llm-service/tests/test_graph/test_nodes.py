@@ -35,8 +35,8 @@ async def test_intake_single_graph():
     classification = IntakeClassification(
         intent="lookup",
         target_graphs=["diamm"],
-        mentions_entities=False,
         needs_federation=False,
+        extracted_entities=[],
     )
     mock_chain = AsyncMock()
     mock_chain.ainvoke.return_value = classification
@@ -50,17 +50,17 @@ async def test_intake_single_graph():
 
     assert result["intent"] == "lookup"
     assert result["target_graphs"] == ["diamm"]
-    assert result["mentions_entities"] is False
     assert result["needs_federation"] is False
+    assert result["extracted_entities"] == []
 
 
 async def test_intake_cross_graph():
-    """Cross-database query sets cross_graph intent and multiple target_graphs."""
+    """Cross-database query sets multiple target_graphs."""
     classification = IntakeClassification(
-        intent="cross_graph",
+        intent="lookup",
         target_graphs=["diamm", "musicbrainz"],
-        mentions_entities=True,
         needs_federation=True,
+        extracted_entities=["DIAMM", "MusicBrainz"],
     )
     mock_chain = AsyncMock()
     mock_chain.ainvoke.return_value = classification
@@ -74,7 +74,7 @@ async def test_intake_cross_graph():
             {"user_query": "Compare DIAMM composers with MusicBrainz artists"}
         )
 
-    assert result["intent"] == "cross_graph"
+    assert result["intent"] == "lookup"
     assert "diamm" in result["target_graphs"]
     assert "musicbrainz" in result["target_graphs"]
     assert result["needs_federation"] is True
@@ -90,7 +90,7 @@ async def test_retrieve_ontology_selection():
     state = {
         "user_query": "Find all DIAMM manuscripts",
         "target_graphs": ["diamm"],
-        "mentions_entities": False,
+        "extracted_entities": [],
         "needs_federation": False,
     }
     result = await retrieve_node(state)
@@ -109,7 +109,7 @@ async def test_retrieve_federation_rules_included():
     state = {
         "user_query": "Compare composers across databases",
         "target_graphs": ["diamm", "musicbrainz"],
-        "mentions_entities": False,
+        "extracted_entities": [],
         "needs_federation": True,
     }
     result = await retrieve_node(state)
@@ -126,7 +126,7 @@ async def test_retrieve_deduplicates_identical_docs():
     state = {
         "user_query": "Find Irish tunes",
         "target_graphs": ["thesession"],
-        "mentions_entities": False,
+        "extracted_entities": [],
         "needs_federation": False,
     }
     dup_doc = MagicMock()
@@ -157,12 +157,12 @@ async def test_retrieve_deduplicates_identical_docs():
     assert result["few_shot_examples"].count("Find tunes by name") == 1
 
 
-async def test_retrieve_abbrev_entity_resolved():
-    """Single-word ALL-CAPS abbreviation like 'NYC' is captured and resolved."""
+async def test_retrieve_entity_resolved():
+    """Extracted entities are resolved to Wikidata QIDs."""
     state = {
         "user_query": "Find jazz solos from NYC",
         "target_graphs": ["digthatlick"],
-        "mentions_entities": True,
+        "extracted_entities": ["New York City"],
         "needs_federation": False,
     }
     mock_result = [{"qid": "Q60", "label": "New York City"}]
@@ -171,7 +171,7 @@ async def test_retrieve_abbrev_entity_resolved():
         mock_tool.ainvoke = AsyncMock(return_value=mock_result)
         result = await retrieve_node(state)
 
-    assert result["resolved_qids"].get("NYC") == "Q60"
+    assert result["resolved_qids"].get("New York City") == "Q60"
 
 
 async def test_retrieve_filtered_rag_called():
@@ -179,7 +179,7 @@ async def test_retrieve_filtered_rag_called():
     state = {
         "user_query": "Find Irish tunes",
         "target_graphs": ["thesession"],
-        "mentions_entities": False,
+        "extracted_entities": [],
         "needs_federation": False,
     }
     mock_doc = MagicMock()
@@ -212,15 +212,15 @@ async def test_retrieve_filtered_rag_called():
 def _mock_generate_llm(sparql_response: str):
     """Return (mock_chat_cls_instance, mock_model) ready for generate_node patching.
 
-    mock_chat  — returned by ChatGoogleGenerativeAI(); used directly when mentions_entities=False
-    mock_model — returned by mock_chat.bind_tools(); used when mentions_entities=True
+    mock_chat  — returned by ChatGoogleGenerativeAI(); used directly when no entities
+    mock_model — returned by mock_chat.bind_tools(); used when entities are present
     Both have async ainvoke so either code path works.
     """
     mock_model = AsyncMock()
     mock_model.ainvoke.return_value = AIMessage(content=sparql_response)
     mock_chat = MagicMock()
     mock_chat.bind_tools.return_value = mock_model
-    # Also make the base model awaitable for the mentions_entities=False path
+    # Also make the base model awaitable for the no-entities path
     mock_chat.ainvoke = AsyncMock(return_value=AIMessage(content=sparql_response))
     return mock_chat, mock_model
 
@@ -238,7 +238,7 @@ async def test_generate_produces_sparql():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 0,
-        "mentions_entities": True,
+        "extracted_entities": ["entity"],
     }
 
     with patch(
@@ -252,7 +252,7 @@ async def test_generate_produces_sparql():
 
 
 async def test_generate_prompt_has_output_rules():
-    """Generated prompt contains output rules; QID tool instruction only when mentions_entities=True."""
+    """Generated prompt contains output rules; QID tool instruction only when entities are present."""
     sparql = "SELECT ?x WHERE { GRAPH <https://linkedmusic.ca/graphs/diamm/> { ?x a ?y } } LIMIT 10"
     mock_chat, mock_model = _mock_generate_llm(sparql)
     state = {
@@ -261,7 +261,7 @@ async def test_generate_prompt_has_output_rules():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 0,
-        "mentions_entities": True,
+        "extracted_entities": ["entity"],
     }
 
     with patch(
@@ -277,7 +277,7 @@ async def test_generate_prompt_has_output_rules():
 
 
 async def test_generate_no_qid_tool_when_no_entities():
-    """When mentions_entities=False, QID tool is not bound and prompt omits the tool instruction."""
+    """When no extracted_entities, QID tool is not bound and prompt omits the tool instruction."""
     sparql = "SELECT ?s WHERE { GRAPH <https://linkedmusic.ca/graphs/thesession/> { ?s a ?t } } LIMIT 10"
     mock_chat, _ = _mock_generate_llm(sparql)
     state = {
@@ -286,7 +286,7 @@ async def test_generate_no_qid_tool_when_no_entities():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 0,
-        "mentions_entities": False,
+        "extracted_entities": [],
     }
 
     with patch(
@@ -327,7 +327,7 @@ async def test_generate_tool_loop_exhaustion_forces_final_call():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 0,
-        "mentions_entities": True,
+        "extracted_entities": ["entity"],
     }
 
     with patch("app.graph.nodes.generate.ChatGoogleGenerativeAI", return_value=mock_chat):
@@ -354,7 +354,7 @@ async def test_generate_repair_context_injected():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 0,
-        "mentions_entities": True,
+        "extracted_entities": ["entity"],
         "sparql": "SELECT ?x WHERE { ?x a ?y }",
         "validation_errors": ["Missing LIMIT clause"],
         "execution_error": None,
@@ -387,7 +387,7 @@ async def test_generate_judge_feedback_in_repair_context():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 1,
-        "mentions_entities": True,
+        "extracted_entities": ["entity"],
         "sparql": "SELECT ?x WHERE { ?x a ?y } LIMIT 10",
         "validation_errors": [],
         "execution_error": None,
@@ -417,7 +417,7 @@ async def test_validate_valid_query():
         "sparql": _VALID_SPARQL,
         "intent": "lookup",
         "target_graphs": ["diamm"],
-        "mentions_entities": False,
+        "extracted_entities": [],
         "needs_federation": False,
     }
     result = await validate_node(state)
@@ -431,7 +431,7 @@ async def test_validate_syntax_error():
         "sparql": "SELECT ?x WHERE { ?x a UNCLOSED BRACE",
         "intent": "lookup",
         "target_graphs": [],
-        "mentions_entities": False,
+        "extracted_entities": [],
         "needs_federation": False,
     }
     result = await validate_node(state)
@@ -446,7 +446,7 @@ async def test_validate_aggregation_missing_count():
         "sparql": _VALID_SPARQL,
         "intent": "aggregation",
         "target_graphs": ["diamm"],
-        "mentions_entities": False,
+        "extracted_entities": [],
         "needs_federation": False,
     }
     result = await validate_node(state)
@@ -459,22 +459,6 @@ async def test_validate_aggregation_missing_count():
     )
 
 
-async def test_validate_cross_graph_single_graph():
-    """cross_graph intent with only 1 GRAPH IRI → is_valid=False."""
-    state = {
-        "sparql": _VALID_SPARQL,
-        "intent": "cross_graph",
-        "target_graphs": ["diamm"],
-        "mentions_entities": False,
-        "needs_federation": False,
-    }
-    result = await validate_node(state)
-
-    assert result["is_valid"] is False
-    assert any(
-        "graph" in e.lower() or "cross" in e.lower() or "2" in e
-        for e in result["validation_errors"]
-    )
 
 
 # ---------------------------------------------------------------------------

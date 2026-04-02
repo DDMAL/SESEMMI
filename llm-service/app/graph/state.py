@@ -6,10 +6,10 @@ class GraphState(TypedDict, total=False):
     user_query: str
 
     # Intake
-    intent: str  # lookup | aggregation | comparison | path | cross_graph
+    intent: str  # lookup | aggregation
     target_graphs: list[str]  # e.g. ["diamm", "musicbrainz"]
-    mentions_entities: bool
     needs_federation: bool
+    extracted_entities: list[str]  # e.g. ["Charlie Parker", "NYC"]
 
     # Retrieval
     schema_context: str

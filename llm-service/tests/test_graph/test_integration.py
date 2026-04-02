@@ -55,15 +55,15 @@ _VIRTUOSO_ERROR = {
 _DIAMM_LOOKUP = IntakeClassification(
     intent="lookup",
     target_graphs=["diamm"],
-    mentions_entities=False,
     needs_federation=False,
+    extracted_entities=[],
 )
 
 _DIAMM_AGGREGATION = IntakeClassification(
     intent="aggregation",
     target_graphs=["diamm"],
-    mentions_entities=False,
     needs_federation=False,
+    extracted_entities=[],
 )
 
 # ---------------------------------------------------------------------------
@@ -84,14 +84,14 @@ def _generate_mock(*sparql_responses: str):
     """
     ChatGoogleGenerativeAI mock for generate_node.
     Successive ainvoke() calls return successive sparql_responses.
-    Works for both mentions_entities=True (bind_tools path) and =False (direct path).
+    Works for both entities (bind_tools path) and no-entities (direct path).
     """
     responses = [AIMessage(content=s) for s in sparql_responses]
     inner_model = AsyncMock()
     inner_model.ainvoke.side_effect = responses
     chat = MagicMock()
     chat.bind_tools.return_value = inner_model
-    # Also wire ainvoke directly for the mentions_entities=False path
+    # Also wire ainvoke directly for the no-entities path
     chat.ainvoke = AsyncMock(side_effect=responses)
     return chat
 
