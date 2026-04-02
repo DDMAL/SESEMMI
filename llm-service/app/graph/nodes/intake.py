@@ -74,7 +74,7 @@ _PROMPT_TEMPLATE = """\
 
 <entity_extraction_guidance>
   <rule>Extract specific named entities that may need Wikidata QID resolution for SPARQL filtering. These will be looked up against the Wikidata API to obtain QIDs (e.g., Q5765 → Charlie Parker).</rule>
-  <rule>Include: person names (composers, performers, authors), place names (cities, countries, regions), work titles (compositions, manuscripts, albums), and organization names (ensembles, labels, institutions).</rule>
+  <rule>Include: person names (composers, performers, authors), place names (cities, countries, regions), work titles (compositions, manuscripts, albums), organization names (ensembles, labels, institutions), and music domain-specific identifiers (e.g., modal designations like "mode 1", opus numbers like "Opus 40", catalogue numbers like "BWV 244", instrument names like "lute", genre/form names like "motet" or "reel").</rule>
   <rule>Exclude: generic category terms (e.g., "jazz", "medieval", "chant"), temporal expressions (e.g., "19th century", "after 1950"), and numeric qualifiers (e.g., "top 10", "at least 3").</rule>
   <rule>Use the canonical form of each entity as it would appear in Wikidata (e.g., "Johann Sebastian Bach" not "Bach", "New York City" not "NYC").</rule>
   <example>
