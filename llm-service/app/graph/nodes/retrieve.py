@@ -56,6 +56,7 @@ def _build_schema_context(
     target_graphs: list[str],
     has_entities: bool,
     needs_federation: bool,
+    intent: str = "lookup",
 ) -> str:
     ontology = "\n\n".join(
         ONTOLOGY_CHUNKS[db] for db in target_graphs if db in ONTOLOGY_CHUNKS
@@ -68,6 +69,8 @@ def _build_schema_context(
         keys.append("federated_query_rules")
     if "musicbrainz" in target_graphs:
         keys.append("musicbrainz_specific")
+    if intent == "aggregation":
+        keys.append("aggregation_rules")
 
     instructions = "\n\n".join(INSTRUCTION_CHUNKS[k] for k in keys)
     return (
@@ -142,7 +145,7 @@ async def retrieve_node(state: GraphState) -> dict:
     query: str = state["user_query"]
 
     schema_context = _build_schema_context(
-        target_graphs, bool(entities), needs_federation
+        target_graphs, bool(entities), needs_federation, state.get("intent", "lookup")
     )
 
     if settings.rag_enabled:
