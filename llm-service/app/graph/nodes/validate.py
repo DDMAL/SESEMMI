@@ -7,7 +7,7 @@ async def validate_node(state: GraphState) -> dict:
     intent_errors = validate_intent(
         state["sparql"],
         state.get("intent", "lookup"),
-        state.get("mentions_entities", False),
+        bool(state.get("extracted_entities")),
         state.get("needs_federation", False),
     )
     all_errors = syntax_errors + intent_errors

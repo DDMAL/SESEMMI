@@ -16,53 +16,60 @@ _MAX_TOOL_ITERATIONS = 3
 def _build_prompt(state: GraphState, is_repair: bool, repair_count: int) -> str:
     parts: list[str] = []
 
-    output_rules = (
-        "IMPORTANT \u2014 OUTPUT RULES:\n"
-        "- Respond with a valid SPARQL query ONLY. No prose, no explanation."
+    parts.append(
+        "<output_rules>\n"
+        "Respond with a valid SPARQL query ONLY. No prose, no explanation.\n"
+        "</output_rules>"
     )
-    if state.get("mentions_entities"):
-        output_rules += (
-            '\n- If you need a Wikidata QID not listed under "Pre-resolved QIDs", '
-            "call the wikidata_qid_lookup tool BEFORE writing the query. Never ask the user."
-        )
-    parts.append(output_rules)
 
-    parts.append(state.get("schema_context", ""))
+    schema_context = state.get("schema_context", "")
+    if schema_context:
+        parts.append(f"<schema_context>\n{schema_context}\n</schema_context>")
 
     few_shot = state.get("few_shot_examples", "")
     if few_shot:
-        parts.append(few_shot)
+        parts.append(f"<examples>\n{few_shot}\n</examples>")
 
     resolved_qids = state.get("resolved_qids") or {}
     if resolved_qids:
-        qid_lines = ", ".join(f"{name} = {qid}" for name, qid in resolved_qids.items())
-        parts.append(f"Pre-resolved QIDs: {qid_lines}")
+        qid_lines = "\n".join(f"- {name} = {qid}" for name, qid in resolved_qids.items())
+        parts.append(f"<resolved_qids>\n{qid_lines}\n</resolved_qids>")
 
     if is_repair:
-        repair_lines = [
-            f"\n---",
-            f"REPAIR ATTEMPT {repair_count} — the previous query had errors:",
-            f"```sparql\n{state.get('sparql', '')}\n```",
-        ]
+        repair_parts: list[str] = [f'<repair attempt="{repair_count}">']
+        repair_parts.append(
+            f"<previous_query>\n{state.get('sparql', '')}\n</previous_query>"
+        )
         errors = state.get("validation_errors") or []
         exec_error = state.get("execution_error")
         if errors:
-            repair_lines.append("Validation errors:\n" + "\n".join(f"- {e}" for e in errors))
+            error_lines = "\n".join(f"- {e}" for e in errors)
+            repair_parts.append(
+                f"<validation_errors>\n{error_lines}\n</validation_errors>"
+            )
         if exec_error:
-            repair_lines.append(f"Execution error: {exec_error}")
+            exec_lines = [exec_error]
             if "timeout" in exec_error.lower() or "ReadTimeout" in exec_error:
-                repair_lines.append(
+                exec_lines.append(
                     "The query timed out. Rewrite it to be faster: add LIMIT, "
                     "restrict to fewer named graphs, remove optional cross-products, "
                     "or break into a simpler single-graph query."
                 )
+            repair_parts.append(
+                "<execution_error>\n"
+                + "\n".join(exec_lines)
+                + "\n</execution_error>"
+            )
         judge_feedback = state.get("judge_feedback")
         if judge_feedback:
-            repair_lines.append(f"Semantic feedback: {judge_feedback}")
-        repair_lines.append("Please write a corrected SPARQL query.\n---\n")
-        parts.append("\n".join(repair_lines))
+            repair_parts.append(
+                f"<semantic_feedback>\n{judge_feedback}\n</semantic_feedback>"
+            )
+        repair_parts.append("Please write a corrected SPARQL query.")
+        repair_parts.append("</repair>")
+        parts.append("\n".join(repair_parts))
 
-    parts.append(f"Question: {state['user_query']}")
+    parts.append(f"<question>\n{state['user_query']}\n</question>")
     return "\n\n".join(p for p in parts if p)
 
 
@@ -78,7 +85,7 @@ async def generate_node(state: GraphState) -> dict:
 
     prompt_text = _build_prompt(state, is_repair, repair_count)
 
-    mentions_entities = state.get("mentions_entities", False)
+    has_entities = bool(state.get("extracted_entities"))
     base_model = ChatOllama(
         model=settings.llm_model,
         base_url=settings.ollama_base_url,
@@ -87,7 +94,7 @@ async def generate_node(state: GraphState) -> dict:
         num_thread=settings.ollama_num_thread,
         think=settings.ollama_think,
     )
-    model = base_model.bind_tools([wikidata_qid_lookup]) if mentions_entities else base_model
+    model = base_model.bind_tools([wikidata_qid_lookup]) if has_entities else base_model
 
     resolved_qids = dict(state.get("resolved_qids") or {})
     messages = [HumanMessage(content=prompt_text)]

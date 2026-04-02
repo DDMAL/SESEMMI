@@ -9,19 +9,21 @@
 
 ONTOLOGY_CHUNKS: dict[str, str] = {
     "diamm": """\
-Database: DIAMM
-Graph IRI: <https://linkedmusic.ca/graphs/diamm/>
-Prefix: diamm: <https://linkedmusic.ca/graphs/diamm/>
-
-Description: All triples for DIAMM are stored in the <https://linkedmusic.ca/graphs/diamm/>
+<database name="DIAMM" graph-iri="https://linkedmusic.ca/graphs/diamm/" prefix="diamm:">
+<description>
+All triples for DIAMM are stored in the &lt;https://linkedmusic.ca/graphs/diamm/&gt;
 graph. Digital Image Archive of Medieval Music. Contains compositions, sources (manuscripts),
 archives, persons (composers), organizations, set, and geographic (city, region, country) entities. Entity types use the `diamm:` prefix.
-QID linking: diamm:City, diamm:Country, diamm:Region, diamm:Archive, diamm:Person, and
+</description>
+<qid-linking>
+diamm:City, diamm:Country, diamm:Region, diamm:Archive, diamm:Person, and
 diamm:Organization all have wdt:P2888 "exact match" for Wikidata reconciliation.
-Cross-database: diamm:Archive and diamm:Person carry wdt:P5504 "RISM ID", which links
+</qid-linking>
+<cross-database>
+diamm:Archive and diamm:Person carry wdt:P5504 "RISM ID", which links
 them to the corresponding rism:Institution and rism:Person entities in the RISM graph.
-
-Ontology:
+</cross-database>
+<ontology>
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:   <http://www.wikidata.org/prop/direct/> .
 @prefix wd:    <http://www.wikidata.org/entity/> .
@@ -92,15 +94,15 @@ diamm:Source
 \twdt:P1071\tdiamm:Organization ;
 \twdt:P98\tdiamm:Person ;
 \twdt:P50\tdiamm:Organization , diamm:Person ;
-\twdt:P872\tdiamm:Person .\
+\twdt:P872\tdiamm:Person .
+</ontology>
+</database>\
 """,
     "thesession": """\
-Database: The Session
-Graph IRI: <https://linkedmusic.ca/graphs/thesession/>
-Prefix: ts: <https://linkedmusic.ca/graphs/thesession/>
-
-Description: All triples for The Session are stored in the
-<https://linkedmusic.ca/graphs/thesession/> graph. Irish traditional music session
+<database name="The Session" graph-iri="https://linkedmusic.ca/graphs/thesession/" prefix="ts:">
+<description>
+All triples for The Session are stored in the
+&lt;https://linkedmusic.ca/graphs/thesession/&gt; graph. Irish traditional music session
 community database. Contains tunes, tune settings, recordings, sessions, and events.
 Entity types use the `ts:` prefix.
 IMPORTANT class distinction: ts:Session records a recurring session venue (location
@@ -108,13 +110,17 @@ data only, no date properties). ts:Events records a specific session occurrence 
 date. For any query asking when sessions happened or filtering by year/date, always use
 ts:Events with wdt:P580 (start time) or wdt:P582 (end time) — NEVER ts:Session for
 date filtering.
-QID linking: ts:Recording has wdt:P2888 "exact match" for Wikidata reconciliation.
-Cross-database: ts:Session and ts:Events link to Wikidata URIs directly via wdt:P17
+</description>
+<qid-linking>
+ts:Recording has wdt:P2888 "exact match" for Wikidata reconciliation.
+</qid-linking>
+<cross-database>
+ts:Session and ts:Events link to Wikidata URIs directly via wdt:P17
 (country) and wdt:P276 (location), enabling geographic correlation with other databases.
 ts:Recording's wdt:P2888 can be correlated with matching entries in other LinkedMusic
 databases through shared Wikidata QIDs.
-
-Ontology:
+</cross-database>
+<ontology>
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:  <http://www.wikidata.org/prop/direct/> .
 @prefix wd:   <http://www.wikidata.org/entity/> .
@@ -152,26 +158,30 @@ ts:Recording
 \trdfs:label\t"label" ;
 \twdt:P2888\t"exact match" ;
 \twdt:P175\t"performer" ;
-\twdt:P658\tts:Tune .\
+\twdt:P658\tts:Tune .
+</ontology>
+</database>\
 """,
     "musicbrainz": """\
-Database: MusicBrainz
-Graph IRI: <https://linkedmusic.ca/graphs/musicbrainz/>
-Prefix: mb: <https://linkedmusic.ca/graphs/musicbrainz/>
-
-Description: All triples for MusicBrainz are stored in the
-<https://linkedmusic.ca/graphs/musicbrainz/> graph. Open music encyclopedia covering
+<database name="MusicBrainz" graph-iri="https://linkedmusic.ca/graphs/musicbrainz/" prefix="mb:">
+<description>
+All triples for MusicBrainz are stored in the
+&lt;https://linkedmusic.ca/graphs/musicbrainz/&gt; graph. Open music encyclopedia covering
 artists, works, recordings, releases, labels, events, and places. Entity types use
 the `mb:` prefix. Note: prefer mb:Work over mb:Recording for Wikidata reconciliation,
 as very few mb:Recording entities have wdt:P2888 links.
-QID linking: mb:Area, mb:Artist, mb:Event, mb:Genre, mb:Instrument, mb:Label, mb:Place,
+</description>
+<qid-linking>
+mb:Area, mb:Artist, mb:Event, mb:Genre, mb:Instrument, mb:Label, mb:Place,
 mb:Recording, mb:Release, mb:ReleaseGroup, mb:Series, and mb:Work all have wdt:P2888
 "exact match" for Wikidata reconciliation.
-Cross-database: MusicBrainz has the broadest Wikidata coverage of all LinkedMusic
+</qid-linking>
+<cross-database>
+MusicBrainz has the broadest Wikidata coverage of all LinkedMusic
 databases, enabling correlation with any other database whose entities also carry
 wdt:P2888 through shared Wikidata QIDs.
-
-Ontology:
+</cross-database>
+<ontology>
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:  <http://www.wikidata.org/prop/direct/> .
 @prefix wd:   <http://www.wikidata.org/entity/> .
@@ -477,23 +487,26 @@ mb:Work
 \twdt:P826\t"tonality" ;
 \twdt:P8535\t"tala" ;
 \twdt:P8536\t"raga" ;
-\twdt:P88\tmb:Artist , mb:Area , mb:Label , mb:Place , mb:Series .\
+\twdt:P88\tmb:Artist , mb:Area , mb:Label , mb:Place , mb:Series .
+</ontology>
+</database>\
 """,
     "theglobaljukebox": """\
-Database: The Global Jukebox
-Graph IRI: <https://linkedmusic.ca/graphs/theglobaljukebox/>
-Prefix: gj: <https://linkedmusic.ca/graphs/theglobaljukebox/>
-
-Description: All triples for The Global Jukebox are stored in the
-<https://linkedmusic.ca/graphs/theglobaljukebox/> graph. Cross-cultural music dataset
+<database name="The Global Jukebox" graph-iri="https://linkedmusic.ca/graphs/theglobaljukebox/" prefix="gj:">
+<description>
+All triples for The Global Jukebox are stored in the
+&lt;https://linkedmusic.ca/graphs/theglobaljukebox/&gt; graph. Cross-cultural music dataset
 with songs, cultures, instruments, and ethnographic sources. Entity types use the `gj:` prefix.
-QID linking: gj:Culture and gj:Instrument have wdt:P2888 "exact match" for Wikidata
-reconciliation.
-Cross-database: gj:Song links performers and countries of origin via Wikidata URIs
+</description>
+<qid-linking>
+gj:Culture and gj:Instrument have wdt:P2888 "exact match" for Wikidata reconciliation.
+</qid-linking>
+<cross-database>
+gj:Song links performers and countries of origin via Wikidata URIs
 (wdt:P175 "performer", wdt:P495 "country of origin"), enabling correlation with artists
 and regions in other LinkedMusic databases through shared Wikidata QIDs.
-
-Ontology:
+</cross-database>
+<ontology>
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:  <http://www.wikidata.org/prop/direct/> .
 @prefix wd:   <http://www.wikidata.org/entity/> .
@@ -545,26 +558,30 @@ gj:Source
 \trdfs:label\t"label" ;
 \twdt:P921\tgj:Culture ;
 \twdt:P577\t"publication date" ;
-\twdt:P50\t"author" .\
+\twdt:P50\t"author" .
+</ontology>
+</database>\
 """,
     "digthatlick": """\
-Database: Dig That Lick
-Graph IRI: <https://linkedmusic.ca/graphs/dig-that-lick/>
-Prefix: dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
-
-Description: All triples for Dig That Lick are stored in the
-<https://linkedmusic.ca/graphs/dig-that-lick/> graph. Jazz improvisation research
+<database name="Dig That Lick" graph-iri="https://linkedmusic.ca/graphs/dig-that-lick/" prefix="dtl:">
+<description>
+All triples for Dig That Lick are stored in the
+&lt;https://linkedmusic.ca/graphs/dig-that-lick/&gt; graph. Jazz improvisation research
 database containing tracks and melodic solos with performer and instrument metadata.
 Entity types use the `dtl:` prefix.
-QID linking: dtl:Track has wdt:P2888 "exact match" for Wikidata reconciliation.
 IMPORTANT: wdt:P175 (performer) on dtl:Solo and dtl:Track, and wdt:P8546 (recording
 location) on dtl:Track, store Wikidata entity URIs directly — NOT local LinkedMusic
 entities. Use them directly (e.g. wdt:P175 wd:Q103767 for Charlie Parker,
 wdt:P8546 wd:Q60 for NYC). Do NOT navigate via wdt:P2888 for these properties.
-Cross-database: dtl:Solo links performers via wdt:P175 "performer" (Wikidata URI),
+</description>
+<qid-linking>
+dtl:Track has wdt:P2888 "exact match" for Wikidata reconciliation.
+</qid-linking>
+<cross-database>
+dtl:Solo links performers via wdt:P175 "performer" (Wikidata URI),
 enabling correlation with artists in other LinkedMusic databases through shared Wikidata QIDs.
-
-Ontology:
+</cross-database>
+<ontology>
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:  <http://www.wikidata.org/prop/direct/> .
 @prefix wd:   <http://www.wikidata.org/entity/> .
@@ -580,23 +597,27 @@ dtl:Track
 \twdt:P361\t"part of" ;
 \twdt:P10135\t"recording date" ;
 \twdt:P175\twd: ;        # performer — Wikidata URI directly
-\twdt:P8546\twd: .       # recording location — Wikidata URI directly\
+\twdt:P8546\twd: .       # recording location — Wikidata URI directly
+</ontology>
+</database>\
 """,
     "cantusdb": """\
-Database: Cantus Database
-Graph IRI: <https://linkedmusic.ca/graphs/cantusdb/>
-Prefix: cdb: <https://linkedmusic.ca/graphs/cantusdb/>
-
-Description: All triples for Cantus Database are stored in the
-<https://linkedmusic.ca/graphs/cantusdb/> graph. Digital archive of medieval Latin
+<database name="Cantus Database" graph-iri="https://linkedmusic.ca/graphs/cantusdb/" prefix="cdb:">
+<description>
+All triples for Cantus Database are stored in the
+&lt;https://linkedmusic.ca/graphs/cantusdb/&gt; graph. Digital archive of medieval Latin
 chant with sources (manuscripts) and individual chants annotated with genre, tonality,
 and liturgical use. Entity types use the `cdb:` prefix.
-QID linking: Cantus entities do not carry wdt:P2888 in the current ontology.
-Cross-database: cdb:Source has wdt:P276 "location" (a Wikidata URI for the holding
+</description>
+<qid-linking>
+Cantus entities do not carry wdt:P2888 in the current ontology.
+</qid-linking>
+<cross-database>
+cdb:Source has wdt:P276 "location" (a Wikidata URI for the holding
 institution's location), which is the only property linking Cantus to external entities.
 Cross-database queries involving Cantus are limited to geographic location filtering.
-
-Ontology:
+</cross-database>
+<ontology>
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:  <http://www.wikidata.org/prop/direct/> .
 @prefix wd:   <http://www.wikidata.org/entity/> .
@@ -611,25 +632,29 @@ cdb:Chant
 \twdt:P136\t"genre" ;
 \twdt:P361\tcdb:Source ;
 \twdt:P366\t"has use" ;
-\twdt:P837\t"day in year for periodic occurrence" .\
+\twdt:P837\t"day in year for periodic occurrence" .
+</ontology>
+</database>\
 """,
     "rism": """\
-Database: RISM
-Graph IRI: <https://linkedmusic.ca/graphs/rism/>
-Prefix: rism: <https://linkedmusic.ca/graphs/rism/>
-
-Description: All triples for RISM are stored in the <https://linkedmusic.ca/graphs/rism/>
+<database name="RISM" graph-iri="https://linkedmusic.ca/graphs/rism/" prefix="rism:">
+<description>
+All triples for RISM are stored in the &lt;https://linkedmusic.ca/graphs/rism/&gt;
 graph. Répertoire International des Sources Musicales — global inventory of historical
 music manuscripts and printed scores. Contains sources, exemplars (physical copies),
 incipits, persons, institutions, and places. Entity types use the `rism:` prefix.
-QID linking: rism:Institution, rism:Person, and rism:Subject carry wdt:P2888 "exact match"
+</description>
+<qid-linking>
+rism:Institution, rism:Person, and rism:Subject carry wdt:P2888 "exact match"
 for Wikidata reconciliation.
-Cross-database: rism:Institution and rism:Person are directly referenced from DIAMM —
+</qid-linking>
+<cross-database>
+rism:Institution and rism:Person are directly referenced from DIAMM —
 diamm:Archive and diamm:Person carry wdt:P5504 "RISM ID" linking to their corresponding
 RISM counterparts. This is the only direct LinkedMusic-to-LinkedMusic join property
 in the dataset.
-
-Ontology:
+</cross-database>
+<ontology>
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:  <http://www.wikidata.org/prop/direct/> .
 @prefix wd:   <http://www.wikidata.org/entity/> .
@@ -697,52 +722,54 @@ rism:Person
 \twdt:P26\trism:Person ;
 \twdt:P3373\trism:Person ;
 \twdt:P40\trism:Person ;
-\twdt:P1889\trism:Person .\
+\twdt:P1889\trism:Person .
+</ontology>
+</database>\
 """,
 }
 
 INSTRUCTION_CHUNKS: dict[str, str] = {
     "named_graph_rules": """\
-Named Graph Rules:
-- Do not use the SELECT ... FROM syntax for named graphs.
-- Always use the SELECT { GRAPH ... { ... } } syntax instead.
-- Each database's triples live in its own named graph; always scope queries with GRAPH.\
+<rules category="named-graphs">
+- Each database's triples live in its own named graph; always scope queries with GRAPH { ... } blocks.
+- Do not use the SELECT ... FROM syntax; use SELECT { GRAPH ... { ... } } instead.
+</rules>\
 """,
     "output_format_rules": """\
-Output Format Rules:
+<rules category="output-format">
 - When asked to return a list of entities, always return both the label (when available)
   and the URI for the entities.
 - For any entity searched within the LinkedMusic graph (not in Wikidata), add a triple
   using the rdf:type property to explicitly verify its type.
 - Add a LIMIT clause to SELECT queries to avoid excessive results (e.g. LIMIT 100).
 - Always declare PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> at the top of the
-  query whenever rdfs:label is used.\
+  query whenever rdfs:label is used.
+</rules>\
 """,
     "qid_resolution_rules": """\
-QID Resolution Rules:
+<rules category="qid-resolution">
+- Named entities have already been extracted from the query and their Wikidata QIDs
+  pre-resolved. They are listed in the "Pre-resolved QIDs" section (e.g., Charlie Parker = Q103767).
+- If you need a QID that is NOT in the pre-resolved list, call the wikidata_qid_lookup
+  tool BEFORE writing the query. Do not guess QIDs.
 - When an entity is reconciled against Wikidata, wdt:P2888 is used to point to the
   reconciled Wikidata entity (exact match).
-- The steps to follow when Q-IDs are needed:
-  1. Examine the ontology and extract the relevant parts.
-  2. Using that ontology, determine which Q-IDs are required and look them up via the
-     wikidata_qid_lookup tool.
-  3. Using the ontology and the Q-IDs, build the final SPARQL query.
-  4. Once finalized, re-read the query and double-check that all Q-IDs are correct.
-- When resolving a Wikidata Q-ID, use the ontology to determine the linking path:
+- Use the ontology to determine the correct linking path for each QID:
   - If a property's object is another defined class in the ontology (e.g., diamm:City
-    wdt:P17 diamm:Country), the query must first navigate to that diamm:Country class
-    and then use its wdt:P2888 property to get the Q-ID.
+    wdt:P17 diamm:Country), the query must first navigate to that class and then use
+    its wdt:P2888 property to match the QID.
   - If a property's object is a literal string placeholder (e.g., ts:Session wdt:P17
-    "country"@en), assume the property in the actual graph links directly to a
-    Wikidata URI.\
+    "country"@en), the property links directly to a Wikidata URI — use the QID directly.
+- Once the SPARQL query is finalized, re-read it and double-check that all QIDs are correct.
+</rules>\
 """,
     "federated_query_rules": """\
-Federated Query Rules:
-- Only use a federated query with Wikidata (<https://query.wikidata.org/sparql>) when
+<rules category="federated-queries">
+- Only use a federated query with Wikidata (&lt;https://query.wikidata.org/sparql&gt;) when
   the required information is not available at all in the LinkedMusic graph ontology.
 - When performing a federated query, ensure the SPARQL is efficient (avoid Cartesian
   products; use a subquery to bind variables before the SERVICE block).
-Constraints — violations will cause query failure:
+<constraints reason="violations will cause query failure">
 - Do not put any triples verifying entity type (wdt:P31 or rdf:type) inside SERVICE blocks.
 - Do not put any SERVICE blocks inside a GRAPH block.
 - Do not put any SERVICE blocks inside an OPTIONAL block.
@@ -750,31 +777,36 @@ Constraints — violations will cause query failure:
 - To avoid Virtuoso error SP031: use a subquery before the SERVICE call to pre-bind
   all variables that the SERVICE block will consume.
 - To avoid Virtuoso error SP031: ensure every variable is assigned a value in valid
-  scope before it is used in a FILTER, BIND, or OPTIONAL block.\
+  scope before it is used in a FILTER, BIND, or OPTIONAL block.
+</constraints>
+</rules>\
 """,
     "entity_type_rules": """\
-Entity Type Rules:
+<rules category="entity-types">
 - For any entity searched within the LinkedMusic graph (not in Wikidata), add a triple
   using the rdf:type property to explicitly verify its type.
 - Do not use Wikidata to verify the type of entities; use LinkedMusic types with rdf:type.
 - Exception: when local entities have a wdt:P31 triple (like mb:Artist), it is
   acceptable to check that triple using wdt:P31 in the local LinkedMusic graph, but
-  never inside a federated query SERVICE block.\
+  never inside a federated query SERVICE block.
+</rules>\
 """,
     "string_matching_rules": """\
-String Matching Rules:
+<rules category="string-matching">
 - Default: do not use string matching. Check against Wikidata Q-IDs instead.
 - Exception: when the query explicitly requests finding entities based on text or string
   content (e.g., "find tracks with X in the title", "find artists whose names contain Y",
   "search for works with Z in the description"), use appropriate SPARQL string functions:
-  CONTAINS(), REGEX(), or similar.\
+  CONTAINS(), REGEX(), or similar.
+</rules>\
 """,
     "musicbrainz_specific": """\
-MusicBrainz-Specific Rules:
+<rules category="musicbrainz-specific">
 - Very few mb:Recording entities are reconciled against Wikidata, because Wikidata does
   not carry information about specific recordings — only about songs (works).
 - Prefer matching reconciled data against mb:Work entities rather than mb:Recording
-  when Wikidata Q-ID linking is required.\
+  when Wikidata Q-ID linking is required.
+</rules>\
 """,
 }
 

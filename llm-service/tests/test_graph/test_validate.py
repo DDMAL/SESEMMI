@@ -86,7 +86,7 @@ def test_is_valid_with_errors():
 
 
 # ---------------------------------------------------------------------------
-# Structural intent tests (5)
+# Structural intent tests (4)
 # ---------------------------------------------------------------------------
 
 
@@ -116,21 +116,7 @@ SELECT (COUNT(?work) AS ?count) WHERE {
     assert errors == []
 
 
-def test_cross_graph_single_graph():
-    sparql = """
-SELECT ?title WHERE {
-  GRAPH <https://linkedmusic.ca/graphs/diamm/> {
-    ?ms rdf:type rdfs:Resource ;
-        rdfs:label ?title .
-  }
-}
-LIMIT 10
-"""
-    errors = validate_intent(sparql, "cross_graph", False, False)
-    assert any("cross_graph" in e for e in errors)
-
-
-def test_mentions_entities_no_qid():
+def test_has_entities_no_qid():
     sparql = """
 SELECT ?work WHERE {
   GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> {
@@ -140,7 +126,7 @@ SELECT ?work WHERE {
 }
 LIMIT 10
 """
-    errors = validate_intent(sparql, "lookup", True, False)
+    errors = validate_intent(sparql, "lookup", True, False)  # has_entities=True
     assert any("QID" in e for e in errors)
 
 

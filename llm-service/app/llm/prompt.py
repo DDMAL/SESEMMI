@@ -1,3 +1,4 @@
+# This is used as non-graph fallback when GRAPH_ENABLED=false
 from langchain_core.prompts import ChatPromptTemplate
 from app.llm.schema_context import SCHEMA_CONTEXT
 
