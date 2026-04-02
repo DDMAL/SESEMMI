@@ -24,7 +24,7 @@ def _build_prompt(state: GraphState, is_repair: bool, repair_count: int) -> str:
 
     schema_context = state.get("schema_context", "")
     if schema_context:
-        parts.append(f"<schema_context>\n{schema_context}\n</schema_context>")
+        parts.append(f"\n{schema_context}\n>")
 
     few_shot = state.get("few_shot_examples", "")
     if few_shot:
@@ -32,7 +32,9 @@ def _build_prompt(state: GraphState, is_repair: bool, repair_count: int) -> str:
 
     resolved_qids = state.get("resolved_qids") or {}
     if resolved_qids:
-        qid_lines = "\n".join(f"- {name} = {qid}" for name, qid in resolved_qids.items())
+        qid_lines = "\n".join(
+            f"- {name} = {qid}" for name, qid in resolved_qids.items()
+        )
         parts.append(f"<resolved_qids>\n{qid_lines}\n</resolved_qids>")
 
     if is_repair:
@@ -56,9 +58,7 @@ def _build_prompt(state: GraphState, is_repair: bool, repair_count: int) -> str:
                     "or break into a simpler single-graph query."
                 )
             repair_parts.append(
-                "<execution_error>\n"
-                + "\n".join(exec_lines)
-                + "\n</execution_error>"
+                "<execution_error>\n" + "\n".join(exec_lines) + "\n</execution_error>"
             )
         judge_feedback = state.get("judge_feedback")
         if judge_feedback:
@@ -119,14 +119,15 @@ async def generate_node(state: GraphState) -> dict:
                 except Exception:
                     logger.exception("Tool call failed for %r", tc)
                     result = []
-            messages.append(
-                ToolMessage(content=str(result), tool_call_id=tc["id"])
-            )
+            messages.append(ToolMessage(content=str(result), tool_call_id=tc["id"]))
 
     # If the loop exhausted all iterations without the model producing text,
     # force one final generation with all tool results already in messages.
     if response is not None and response.tool_calls:
-        logger.warning("Tool loop exhausted after %d iterations; forcing final generation", _MAX_TOOL_ITERATIONS)
+        logger.warning(
+            "Tool loop exhausted after %d iterations; forcing final generation",
+            _MAX_TOOL_ITERATIONS,
+        )
         response = await model.ainvoke(messages)
 
     content = response.content if response is not None else ""
@@ -136,4 +137,8 @@ async def generate_node(state: GraphState) -> dict:
             for part in content
         )
     sparql = clean_sparql(content)
-    return {"sparql": sparql, "repair_count": repair_count, "resolved_qids": resolved_qids}
+    return {
+        "sparql": sparql,
+        "repair_count": repair_count,
+        "resolved_qids": resolved_qids,
+    }
