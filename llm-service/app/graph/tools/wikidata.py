@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 _WIKIDATA_API = "https://www.wikidata.org/w/api.php"
 _TIMEOUT = 10.0
-_LIMIT = 5
+_LIMIT = 20
 _USER_AGENT = "sesemmi-llm/1.0 (https://github.com/sesemmi; bot) httpx"
 
 
@@ -23,7 +23,9 @@ async def wikidata_qid_lookup(entity_name: str, language: str = "en") -> list[di
         "limit": str(_LIMIT),
     }
     try:
-        async with httpx.AsyncClient(timeout=_TIMEOUT, headers={"User-Agent": _USER_AGENT}) as client:
+        async with httpx.AsyncClient(
+            timeout=_TIMEOUT, headers={"User-Agent": _USER_AGENT}
+        ) as client:
             response = await client.get(_WIKIDATA_API, params=params)
             response.raise_for_status()
             data = response.json()

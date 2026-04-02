@@ -50,7 +50,7 @@ def build_graph():
         "validate", after_validate, ["execute", "generate", "answer"]
     )
     builder.add_edge("execute", "answer")
-    builder.add_conditional_edges("answer", after_answer, ["generate", END])
+    builder.add_conditional_edges("answer", after_answer, ["intake", END])
 
     return builder.compile()
 
