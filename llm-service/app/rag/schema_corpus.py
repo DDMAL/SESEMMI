@@ -744,6 +744,7 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
 - Add a LIMIT clause to SELECT queries to avoid excessive results (e.g. LIMIT 100).
 - Always declare PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> at the top of the
   query whenever rdfs:label is used.
+- Always wrap IRIs in angle brackets `<>` in PREFIX declarations, e.g., `PREFIX ts: <https://linkedmusic.ca/graphs/thesession/>`. Never omit the angle brackets around a URI in a PREFIX statement.
 </rules>\
 """,
     "qid_resolution_rules": """\
@@ -806,6 +807,13 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
   not carry information about specific recordings — only about songs (works).
 - Prefer matching reconciled data against mb:Work entities rather than mb:Recording
   when Wikidata Q-ID linking is required.
+</rules>\
+""",
+    "aggregation_rules": """\
+<rules category="aggregation">
+- Aggregate functions (COUNT, SUM, AVG, MIN, MAX) must always be wrapped in
+  parentheses and assigned to a variable using AS, e.g., (COUNT(?x) AS ?count).
+- Use (COUNT(DISTINCT ?x) AS ?count) when duplicate suppression is needed.
 </rules>\
 """,
 }
