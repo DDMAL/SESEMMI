@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     few_shot_enabled: bool = False
     database_url: str = "postgresql+psycopg://postgres:postgres@postgres:5432/sesemmi"
     virtuoso_endpoint: str = "http://virtuoso:8890/sparql"
+    wikidata_mcp_url: str = "https://wd-mcp.wmcloud.org/mcp/"
     max_repair_iterations: int = 3
     graph_enabled: bool = True
     semantic_judge_enabled: bool = True
