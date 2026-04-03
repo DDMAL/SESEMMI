@@ -24,11 +24,11 @@ def after_validate(state: GraphState) -> str:
 
 def after_judge(state: GraphState) -> str:
     if state.get("judge_feedback") is not None:
-        return "generate"
+        return "intake"
     if state.get("execution_error") is not None and state.get(
         "repair_count", 0
     ) < state.get("max_repairs", settings.max_repair_iterations):
-        return "generate"
+        return "intake"
     return END
 
 
