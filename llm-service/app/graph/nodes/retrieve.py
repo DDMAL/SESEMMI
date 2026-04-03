@@ -1,8 +1,5 @@
 import logging
 
-from langchain_ollama import ChatOllama
-from pydantic import BaseModel
-
 from app.config import settings
 from app.graph.state import GraphState
 from app.graph.tools.wikidata import wikidata_qid_lookup
@@ -10,36 +7,6 @@ from app.llm.examples import FEW_SHOT_EXAMPLES
 from app.rag.schema_corpus import INSTRUCTION_CHUNKS, ONTOLOGY_CHUNKS
 
 logger = logging.getLogger(__name__)
-
-
-class _QIDSelection(BaseModel):
-    selected_qid: str
-
-
-async def _pick_qid_with_llm(
-    entity_name: str,
-    user_query: str,
-    matches: list[dict],
-    model: ChatOllama,
-) -> str:
-    candidates = "\n".join(
-        f"- {m['qid']}: {m['label']} — {m.get('description', 'no description')}"
-        for m in matches
-    )
-    prompt = (
-        f"<task>Select the most relevant Wikidata entity for \"{entity_name}\" "
-        f"in the context of the following music database query.</task>\n\n"
-        f"<query>{user_query}</query>\n\n"
-        f"<candidates>\n{candidates}\n</candidates>\n\n"
-        f"<instructions>Return the QID of the candidate that best matches the entity "
-        f"as used in the query. Consider the musical context.</instructions>"
-    )
-    structured = model.with_structured_output(_QIDSelection)
-    result = await structured.ainvoke(prompt)
-    valid_qids = {m["qid"] for m in matches}
-    if result.selected_qid not in valid_qids:
-        raise ValueError(f"LLM returned invalid QID {result.selected_qid!r}")
-    return result.selected_qid
 
 
 def format_examples_to_xml(examples: list[dict]) -> str:
@@ -108,31 +75,14 @@ def _get_rag_examples(query: str, target_graphs: list[str]) -> list[dict]:
 
 async def _resolve_qids(entities: list[str], user_query: str) -> dict[str, str]:
     resolved: dict[str, str] = {}
-    model = ChatOllama(
-        model=settings.llm_model,
-        base_url=settings.ollama_base_url,
-        temperature=0,
-        num_ctx=settings.ollama_num_ctx,
-        num_thread=settings.ollama_num_thread,
-        think=settings.ollama_think,
-    )
     for name in entities:
         try:
-            matches = await wikidata_qid_lookup.ainvoke({"entity_name": name})
-            if not matches:
-                continue
-            if len(matches) == 1:
+            matches = await wikidata_qid_lookup.ainvoke({
+                "entity_name": name,
+                "context": user_query,
+            })
+            if matches:
                 resolved[name] = matches[0]["qid"]
-            else:
-                try:
-                    resolved[name] = await _pick_qid_with_llm(
-                        name, user_query, matches, model
-                    )
-                except Exception:
-                    logger.warning(
-                        "LLM QID selection failed for %r, using first match", name
-                    )
-                    resolved[name] = matches[0]["qid"]
         except Exception:
             logger.exception("QID lookup failed for %r", name)
     return resolved
