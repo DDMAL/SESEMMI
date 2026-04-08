@@ -85,7 +85,7 @@ async def generate_node(state: GraphState) -> dict:
 
     prompt_text = _build_prompt(state, is_repair, repair_count)
 
-    has_entities = bool(state.get("extracted_entities"))
+    has_entities = bool(state.get("entity_contexts"))
     base_model = ChatOllama(
         model=settings.llm_model,
         base_url=settings.ollama_base_url,

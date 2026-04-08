@@ -93,12 +93,12 @@ async def _resolve_qids(
 
 async def retrieve_node(state: GraphState) -> dict:
     target_graphs: list[str] = state.get("target_graphs") or []
-    entities: list[str] = state.get("extracted_entities") or []
+    entity_contexts: dict[str, str] = state.get("entity_contexts") or {}
     needs_federation: bool = state.get("needs_federation", False)
     query: str = state["user_query"]
 
     schema_context = _build_schema_context(
-        target_graphs, bool(entities), needs_federation, state.get("intent", "lookup")
+        target_graphs, bool(entity_contexts), needs_federation, state.get("intent", "lookup")
     )
 
     if settings.rag_enabled:
@@ -111,9 +111,8 @@ async def retrieve_node(state: GraphState) -> dict:
     few_shot_examples = format_examples_to_xml(examples)
 
     resolved_qids: dict[str, str] = {}
-    if entities:
-        entity_contexts: dict[str, str] = state.get("entity_contexts") or {}
-        resolved_qids = await _resolve_qids(entities, entity_contexts)
+    if entity_contexts:
+        resolved_qids = await _resolve_qids(list(entity_contexts.keys()), entity_contexts)
 
     return {
         "schema_context": schema_context,
