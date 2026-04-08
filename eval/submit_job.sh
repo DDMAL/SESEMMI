@@ -64,8 +64,8 @@ if [ ! -d "$VENV_DIR" ]; then
     python -m venv "$VENV_DIR"
     source "$VENV_DIR/bin/activate"
     pip install --upgrade pip
-    pip install -r "$PROJECT_DIR/llm-service/requirements.txt" 2>/dev/null \
-        || pip install fastapi uvicorn httpx langchain langchain-ollama langgraph rdflib pydantic-settings langchain-core langchain-postgres langsmith
+    pip install -r "$PROJECT_DIR/llm-service/requirements.txt" \
+        || pip install fastapi uvicorn httpx langchain langchain-ollama langgraph rdflib pydantic-settings langchain-core langchain-postgres langsmith langchain-mcp-adapters mcp
     pip install httpx  # for run_eval.py
 else
     source "$VENV_DIR/bin/activate"
