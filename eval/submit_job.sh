@@ -16,7 +16,7 @@ EVAL_QUERY="${EVAL_QUERY:-}"            # single query mode (takes precedence ov
 EVAL_DATA="${EVAL_DATA:-eval/queries.json}"
 RUN_NAME="${RUN_NAME:-slurm-${SLURM_JOB_ID}}"
 LLM_MODEL="${LLM_MODEL:-qwen3:1.7b}"
-EVAL_TIMEOUT="${EVAL_TIMEOUT:-300}"
+EVAL_TIMEOUT="${EVAL_TIMEOUT:-900}"
 SERVICE_PORT="${SERVICE_PORT:-8000}"
 
 # Pipeline config (env vars read by llm-service Settings)
