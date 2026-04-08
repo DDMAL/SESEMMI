@@ -37,7 +37,6 @@ class IntakeClassification(BaseModel):
         ]
     ]
     needs_federation: bool
-    extracted_entities: list[str]
     entity_contexts: dict[str, str]
 
 
@@ -66,47 +65,32 @@ _PROMPT_TEMPLATE = """\
   </example>
 </federation_guidance>
 
-<entity_extraction_guidance>
+<entity_guidance>
   <rule>Extract specific named entities that may need Wikidata QID resolution for SPARQL filtering. These will be looked up against the Wikidata API to obtain QIDs (e.g., Q5765 → Charlie Parker).</rule>
   <rule>Include: person names (composers, performers, authors), place names (cities, countries, regions), work titles (compositions, manuscripts, albums), organization names (ensembles, labels, institutions), and music domain-specific identifiers (e.g., modal designations like "mode 1", opus numbers like "Opus 40", catalogue numbers like "BWV 244", instrument names like "lute", genre/form names like "motet" or "reel").</rule>
   <rule>Exclude: generic category terms (e.g., "jazz", "medieval", "chant"), temporal expressions (e.g., "19th century", "after 1950"), and numeric qualifiers (e.g., "top 10", "at least 3").</rule>
-  <rule>Use the canonical form of each entity as it would appear in Wikidata (e.g., "Johann Sebastian Bach" not "Bach", "New York City" not "NYC").</rule>
+  <rule>Use canonical Wikidata forms (e.g., "Johann Sebastian Bach" not "Bach", "New York City" not "NYC").</rule>
+  <rule>For each entity, infer a short disambiguation description from the query's wording (e.g., "composed by X" → X is a "composer"; "recorded in Y" → Y is a "city" or "town"; "held at Z" → Z is an "institution").</rule>
+  <rule>Keep descriptions concise: use a single noun or role word. For persons, use only their role (e.g., "composer", "musician", "performer") — never append additional nouns like "of musical compositions" or "of works", as these cause Wikidata search to return related objects instead of the person.</rule>
+  <rule>Return a dict mapping each entity name to its description. Return an empty dict if no entities apply.</rule>
   <example>
     <query>solos by Charlie Parker recorded in New York</query>
-    <extracted_entities>["Charlie Parker", "New York City"]</extracted_entities>
+    <entity_contexts>{{"Charlie Parker": "musician", "New York City": "city"}}</entity_contexts>
   </example>
   <example>
     <query>medieval chants from the 12th century</query>
-    <extracted_entities>[]</extracted_entities>
+    <entity_contexts>{{}}</entity_contexts>
   </example>
   <example>
     <query>works by Mozart held at the British Library</query>
-    <extracted_entities>["Wolfgang Amadeus Mozart", "British Library"]</extracted_entities>
+    <entity_contexts>{{"Wolfgang Amadeus Mozart": "composer", "British Library": "library that holds works"}}</entity_contexts>
   </example>
-</entity_extraction_guidance>
-
-<entity_context_guidance>
-  <rule>For each extracted entity, infer a short description from clues in the query. This description is used to disambiguate the entity in Wikidata search.</rule>
-  <rule>Use the query's wording to determine the entity's role — e.g. "composed by X" means X is a "composer", "recorded in Y" means Y is a "city", "held at Z" means Z is an "institution".</rule>
-  <example>
-    <query>solos by Charlie Parker recorded in New York</query>
-    <entity_contexts>{{"Charlie Parker": "jazz musician who performs solos", "New York City": "city where music was recorded"}}</entity_contexts>
-  </example>
-  <example>
-    <query>Find all compositions in DIAMM that are composed by Guillaume de Machaut</query>
-    <entity_contexts>{{"Guillaume de Machaut": "composer of musical compositions"}}</entity_contexts>
-  </example>
-  <example>
-    <query>works by Mozart held at the British Library</query>
-    <entity_contexts>{{"Wolfgang Amadeus Mozart": "composer of musical works", "British Library": "library that holds works"}}</entity_contexts>
-  </example>
-</entity_context_guidance>
+</entity_guidance>
 
 <output_fields>
   <field name="intent">The query's primary purpose (one of the intent types above)</field>
   <field name="target_graphs">Which databases are relevant (can be multiple)</field>
   <field name="needs_federation">true if Wikidata federation (SERVICE clause) is likely needed</field>
-  <field name="extracted_entities">List of named entities (persons, places, works, organizations) mentioned in the query that may need Wikidata QID resolution. Return an empty list if none.</field>
   <field name="entity_contexts">A dict mapping each extracted entity name to a short disambiguation description inferred from the query. Return an empty dict if no entities.</field>
 </output_fields>
 
@@ -130,7 +114,6 @@ async def intake_node(state: GraphState) -> dict:
             "intent": result.intent,
             "target_graphs": result.target_graphs,
             "needs_federation": result.needs_federation,
-            "extracted_entities": result.extracted_entities,
             "entity_contexts": result.entity_contexts,
         }
     except Exception:
@@ -139,6 +122,5 @@ async def intake_node(state: GraphState) -> dict:
             "intent": "lookup",
             "target_graphs": VALID_DB_NAMES,
             "needs_federation": False,
-            "extracted_entities": [],
             "entity_contexts": {},
         }

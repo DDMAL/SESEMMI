@@ -56,14 +56,14 @@ _DIAMM_LOOKUP = IntakeClassification(
     intent="lookup",
     target_graphs=["diamm"],
     needs_federation=False,
-    extracted_entities=[],
+    entity_contexts={},
 )
 
 _DIAMM_AGGREGATION = IntakeClassification(
     intent="aggregation",
     target_graphs=["diamm"],
     needs_federation=False,
-    extracted_entities=[],
+    entity_contexts={},
 )
 
 # ---------------------------------------------------------------------------

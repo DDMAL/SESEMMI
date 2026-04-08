@@ -36,7 +36,7 @@ async def test_intake_single_graph():
         intent="lookup",
         target_graphs=["diamm"],
         needs_federation=False,
-        extracted_entities=[],
+        entity_contexts={},
     )
     mock_chain = AsyncMock()
     mock_chain.ainvoke.return_value = classification
@@ -51,7 +51,6 @@ async def test_intake_single_graph():
     assert result["intent"] == "lookup"
     assert result["target_graphs"] == ["diamm"]
     assert result["needs_federation"] is False
-    assert result["extracted_entities"] == []
 
 
 async def test_intake_cross_graph():
@@ -60,7 +59,7 @@ async def test_intake_cross_graph():
         intent="lookup",
         target_graphs=["diamm", "musicbrainz"],
         needs_federation=True,
-        extracted_entities=["DIAMM", "MusicBrainz"],
+        entity_contexts={"DIAMM": "", "MusicBrainz": ""},
     )
     mock_chain = AsyncMock()
     mock_chain.ainvoke.return_value = classification
@@ -90,7 +89,7 @@ async def test_retrieve_ontology_selection():
     state = {
         "user_query": "Find all DIAMM manuscripts",
         "target_graphs": ["diamm"],
-        "extracted_entities": [],
+        "entity_contexts": {},
         "needs_federation": False,
     }
     result = await retrieve_node(state)
@@ -109,7 +108,7 @@ async def test_retrieve_federation_rules_included():
     state = {
         "user_query": "Compare composers across databases",
         "target_graphs": ["diamm", "musicbrainz"],
-        "extracted_entities": [],
+        "entity_contexts": {},
         "needs_federation": True,
     }
     result = await retrieve_node(state)
@@ -126,7 +125,7 @@ async def test_retrieve_deduplicates_identical_docs():
     state = {
         "user_query": "Find Irish tunes",
         "target_graphs": ["thesession"],
-        "extracted_entities": [],
+        "entity_contexts": {},
         "needs_federation": False,
     }
     dup_doc = MagicMock()
@@ -162,7 +161,7 @@ async def test_retrieve_entity_resolved():
     state = {
         "user_query": "Find jazz solos from NYC",
         "target_graphs": ["digthatlick"],
-        "extracted_entities": ["New York City"],
+        "entity_contexts": {"New York City": "city where music was recorded"},
         "needs_federation": False,
     }
     mock_result = [{"qid": "Q60", "label": "New York City"}]
@@ -179,7 +178,7 @@ async def test_retrieve_filtered_rag_called():
     state = {
         "user_query": "Find Irish tunes",
         "target_graphs": ["thesession"],
-        "extracted_entities": [],
+        "entity_contexts": {},
         "needs_federation": False,
     }
     mock_doc = MagicMock()
@@ -238,7 +237,7 @@ async def test_generate_produces_sparql():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 0,
-        "extracted_entities": ["entity"],
+        "entity_contexts": {"entity": ""},
     }
 
     with patch(
@@ -261,7 +260,7 @@ async def test_generate_prompt_has_output_rules():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 0,
-        "extracted_entities": ["entity"],
+        "entity_contexts": {"entity": ""},
     }
 
     with patch(
@@ -277,7 +276,7 @@ async def test_generate_prompt_has_output_rules():
 
 
 async def test_generate_no_qid_tool_when_no_entities():
-    """When no extracted_entities, QID tool is not bound and prompt omits the tool instruction."""
+    """When no entity_contexts, QID tool is not bound and prompt omits the tool instruction."""
     sparql = "SELECT ?s WHERE { GRAPH <https://linkedmusic.ca/graphs/thesession/> { ?s a ?t } } LIMIT 10"
     mock_chat, _ = _mock_generate_llm(sparql)
     state = {
@@ -286,7 +285,7 @@ async def test_generate_no_qid_tool_when_no_entities():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 0,
-        "extracted_entities": [],
+        "entity_contexts": {},
     }
 
     with patch(
@@ -338,7 +337,7 @@ async def test_generate_tool_loop_exhaustion_forces_final_call():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 0,
-        "extracted_entities": ["entity"],
+        "entity_contexts": {"entity": ""},
     }
 
     with patch(
@@ -369,7 +368,7 @@ async def test_generate_repair_context_injected():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 0,
-        "extracted_entities": ["entity"],
+        "entity_contexts": {"entity": ""},
         "sparql": "SELECT ?x WHERE { ?x a ?y }",
         "validation_errors": ["Missing LIMIT clause"],
         "execution_error": None,
@@ -402,7 +401,7 @@ async def test_generate_judge_feedback_in_repair_context():
         "few_shot_examples": "",
         "resolved_qids": {},
         "repair_count": 1,
-        "extracted_entities": ["entity"],
+        "entity_contexts": {"entity": ""},
         "sparql": "SELECT ?x WHERE { ?x a ?y } LIMIT 10",
         "validation_errors": [],
         "execution_error": None,
@@ -432,7 +431,7 @@ async def test_validate_valid_query():
         "sparql": _VALID_SPARQL,
         "intent": "lookup",
         "target_graphs": ["diamm"],
-        "extracted_entities": [],
+        "entity_contexts": {},
         "needs_federation": False,
     }
     result = await validate_node(state)
@@ -446,7 +445,7 @@ async def test_validate_syntax_error():
         "sparql": "SELECT ?x WHERE { ?x a UNCLOSED BRACE",
         "intent": "lookup",
         "target_graphs": [],
-        "extracted_entities": [],
+        "entity_contexts": {},
         "needs_federation": False,
     }
     result = await validate_node(state)
@@ -461,7 +460,7 @@ async def test_validate_aggregation_missing_count():
         "sparql": _VALID_SPARQL,
         "intent": "aggregation",
         "target_graphs": ["diamm"],
-        "extracted_entities": [],
+        "entity_contexts": {},
         "needs_federation": False,
     }
     result = await validate_node(state)
