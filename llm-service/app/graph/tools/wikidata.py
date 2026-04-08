@@ -33,15 +33,23 @@ async def _get_search_tool():
 def _parse_mcp_response(result) -> list[dict]:
     """Parse MCP search_items response into [{qid, label, description}]."""
     # Log raw response on first call to aid format discovery
-    logger.debug("MCP raw response: %r", result)
+    logger.info("MCP raw response: %r", result)
 
     items = []
 
     # Result may be a list of content blocks or a single value
     if isinstance(result, list):
         blocks = result
+    elif isinstance(result, str):
+        blocks = [result]
     elif hasattr(result, "content"):
-        blocks = result.content
+        blocks = (
+            result.content if isinstance(result.content, list) else [result.content]
+        )
+    elif hasattr(result, "output"):
+        blocks = result.output if isinstance(result.output, list) else [result.output]
+    elif isinstance(result, dict):
+        blocks = result.get("content") or result.get("output") or [result]
     else:
         blocks = [result]
 
@@ -60,7 +68,11 @@ def _parse_mcp_response(result) -> list[dict]:
             parsed = json.loads(text)
             if isinstance(parsed, list):
                 for entry in parsed:
-                    qid = entry.get("id") or entry.get("qid") or entry.get("concepturi", "").split("/")[-1]
+                    qid = (
+                        entry.get("id")
+                        or entry.get("qid")
+                        or entry.get("concepturi", "").split("/")[-1]
+                    )
                     if qid:
                         items.append(
                             {
@@ -74,7 +86,11 @@ def _parse_mcp_response(result) -> list[dict]:
                 # May be wrapped: {"search": [...]} or {"results": [...]}
                 entries = parsed.get("search") or parsed.get("results") or []
                 for entry in entries:
-                    qid = entry.get("id") or entry.get("qid") or entry.get("concepturi", "").split("/")[-1]
+                    qid = (
+                        entry.get("id")
+                        or entry.get("qid")
+                        or entry.get("concepturi", "").split("/")[-1]
+                    )
                     if qid:
                         items.append(
                             {
@@ -87,12 +103,19 @@ def _parse_mcp_response(result) -> list[dict]:
         except (json.JSONDecodeError, TypeError):
             pass
 
-        # Fallback: look for Q-number patterns in plain text
+        # Fallback: parse "Q123: Label — Description" lines from plain text
         import re
+
         for line in text.splitlines():
-            m = re.search(r'\b(Q\d+)\b', line)
+            m = re.match(r"^(Q\d+):\s*(.+?)(?:\s*—\s*(.+))?$", line.strip())
             if m:
-                items.append({"qid": m.group(1), "label": line.strip(), "description": ""})
+                items.append(
+                    {
+                        "qid": m.group(1),
+                        "label": m.group(2).strip(),
+                        "description": (m.group(3) or "").strip(),
+                    }
+                )
 
     return items
 
@@ -100,11 +123,16 @@ def _parse_mcp_response(result) -> list[dict]:
 @tool
 async def wikidata_qid_lookup(entity_name: str, context: str = "") -> list[dict]:
     """Look up a Wikidata entity QID by name via MCP semantic search.
-    Pass context (e.g. the user query) to improve disambiguation."""
+
+    Args:
+        entity_name: The entity name to search for (e.g. "John Ward").
+        context: Short disambiguation description of the entity
+                 (e.g. "English Renaissance composer", "city in Austria").
+    """
     try:
-        query = f"{entity_name} — {context}" if context else entity_name
+        query = f"{entity_name} {context}" if context else entity_name
         search = await _get_search_tool()
-        result = await search.ainvoke({"query": query})
+        result = await search.ainvoke({"query": query, "K": 10})
         items = _parse_mcp_response(result)
         logger.debug("wikidata_qid_lookup %r -> %d results", entity_name, len(items))
         return items

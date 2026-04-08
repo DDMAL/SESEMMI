@@ -10,6 +10,7 @@ class GraphState(TypedDict, total=False):
     target_graphs: list[str]  # e.g. ["diamm", "musicbrainz"]
     needs_federation: bool
     extracted_entities: list[str]  # e.g. ["Charlie Parker", "NYC"]
+    entity_contexts: dict[str, str]  # e.g. {"Charlie Parker": "American jazz saxophonist"}
 
     # Retrieval
     schema_context: str

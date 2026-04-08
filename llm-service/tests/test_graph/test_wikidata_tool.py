@@ -55,11 +55,10 @@ def test_parse_concepturi_fallback():
 
 
 def test_parse_plain_text_qid_regex():
-    text = "Q1339 - Johann Sebastian Bach\nQ57233 - Bach (crater)"
+    text = "Q1339: Johann Sebastian Bach — German composer (1685-1750)\nQ57233: Bach (crater) — crater on Mercury"
     result = _parse_mcp_response([_make_text_block(text)])
-    qids = [r["qid"] for r in result]
-    assert "Q1339" in qids
-    assert "Q57233" in qids
+    assert result[0] == {"qid": "Q1339", "label": "Johann Sebastian Bach", "description": "German composer (1685-1750)"}
+    assert result[1] == {"qid": "Q57233", "label": "Bach (crater)", "description": "crater on Mercury"}
 
 
 def test_parse_empty_blocks_returns_empty():
