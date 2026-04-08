@@ -90,15 +90,15 @@ _PROMPT_TEMPLATE = """\
   <rule>Use the query's wording to determine the entity's role — e.g. "composed by X" means X is a "composer", "recorded in Y" means Y is a "city", "held at Z" means Z is an "institution".</rule>
   <example>
     <query>solos by Charlie Parker recorded in New York</query>
-    <entity_contexts>{"Charlie Parker": "jazz musician who performs solos", "New York City": "city where music was recorded"}</entity_contexts>
+    <entity_contexts>{{"Charlie Parker": "jazz musician who performs solos", "New York City": "city where music was recorded"}}</entity_contexts>
   </example>
   <example>
     <query>Find all compositions in DIAMM that are composed by Guillaume de Machaut</query>
-    <entity_contexts>{"Guillaume de Machaut": "composer of musical compositions"}</entity_contexts>
+    <entity_contexts>{{"Guillaume de Machaut": "composer of musical compositions"}}</entity_contexts>
   </example>
   <example>
     <query>works by Mozart held at the British Library</query>
-    <entity_contexts>{"Wolfgang Amadeus Mozart": "composer of musical works", "British Library": "library that holds works"}</entity_contexts>
+    <entity_contexts>{{"Wolfgang Amadeus Mozart": "composer of musical works", "British Library": "library that holds works"}}</entity_contexts>
   </example>
 </entity_context_guidance>
 
