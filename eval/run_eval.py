@@ -124,6 +124,7 @@ def run_single_query(
         )
     except httpx.TimeoutException:
         record["error"] = f"Timeout after {timeout}s"
+        record["durationMs"] = int(timeout * 1000)
     except Exception as e:
         record["error"] = str(e)
 
