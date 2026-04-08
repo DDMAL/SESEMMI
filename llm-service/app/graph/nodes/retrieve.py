@@ -73,13 +73,16 @@ def _get_rag_examples(query: str, target_graphs: list[str]) -> list[dict]:
     return filtered[:k]
 
 
-async def _resolve_qids(entities: list[str], user_query: str) -> dict[str, str]:
+async def _resolve_qids(
+    entities: list[str], entity_contexts: dict[str, str]
+) -> dict[str, str]:
     resolved: dict[str, str] = {}
     for name in entities:
         try:
+            context = entity_contexts.get(name, "")
             matches = await wikidata_qid_lookup.ainvoke({
                 "entity_name": name,
-                "context": user_query,
+                "context": context,
             })
             if matches:
                 resolved[name] = matches[0]["qid"]
@@ -109,7 +112,8 @@ async def retrieve_node(state: GraphState) -> dict:
 
     resolved_qids: dict[str, str] = {}
     if entities:
-        resolved_qids = await _resolve_qids(entities, query)
+        entity_contexts: dict[str, str] = state.get("entity_contexts") or {}
+        resolved_qids = await _resolve_qids(entities, entity_contexts)
 
     return {
         "schema_context": schema_context,
