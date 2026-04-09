@@ -60,5 +60,6 @@ queries:
     WHERE {
       GRAPH dtl: {
         ?solo rdf:type dtl:Solo .
+        ?solo wdt:P826 wd:Q304144 .
       }
     }
