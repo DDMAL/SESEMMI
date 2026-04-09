@@ -68,7 +68,7 @@ _PROMPT_TEMPLATE = """\
 <entity_guidance>
   <rule>Extract specific named entities that may need Wikidata QID resolution for SPARQL filtering. These will be looked up against the Wikidata API to obtain QIDs (e.g., Q5765 → Charlie Parker).</rule>
   <rule>Include: person names (composers, performers, authors), place names (cities, countries, regions), work titles (compositions, manuscripts, albums), organization names (ensembles, labels, institutions), and music domain-specific identifiers (e.g., modal designations like "mode 1", opus numbers like "Opus 40", catalogue numbers like "BWV 244", instrument names like "lute", genre/form names like "motet" or "reel").</rule>
-  <rule>Exclude: generic category terms (e.g., "jazz", "medieval", "chant"), temporal expressions (e.g., "19th century", "after 1950"), and numeric qualifiers (e.g., "top 10", "at least 3").</rule>
+  <rule>Exclude: generic category terms (e.g., "jazz", "medieval", "chant"), date or year constraints (e.g., "after 1950", "before 1800", "in 2015"), and numeric qualifiers (e.g., "top 10", "at least 3").</rule>
   <rule>Use canonical Wikidata forms (e.g., "Johann Sebastian Bach" not "Bach", "New York City" not "NYC").</rule>
   <rule>For each entity, infer a short disambiguation description from the query's wording (e.g., "composed by X" → X is a "composer"; "recorded in Y" → Y is a "city" or "town"; "held at Z" → Z is an "institution").</rule>
   <rule>Keep descriptions concise: use a single noun or role word. For persons, use only their role (e.g., "composer", "musician", "performer") — never append additional nouns like "of musical compositions" or "of works", as these cause Wikidata search to return related objects instead of the person.</rule>
@@ -84,6 +84,10 @@ _PROMPT_TEMPLATE = """\
   <example>
     <query>works by Mozart held at the British Library</query>
     <entity_contexts>{{"Wolfgang Amadeus Mozart": "composer", "British Library": "library that holds works"}}</entity_contexts>
+  </example>
+  <example>
+    <query>Find all chants in Cantus DB in mode 5</query>
+    <entity_contexts>{{"mode 5": "Lydian chant mode"}}</entity_contexts>
   </example>
 </entity_guidance>
 
