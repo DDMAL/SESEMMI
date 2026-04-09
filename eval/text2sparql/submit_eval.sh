@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=sesemmi-t2s-eval
 #SBATCH --account=def-ichiro_gpu
-#SBATCH --time=02:00:00
+#SBATCH --time=01:00:00
 #SBATCH --partition=gpubase_bygpu_b1
-#SBATCH --mem=16G
-#SBATCH --cpus-per-task=4
-#SBATCH --gres=gpu:1
+#SBATCH --mem=32G
+#SBATCH --cpus-per-task=8
+#SBATCH --gres=gpu:nvidia_h100_80gb_hbm3_3g.40gb:1
 #SBATCH --output=eval/runs/%x-%j.out
 #SBATCH --error=eval/runs/%x-%j.err
 #SBATCH --mail-type=BEGIN,END,FAIL
@@ -23,8 +23,8 @@ GOLD_FILE="${GOLD_FILE:-eval/text2sparql/gold.yml}"
 # Pipeline config (env vars read by llm-service Settings)
 export LLM_MODEL="${LLM_MODEL}"
 export OLLAMA_BASE_URL="http://localhost:11434"
-export OLLAMA_NUM_CTX="${OLLAMA_NUM_CTX:-8192}"
-export OLLAMA_NUM_THREAD="${OLLAMA_NUM_THREAD:-4}"
+export OLLAMA_NUM_CTX="${OLLAMA_NUM_CTX:-32768}"
+export OLLAMA_NUM_THREAD="${OLLAMA_NUM_THREAD:-8}"
 export OLLAMA_THINK="${OLLAMA_THINK:-false}"
 export GRAPH_ENABLED="${GRAPH_ENABLED:-true}"
 export SEMANTIC_JUDGE_ENABLED="${SEMANTIC_JUDGE_ENABLED:-true}"
