@@ -1,9 +1,25 @@
-from pydantic_settings import BaseSettings
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Project root is three levels up from this file (llm-service/app/config.py)
+_ROOT_ENV = Path(__file__).parent.parent.parent / ".env"
 
 
 class Settings(BaseSettings):
-    # LLM
+    model_config = SettingsConfigDict(
+        env_file=str(_ROOT_ENV), env_file_encoding="utf-8", extra="ignore"
+    )
+
+    # LLM provider — ollama | openai | anthropic | gemini
+    llm_provider: str = "ollama"
     llm_model: str = "qwen3:1.7b"
+
+    # API keys — fill all; only the active provider's key is used
+    openai_api_key: str | None = None
+    anthropic_api_key: str | None = None
+    gemini_api_key: str | None = None
+
     ollama_base_url: str = "http://ollama:11434"
     ollama_num_ctx: int = 8192  # context length
     ollama_num_thread: int = 2

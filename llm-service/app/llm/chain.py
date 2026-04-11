@@ -1,10 +1,9 @@
 import re
 import time
 
-from langchain_ollama import ChatOllama
-
 from app.config import settings
 from app.llm.examples import FEW_SHOT_EXAMPLES
+from app.llm.model import get_chat_model
 from app.llm.prompt import build_prompt_template, format_examples
 
 
@@ -62,14 +61,7 @@ async def translate_to_sparql(
         examples = []
 
     prompt = build_prompt_template()
-    model = ChatOllama(
-        model=settings.llm_model,
-        base_url=settings.ollama_base_url,
-        temperature=0,
-        num_ctx=settings.ollama_num_ctx,  # context length
-        num_thread=settings.ollama_num_thread,
-        think=settings.ollama_think,
-    )
+    model = get_chat_model()
     chain = prompt | model
 
     start = time.time()

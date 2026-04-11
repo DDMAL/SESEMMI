@@ -1,10 +1,10 @@
 import logging
 
-from langchain_ollama import ChatOllama
 from pydantic import BaseModel
 
 from app.config import settings
 from app.graph.state import GraphState
+from app.llm.model import get_chat_model
 
 logger = logging.getLogger(__name__)
 
@@ -67,14 +67,7 @@ async def judge_node(state: GraphState) -> dict:
         bindings = state["results"].get("results", {}).get("bindings", [])
         sample = bindings[:5]
 
-        judge_model = ChatOllama(
-            model=settings.llm_model,
-            base_url=settings.ollama_base_url,
-            temperature=0,
-            num_ctx=settings.ollama_num_ctx,
-            num_thread=settings.ollama_num_thread,
-            think=settings.ollama_think,
-        ).with_structured_output(_JudgeVerdict)
+        judge_model = get_chat_model().with_structured_output(_JudgeVerdict)
 
         judge_prompt = _JUDGE_PROMPT.format(
             user_query=state["user_query"],

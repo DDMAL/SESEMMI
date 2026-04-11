@@ -1,11 +1,10 @@
 import logging
 from typing import Literal
 
-from langchain_ollama import ChatOllama
 from pydantic import BaseModel
 
-from app.config import settings
 from app.graph.state import GraphState
+from app.llm.model import get_chat_model
 from app.rag.schema_corpus import VALID_DB_NAMES
 
 logger = logging.getLogger(__name__)
@@ -102,14 +101,7 @@ _PROMPT_TEMPLATE = """\
 
 
 async def intake_node(state: GraphState) -> dict:
-    model = ChatOllama(
-        model=settings.llm_model,
-        base_url=settings.ollama_base_url,
-        temperature=0,
-        num_ctx=settings.ollama_num_ctx,
-        num_thread=settings.ollama_num_thread,
-        think=settings.ollama_think,
-    )
+    model = get_chat_model()
     structured = model.with_structured_output(IntakeClassification)
     prompt = _PROMPT_TEMPLATE.format(db_list=_DB_LIST, user_query=state["user_query"])
     try:
