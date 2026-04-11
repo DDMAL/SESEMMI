@@ -1,10 +1,9 @@
 import logging
 
 from langchain_core.messages import HumanMessage, ToolMessage
-from langchain_ollama import ChatOllama
 
-from app.config import settings
 from app.graph.state import GraphState
+from app.llm.model import get_chat_model
 from app.graph.tools.wikidata import wikidata_qid_lookup
 from app.llm.chain import clean_sparql
 
@@ -86,14 +85,7 @@ async def generate_node(state: GraphState) -> dict:
     prompt_text = _build_prompt(state, is_repair, repair_count)
 
     has_entities = bool(state.get("entity_contexts"))
-    base_model = ChatOllama(
-        model=settings.llm_model,
-        base_url=settings.ollama_base_url,
-        temperature=0,
-        num_ctx=settings.ollama_num_ctx,
-        num_thread=settings.ollama_num_thread,
-        think=settings.ollama_think,
-    )
+    base_model = get_chat_model()
     model = base_model.bind_tools([wikidata_qid_lookup]) if has_entities else base_model
 
     resolved_qids = dict(state.get("resolved_qids") or {})
