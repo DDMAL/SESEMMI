@@ -726,6 +726,177 @@ rism:Person
 </ontology>
 </database>\
 """,
+    "weimarjazz": """\
+<database name="Weimar Jazz Database" graph-iri="https://linkedmusic.ca/graphs/wjazzd/" prefix="wjazzd:">
+<description>
+All triples for the Weimar Jazz Database are stored in the
+&lt;https://linkedmusic.ca/graphs/wjazzd/&gt; graph. Research database of jazz improvisation
+containing compositions, records, tracks, and solo transcriptions with detailed musical
+metadata. Entity types use the `wjazzd:` prefix.
+</description>
+<qid-linking>
+Weimar Jazz entities do not carry wdt:P2888 in the current ontology.
+</qid-linking>
+<cross-database>
+wjazzd:Track has wdt:P4404 "MusicBrainz recording ID", enabling direct
+correlation with MusicBrainz recordings. wjazzd:Solo and wjazzd:Track use
+wdt:P175 "performer" which may reference Wikidata URIs for artist linking.
+</cross-database>
+<ontology>
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix wdt:    <http://www.wikidata.org/prop/direct/> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+@prefix wjazzd: <https://linkedmusic.ca/graphs/wjazzd/> .
+
+wjazzd:Composition
+\trdfs:label\t"label" ;
+\twdt:P136\t"genre" ;
+\twdt:P86\t"composer" ;
+\twdt:P144\t"based on" .
+wjazzd:Record
+\trdfs:label\t"label" ;
+\twdt:P264\t"record label" ;
+\twdt:P175\t"performer" ;
+\twdt:P577\t"publication date" .
+wjazzd:Solo
+\trdfs:label\t"label" ;
+\twdt:P826\t"tonality" ;
+\twdt:P361\twjazzd:Track ;
+\twdt:P2550\twjazzd:Composition ;
+\twdt:P175\t"performer" ;
+\twdt:P870\t"instrumentation" ;
+\twdt:P176\t"manufacturer" ;
+\twdt:P1725\t"beats per minute" ;
+\twdt:P3440\t"time signature" .
+wjazzd:Track
+\trdfs:label\t"label" ;
+\twdt:P361\twjazzd:Record ;
+\twdt:P2550\twjazzd:Composition ;
+\twdt:P10135\t"recording date" ;
+\twdt:P175\t"performer" ;
+\twdt:P870\t"instrumentation" ;
+\twdt:P4404\t"MusicBrainz recording ID" .
+</ontology>
+</database>\
+""",
+    "simssadb": """\
+<database name="SIMSSA DB" graph-iri="https://linkedmusic.ca/graphs/simssadb/" prefix="simssa:">
+<description>
+All triples for SIMSSA DB are stored in the &lt;https://linkedmusic.ca/graphs/simssadb/&gt;
+graph. Single Interface for Music Score Searching and Analysis. Contains works, sections,
+sources, files, persons, and genre classifications for symbolic music notation. Entity
+types use the `simssa:` prefix.
+</description>
+<qid-linking>
+simssa:Person and simssa:Work have wdt:P2888 "exact match" for Wikidata reconciliation.
+</qid-linking>
+<cross-database>
+simssa:Person and simssa:Work carry wdt:P2888 "exact match", enabling
+correlation with other LinkedMusic databases through shared Wikidata QIDs.
+</cross-database>
+<ontology>
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix wdt:    <http://www.wikidata.org/prop/direct/> .
+@prefix wd:     <http://www.wikidata.org/entity/> .
+@prefix simssa: <https://linkedmusic.ca/graphs/simssadb/> .
+
+simssa:File
+\trdfs:label\t"label" ;
+\twdt:P144\tsimssa:Source ;
+\twdt:P6243\tsimssa:Section , simssa:Work .
+simssa:GenreAsInType
+\trdfs:label\t"label" .
+simssa:Person
+\trdfs:label\t"label" ;
+\twdt:P2888\t"exact match" ;
+\twdt:P569\t"date of birth" ;
+\twdt:P570\t"date of death" .
+simssa:Section
+\trdfs:label\t"label" .
+simssa:Source
+\trdfs:label\t"label" .
+simssa:Work
+\trdfs:label\t"label" ;
+\twdt:P136\tsimssa:GenreAsInType ;
+\twdt:P2888\t"exact match" ;
+\twdt:P86\tsimssa:Person ;
+\twdt:P527\tsimssa:Section ;
+\twdt:P50\tsimssa:Person .
+</ontology>
+</database>\
+""",
+    "utsi": """\
+<database name="UTSI" graph-iri="https://linkedmusic.ca/graphs/utsi/" prefix="utsi:">
+<description>
+All triples for UTSI are stored in the &lt;https://linkedmusic.ca/graphs/utsi/&gt;
+graph. University of Tennessee Song Index. Contains songs and anthologies from American
+folk and popular music collections. Entity types use the `utsi:` prefix.
+</description>
+<qid-linking>
+UTSI entities do not carry wdt:P2888 in the current ontology.
+</qid-linking>
+<cross-database>
+utsi:Song uses Wikidata properties (wdt:P86 "composer", wdt:P676 "lyricist",
+wdt:P1071 "creation location") with values that may be Wikidata URIs, enabling
+correlation with other LinkedMusic databases through shared Wikidata QIDs.
+</cross-database>
+<ontology>
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix wdt:  <http://www.wikidata.org/prop/direct/> .
+@prefix wd:   <http://www.wikidata.org/entity/> .
+@prefix utsi: <https://linkedmusic.ca/graphs/utsi/> .
+
+utsi:Song
+\trdfs:label\t"label" ;
+\twdt:P407\t"language" ;
+\twdt:P136\t"genre" ;
+\twdt:P361\tutsi:Anthology ;
+\twdt:P86\t"composer" ;
+\twdt:P1922\t"first line" ;
+\tutsi:chorusFirstLine\t"chorus first line" ;
+\twdt:P870\t"instrumentation" ;
+\twdt:P1071\t"location of creation" ;
+\twdt:P676\t"lyricist" ;
+\twdt:P1433\t"published in" .
+utsi:Anthology
+\trdfs:label\t"label" ;
+\twdt:P217\t"inventory number" ;
+\twdt:P31\t"instance of" .
+</ontology>
+</database>\
+""",
+    "cantusindex": """\
+<database name="Cantus Index" graph-iri="https://linkedmusic.ca/graphs/cantusindex/" prefix="cantusindex:">
+<description>
+All triples for Cantus Index are stored in the
+&lt;https://linkedmusic.ca/graphs/cantusindex/&gt; graph. An index of medieval Latin chants
+linking related chant traditions across manuscript sources. Contains chants with
+liturgical, genre, and textual metadata. Entity types use the `cantusindex:` prefix.
+</description>
+<qid-linking>
+Cantus Index entities do not carry wdt:P2888 in the current ontology.
+</qid-linking>
+<cross-database>
+cantusindex:Chant has wdt:P629 "version of" and wdt:P1899 "related chant",
+which may reference chants across Cantus DB or other chant databases.
+</cross-database>
+<ontology>
+@prefix wdt:         <http://www.wikidata.org/prop/direct/> .
+@prefix wd:          <http://www.wikidata.org/entity/> .
+@prefix cantusindex: <https://linkedmusic.ca/graphs/cantusindex/> .
+
+cantusindex:Chant
+\twdt:P407\t"language of work or name" ;
+\twdt:P136\t"genre" ;
+\twdt:P837\t"day in year for periodic occurrence" ;
+\twdt:P217\t"inventory number" ;
+\twdt:P144\tcantusindex:Chant ;
+\twdt:P629\tcantusindex:Chant ;
+\twdt:P6439\t"has lyrics" ;
+\twdt:P1899\tcantusindex:Chant .
+</ontology>
+</database>\
+""",
 }
 
 INSTRUCTION_CHUNKS: dict[str, str] = {
