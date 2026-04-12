@@ -1,6 +1,6 @@
 import logging
 
-from langchain_core.messages import HumanMessage, ToolMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
 from app.graph.state import GraphState
 from app.llm.model import get_chat_model
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 _MAX_TOOL_ITERATIONS = 3
 
 
-def _build_prompt(state: GraphState, is_repair: bool, repair_count: int) -> str:
+def _build_system(state: GraphState) -> str:
     parts: list[str] = []
 
     parts.append(
@@ -35,6 +35,12 @@ def _build_prompt(state: GraphState, is_repair: bool, repair_count: int) -> str:
             f"- {name} = {qid}" for name, qid in resolved_qids.items()
         )
         parts.append(f"<resolved_qids>\n{qid_lines}\n</resolved_qids>")
+
+    return "\n\n".join(p for p in parts if p)
+
+
+def _build_user(state: GraphState, is_repair: bool, repair_count: int) -> str:
+    parts: list[str] = []
 
     if is_repair:
         repair_parts: list[str] = [f'<repair attempt="{repair_count}">']
@@ -64,7 +70,13 @@ def _build_prompt(state: GraphState, is_repair: bool, repair_count: int) -> str:
             repair_parts.append(
                 f"<semantic_feedback>\n{judge_feedback}\n</semantic_feedback>"
             )
-        repair_parts.append("Please write a corrected SPARQL query.")
+        repair_parts.append(
+            "Analyze what caused the error in the previous query, then write a corrected SPARQL query.\n"
+            "Think through:\n"
+            "- What specific construct or pattern caused the error?\n"
+            "- What is the correct way to express that in SPARQL for Virtuoso?\n"
+            "Then output the corrected query only — no prose, no explanation."
+        )
         repair_parts.append("</repair>")
         parts.append("\n".join(repair_parts))
 
@@ -82,14 +94,15 @@ async def generate_node(state: GraphState) -> dict:
     if is_repair:
         repair_count += 1
 
-    prompt_text = _build_prompt(state, is_repair, repair_count)
+    system_text = _build_system(state)
+    user_text = _build_user(state, is_repair, repair_count)
 
     has_entities = bool(state.get("entity_contexts"))
     base_model = get_chat_model()
     model = base_model.bind_tools([wikidata_qid_lookup]) if has_entities else base_model
 
     resolved_qids = dict(state.get("resolved_qids") or {})
-    messages = [HumanMessage(content=prompt_text)]
+    messages = [SystemMessage(content=system_text), HumanMessage(content=user_text)]
     response = None
 
     for _ in range(_MAX_TOOL_ITERATIONS):

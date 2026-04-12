@@ -1,5 +1,6 @@
 import logging
 
+from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
 from app.config import settings
@@ -14,9 +15,17 @@ class _JudgeVerdict(BaseModel):
     reason: str
 
 
-_JUDGE_PROMPT = """\
+_JUDGE_SYSTEM = """\
 You are evaluating whether a SPARQL query result satisfies the user's intent.
 
+<instructions>
+Determine whether the sample results directly answer the user's question.
+- Set "satisfied" to true only if the results address what was asked.
+- Provide a brief "reason" explaining your assessment.
+- Note: wdt:P2888 is used for exact match (owl:sameAs equivalent in Wikidata).
+</instructions>"""
+
+_JUDGE_USER_TEMPLATE = """\
 <user_question>
 {user_query}
 </user_question>
@@ -27,14 +36,7 @@ You are evaluating whether a SPARQL query result satisfies the user's intent.
 
 <sample_results description="up to 5 rows">
 {sample_results}
-</sample_results>
-
-<instructions>
-Determine whether the sample results directly answer the user's question.
-- Set "satisfied" to true only if the results address what was asked.
-- Provide a brief "reason" explaining your assessment.
-- Note: wdt:P2888 is used for exact match (owl:sameAs equivalent in Wikidata).
-</instructions>"""
+</sample_results>"""
 
 
 async def judge_node(state: GraphState) -> dict:
@@ -69,14 +71,16 @@ async def judge_node(state: GraphState) -> dict:
 
         judge_model = get_chat_model().with_structured_output(_JudgeVerdict)
 
-        judge_prompt = _JUDGE_PROMPT.format(
+        judge_user = _JUDGE_USER_TEMPLATE.format(
             user_query=state["user_query"],
             sparql=state.get("sparql", ""),
             sample_results=sample if sample else "(no results)",
         )
 
         try:
-            verdict = await judge_model.ainvoke(judge_prompt)
+            verdict = await judge_model.ainvoke(
+                [SystemMessage(content=_JUDGE_SYSTEM), HumanMessage(content=judge_user)]
+            )
         except Exception:
             logger.exception("Semantic judge failed, skipping")
             return updates
