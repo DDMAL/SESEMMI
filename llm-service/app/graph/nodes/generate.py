@@ -29,18 +29,18 @@ def _build_system(state: GraphState) -> str:
     if few_shot:
         parts.append(f"<examples>\n{few_shot}\n</examples>")
 
+    return "\n\n".join(p for p in parts if p)
+
+
+def _build_user(state: GraphState, is_repair: bool, repair_count: int) -> str:
+    parts: list[str] = []
+
     resolved_qids = state.get("resolved_qids") or {}
     if resolved_qids:
         qid_lines = "\n".join(
             f"- {name} = {qid}" for name, qid in resolved_qids.items()
         )
         parts.append(f"<resolved_qids>\n{qid_lines}\n</resolved_qids>")
-
-    return "\n\n".join(p for p in parts if p)
-
-
-def _build_user(state: GraphState, is_repair: bool, repair_count: int) -> str:
-    parts: list[str] = []
 
     if is_repair:
         repair_parts: list[str] = [f'<repair attempt="{repair_count}">']
