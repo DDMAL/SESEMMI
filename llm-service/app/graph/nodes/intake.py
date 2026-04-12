@@ -1,6 +1,7 @@
 import logging
 from typing import Literal
 
+from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
 from app.graph.state import GraphState
@@ -44,7 +45,7 @@ class IntakeClassification(BaseModel):
     entity_contexts: list[EntityContext]
 
 
-_PROMPT_TEMPLATE = """\
+_SYSTEM_PROMPT = """\
 <task>Classify a music database query for SPARQL generation.</task>
 
 <databases>
@@ -100,17 +101,47 @@ _PROMPT_TEMPLATE = """\
   <field name="target_graphs">Which databases are relevant (can be multiple)</field>
   <field name="needs_federation">true if Wikidata federation (SERVICE clause) is likely needed</field>
   <field name="entity_contexts">A dict mapping each extracted entity name to a short disambiguation description inferred from the query. Return an empty dict if no entities.</field>
-</output_fields>
+</output_fields>"""
 
-<query>{user_query}</query>"""
+
+def _build_repair_block(state: GraphState) -> str:
+    previous_sparql = state.get("sparql", "")
+    if not previous_sparql:
+        return ""
+    reasons: list[str] = []
+    for err in state.get("validation_errors") or []:
+        reasons.append(err)
+    if exec_err := state.get("execution_error"):
+        reasons.append(f"Execution error: {exec_err}")
+    if feedback := state.get("judge_feedback"):
+        reasons.append(f"Semantic feedback: {feedback}")
+    failure_text = (
+        "\n".join(f"- {r}" for r in reasons) if reasons else "(no specific errors recorded)"
+    )
+    return (
+        "\n\n<repair_context>\n"
+        "A previous SPARQL generation attempt for this query failed. "
+        "Analyze what went wrong and update your classification accordingly.\n\n"
+        f"<previous_query>\n{previous_sparql}\n</previous_query>\n\n"
+        f"<failure_reason>\n{failure_text}\n</failure_reason>\n\n"
+        "Think through:\n"
+        "- Did the previous attempt target the wrong databases?\n"
+        "- Was the intent (lookup vs aggregation) misidentified?\n"
+        "- Was federation incorrectly set?\n"
+        "- Were important entities missing or incorrectly described?\n"
+        "Adjust intent, target_graphs, needs_federation, and entity_contexts "
+        "to address the root cause of the failure.\n"
+        "</repair_context>"
+    )
 
 
 async def intake_node(state: GraphState) -> dict:
     model = get_chat_model()
     structured = model.with_structured_output(IntakeClassification)
-    prompt = _PROMPT_TEMPLATE.format(db_list=_DB_LIST, user_query=state["user_query"])
+    system = _SYSTEM_PROMPT.format(db_list=_DB_LIST)
+    user = f"<query>\n{state['user_query']}\n</query>" + _build_repair_block(state)
     try:
-        result = await structured.ainvoke(prompt)
+        result = await structured.ainvoke([SystemMessage(content=system), HumanMessage(content=user)])
         return {
             "intent": result.intent,
             "target_graphs": result.target_graphs,
