@@ -3,9 +3,6 @@
 # ONTOLOGY_CHUNKS: per-database ontology, selected by dict lookup on target_graphs.
 # INSTRUCTION_CHUNKS: per-topic instruction text, selected by rule-based logic.
 # VALID_DB_NAMES: ordered list of all known database keys.
-#
-# Source: extracted from app/llm/schema_context.py (which is kept unchanged for the
-# fallback chain path).
 
 ONTOLOGY_CHUNKS: dict[str, str] = {
     "diamm": """\

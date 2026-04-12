@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from app.config import settings
 from app.graph.state import GraphState
-from app.llm.model import get_chat_model
+from app.graph.model import get_chat_model
 
 logger = logging.getLogger(__name__)
 

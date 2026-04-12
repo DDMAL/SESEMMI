@@ -34,7 +34,6 @@ class Settings(BaseSettings):
     virtuoso_endpoint: str = "http://virtuoso:8890/sparql"
     wikidata_mcp_url: str = "https://wd-mcp.wmcloud.org/mcp/"
     max_repair_iterations: int = 3
-    graph_enabled: bool = True
     semantic_judge_enabled: bool = True
     langsmith_api_key: str | None = None
     langsmith_project: str = "sesemmi-agent"

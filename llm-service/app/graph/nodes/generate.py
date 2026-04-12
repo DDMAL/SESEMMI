@@ -1,15 +1,40 @@
 import logging
+import re
 
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
 from app.graph.state import GraphState
-from app.llm.model import get_chat_model
+from app.graph.model import get_chat_model
 from app.graph.tools.wikidata import wikidata_qid_lookup
-from app.llm.chain import clean_sparql
 
 logger = logging.getLogger(__name__)
 
 _MAX_TOOL_ITERATIONS = 3
+
+
+def clean_sparql(text: str) -> str:
+    """Extract and clean SPARQL query from LLM output."""
+    text = text.strip()
+
+    m = re.search(r"```sparql\s*([\s\S]*?)\s*```", text, re.IGNORECASE)
+    if m:
+        return m.group(1).strip()
+
+    m = re.search(r"```(?:\w+)?\s*([\s\S]*?)\s*```", text)
+    if m:
+        candidate = m.group(1).strip()
+        if re.search(r"\b(SELECT|CONSTRUCT|ASK|DESCRIBE)\b", candidate, re.IGNORECASE):
+            return candidate
+
+    m = re.search(
+        r"((?:PREFIX\s+\w|SELECT\b|CONSTRUCT\b|ASK\b|DESCRIBE\b)[\s\S]+)",
+        text,
+        re.IGNORECASE,
+    )
+    if m:
+        return m.group(1).strip()
+
+    return text
 
 
 def _build_system(state: GraphState) -> str:

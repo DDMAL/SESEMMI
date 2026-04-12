@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from langchain_core.messages import AIMessage
 
-from app.graph.nodes.judge import answer_node
+from app.graph.nodes.judge import judge_node as answer_node
 from app.graph.nodes.execute import execute_node
-from app.graph.nodes.generate import generate_node
+from app.graph.nodes.generate import clean_sparql, generate_node
 from app.graph.nodes.intake import IntakeClassification, intake_node
 from app.graph.nodes.retrieve import retrieve_node
 from app.graph.nodes.validate import validate_node
@@ -23,6 +23,42 @@ _VALID_SPARQL = (
     "?s a ?type ; <http://www.w3.org/2000/01/rdf-schema#label> ?label "
     "} } LIMIT 10"
 )
+
+
+# ---------------------------------------------------------------------------
+# clean_sparql
+# ---------------------------------------------------------------------------
+
+
+def test_clean_sparql_strips_sparql_fence():
+    assert clean_sparql("```sparql\nSELECT ?x WHERE {}\n```") == "SELECT ?x WHERE {}"
+
+
+def test_clean_sparql_strips_plain_fence():
+    assert clean_sparql("```\nSELECT ?x WHERE {}\n```") == "SELECT ?x WHERE {}"
+
+
+def test_clean_sparql_passthrough():
+    sparql = "SELECT ?x WHERE { ?x ?y ?z }"
+    assert clean_sparql(sparql) == sparql
+
+
+def test_clean_sparql_prose_before_query():
+    text = "Here is your SPARQL query:\nSELECT ?x WHERE { ?x ?y ?z }"
+    assert clean_sparql(text) == "SELECT ?x WHERE { ?x ?y ?z }"
+
+
+def test_clean_sparql_with_prefix_and_prose():
+    text = "Sure! Here is the query:\nPREFIX ex: <http://example.org/>\nSELECT ?x WHERE { ?x a ex:Song }"
+    assert (
+        clean_sparql(text)
+        == "PREFIX ex: <http://example.org/>\nSELECT ?x WHERE { ?x a ex:Song }"
+    )
+
+
+def test_clean_sparql_non_sparql_code_fence_ignored():
+    text = '```json\n{"key": "value"}\n```'
+    assert clean_sparql(text) == text
 
 
 # ---------------------------------------------------------------------------
