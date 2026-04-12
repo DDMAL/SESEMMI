@@ -18,6 +18,10 @@ _DB_DESCRIPTIONS = {
     "digthatlick": "Jazz improvisation database — tracks and melodic solos",
     "cantusdb": "Medieval Latin chant archive — sources and chants",
     "rism": "Historical music manuscripts — sources, persons, institutions",
+    "weimarjazz": "Weimar Jazz Database — jazz compositions, records, tracks, solo transcriptions",
+    "simssadb": "SIMSSA DB — symbolic music scores, works, sections, sources, persons",
+    "utsi": "University of Tennessee Song Index — folk and popular songs, anthologies",
+    "cantusindex": "Cantus Index — medieval Latin chant index linking chant traditions across sources",
 }
 
 _DB_LIST = "\n".join(f'  <db name="{k}">{v}</db>' for k, v in _DB_DESCRIPTIONS.items())
@@ -39,6 +43,10 @@ class IntakeClassification(BaseModel):
             "digthatlick",
             "rism",
             "cantusdb",
+            "weimarjazz",
+            "simssadb",
+            "utsi",
+            "cantusindex",
         ]
     ]
     needs_federation: bool
@@ -116,7 +124,9 @@ def _build_repair_block(state: GraphState) -> str:
     if feedback := state.get("judge_feedback"):
         reasons.append(f"Semantic feedback: {feedback}")
     failure_text = (
-        "\n".join(f"- {r}" for r in reasons) if reasons else "(no specific errors recorded)"
+        "\n".join(f"- {r}" for r in reasons)
+        if reasons
+        else "(no specific errors recorded)"
     )
     return (
         "\n\n<repair_context>\n"
@@ -141,12 +151,16 @@ async def intake_node(state: GraphState) -> dict:
     system = _SYSTEM_PROMPT.format(db_list=_DB_LIST)
     user = f"<query>\n{state['user_query']}\n</query>" + _build_repair_block(state)
     try:
-        result = await structured.ainvoke([SystemMessage(content=system), HumanMessage(content=user)])
+        result = await structured.ainvoke(
+            [SystemMessage(content=system), HumanMessage(content=user)]
+        )
         return {
             "intent": result.intent,
             "target_graphs": result.target_graphs,
             "needs_federation": result.needs_federation,
-            "entity_contexts": {ec.entity: ec.description for ec in result.entity_contexts},
+            "entity_contexts": {
+                ec.entity: ec.description for ec in result.entity_contexts
+            },
         }
     except Exception:
         logger.exception("intake_node classification failed, using broad fallback")
