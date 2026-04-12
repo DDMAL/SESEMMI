@@ -52,17 +52,12 @@ make prod             # Start production stack
 - Package manager: `uv`; formatter: `black`; test runner: `pytest` with `asyncio_mode = auto`
 
 **LangGraph pipeline** (`llm-service/app/graph/`):
-- Active by default (`GRAPH_ENABLED=true`); falls back to simple chain if disabled
 - Nodes: `intake` → `retrieve` → `generate` → `validate` → `execute` → `answer`
 - Conditional edges: after `validate`, loops back to `generate` on invalid SPARQL (up to `MAX_REPAIR_ITERATIONS`); after `answer`, semantic judge (`SEMANTIC_JUDGE_ENABLED`) can trigger a regeneration loop
 - State is typed in `app/graph/state.py` (`GraphState` TypedDict)
 - Graph tools: `sparql_execute` (runs query against Virtuoso), `wikidata` (resolves entity QIDs)
+- `model.py` — LLM provider factory (`get_chat_model()`); `examples.py` — static few-shot examples; `schema_corpus.py` — per-database ontology chunks
 - RAG via `langchain-postgres` (pgvector) — seeded on startup when `RAG_ENABLED=true`
-
-**LLM prompting** (`llm-service/app/llm/`):
-- Model: `gemini-2.5-flash-lite` via `langchain-google-genai`
-- `prompt.py` builds the system prompt; `schema_context.py` has all graph IRIs, prefixes, and ontology rules; `examples.py` has SPARQL few-shot examples
-- Prompt instructs the model to output raw SPARQL only (no markdown fences)
 
 **SPARQL validation** (`src/lib/sparql/validate.ts`):
 - Lightweight regex-based pre-check (empty, missing SELECT/CONSTRUCT/ASK/DESCRIBE, unbalanced braces, missing WHERE)
@@ -89,7 +84,6 @@ make prod             # Start production stack
 | `LLM_API_KEY` | required |
 | `LLM_MODEL` | `gemini-2.5-flash-lite` |
 | `EMBEDDING_MODEL` | `gemini-embedding-001` |
-| `GRAPH_ENABLED` | `true` |
 | `RAG_ENABLED` | `false` |
 | `RAG_TOP_K` | `5` |
 | `FEW_SHOT_ENABLED` | `false` |

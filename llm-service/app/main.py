@@ -23,7 +23,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.config import settings
-from app.llm.chain import translate_to_sparql
+from app.graph.builder import build_graph, run_graph
 
 
 @asynccontextmanager
@@ -61,12 +61,7 @@ class TranslateResponse(BaseModel):
 @app.post("/translate", response_model=TranslateResponse)
 async def translate(req: TranslateRequest):
     try:
-        if settings.graph_enabled:
-            from app.graph.builder import run_graph  # lazy import
-
-            result = await run_graph(req.query)
-        else:
-            result = await translate_to_sparql(req.query)
+        result = await run_graph(req.query)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -109,8 +104,6 @@ def _step_detail(name: str, output: dict) -> str:
 async def translate_stream(req: TranslateRequest):
     async def event_stream():
         try:
-            from app.graph.builder import build_graph
-
             graph = build_graph()
             initial_state = {
                 "user_query": req.query,

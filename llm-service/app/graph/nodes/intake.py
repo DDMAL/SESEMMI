@@ -5,8 +5,8 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
 from app.graph.state import GraphState
-from app.llm.model import get_chat_model
-from app.rag.schema_corpus import VALID_DB_NAMES
+from app.graph.model import get_chat_model
+from app.graph.schema_corpus import VALID_DB_NAMES
 
 logger = logging.getLogger(__name__)
 

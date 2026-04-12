@@ -3,8 +3,8 @@ import logging
 from app.config import settings
 from app.graph.state import GraphState
 from app.graph.tools.wikidata import wikidata_qid_lookup
-from app.llm.examples import FEW_SHOT_EXAMPLES
-from app.rag.schema_corpus import INSTRUCTION_CHUNKS, ONTOLOGY_CHUNKS
+from app.graph.examples import FEW_SHOT_EXAMPLES
+from app.graph.schema_corpus import INSTRUCTION_CHUNKS, ONTOLOGY_CHUNKS
 
 logger = logging.getLogger(__name__)
 
