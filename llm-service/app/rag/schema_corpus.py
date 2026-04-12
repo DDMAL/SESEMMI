@@ -908,8 +908,9 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
 """,
     "output_format_rules": """\
 <rules category="output-format">
-- When asked to return a list of entities, always return both the label (when available)
-  and the URI for the entities.
+- Only return the columns that directly answer the user's question. Do not add extra
+  columns unless the user explicitly asks for them or they are needed
+  to answer the question (e.g. "find titles containing 'death'" requires the label).
 - For any entity searched within the LinkedMusic graph (not in Wikidata), add a triple
   using the rdf:type property to explicitly verify its type.
 - Add a LIMIT clause to SELECT queries to avoid excessive results (e.g. LIMIT 100).
