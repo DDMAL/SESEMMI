@@ -22,6 +22,11 @@ _DB_DESCRIPTIONS = {
 _DB_LIST = "\n".join(f'  <db name="{k}">{v}</db>' for k, v in _DB_DESCRIPTIONS.items())
 
 
+class EntityContext(BaseModel):
+    entity: str
+    description: str
+
+
 class IntakeClassification(BaseModel):
     intent: Literal["lookup", "aggregation"]
     target_graphs: list[
@@ -36,7 +41,7 @@ class IntakeClassification(BaseModel):
         ]
     ]
     needs_federation: bool
-    entity_contexts: dict[str, str]
+    entity_contexts: list[EntityContext]
 
 
 _PROMPT_TEMPLATE = """\
@@ -110,7 +115,7 @@ async def intake_node(state: GraphState) -> dict:
             "intent": result.intent,
             "target_graphs": result.target_graphs,
             "needs_federation": result.needs_federation,
-            "entity_contexts": result.entity_contexts,
+            "entity_contexts": {ec.entity: ec.description for ec in result.entity_contexts},
         }
     except Exception:
         logger.exception("intake_node classification failed, using broad fallback")
