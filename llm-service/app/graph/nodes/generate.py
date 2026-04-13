@@ -1,15 +1,12 @@
 import logging
 import re
 
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.graph.state import GraphState
 from app.graph.model import get_chat_model
-from app.graph.tools.wikidata import wikidata_qid_lookup
 
 logger = logging.getLogger(__name__)
-
-_MAX_TOOL_ITERATIONS = 3
 
 
 def clean_sparql(text: str) -> str:
@@ -122,43 +119,9 @@ async def generate_node(state: GraphState) -> dict:
     system_text = _build_system(state)
     user_text = _build_user(state, is_repair, repair_count)
 
-    has_entities = bool(state.get("entity_contexts"))
-    base_model = get_chat_model()
-    model = base_model.bind_tools([wikidata_qid_lookup]) if has_entities else base_model
-
-    resolved_qids = dict(state.get("resolved_qids") or {})
+    model = get_chat_model()
     messages = [SystemMessage(content=system_text), HumanMessage(content=user_text)]
-    response = None
-
-    for _ in range(_MAX_TOOL_ITERATIONS):
-        response = await model.ainvoke(messages)
-        if not response.tool_calls:
-            break
-        messages.append(response)
-        for tc in response.tool_calls:
-            entity_name = tc["args"].get("entity_name", "")
-            if entity_name in resolved_qids:
-                qid = resolved_qids[entity_name]
-                result = [{"qid": qid, "label": entity_name}]
-                logger.debug("Cache hit for QID %r → %s", entity_name, qid)
-            else:
-                try:
-                    result = await wikidata_qid_lookup.ainvoke(tc["args"])
-                    if result:
-                        resolved_qids[entity_name] = result[0]["qid"]
-                except Exception:
-                    logger.exception("Tool call failed for %r", tc)
-                    result = []
-            messages.append(ToolMessage(content=str(result), tool_call_id=tc["id"]))
-
-    # If the loop exhausted all iterations without the model producing text,
-    # force one final generation with all tool results already in messages.
-    if response is not None and response.tool_calls:
-        logger.warning(
-            "Tool loop exhausted after %d iterations; forcing final generation",
-            _MAX_TOOL_ITERATIONS,
-        )
-        response = await model.ainvoke(messages)
+    response = await model.ainvoke(messages)
 
     content = response.content if response is not None else ""
     if isinstance(content, list):
@@ -170,5 +133,4 @@ async def generate_node(state: GraphState) -> dict:
     return {
         "sparql": sparql,
         "repair_count": repair_count,
-        "resolved_qids": resolved_qids,
     }
