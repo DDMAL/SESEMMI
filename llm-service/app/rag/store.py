@@ -18,6 +18,10 @@ _IRI_TO_DB = {
     "graphs/dig-that-lick/": "digthatlick",
     "graphs/cantusdb/": "cantusdb",
     "graphs/rism/": "rism",
+    "graphs/wjazzd/": "wjazzd",
+    "graphs/simssadb/": "simssadb",
+    "graphs/utsi/": "utsi",
+    "graphs/cantusindex/": "cantusindex",
 }
 
 
