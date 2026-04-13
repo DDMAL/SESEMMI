@@ -28,7 +28,9 @@ function StepIcon({ status }: { status: StepStatus }) {
       </svg>
     );
   if (status === "error")
-    return <span className="h-3 w-3 shrink-0 text-center text-[10px] leading-none text-red-400">✕</span>;
+    return (
+      <span className="h-3 w-3 shrink-0 text-center text-[10px] leading-none text-red-400">✕</span>
+    );
   return <span className="h-3 w-3 shrink-0 rounded-full border border-slate-300" />;
 }
 
@@ -60,7 +62,7 @@ export function NLInput({ onTranslate, isPending, steps = [] }: NLInputProps) {
           {isPending ? (
             <>
               <Spinner />
-              <span>Translating</span>
+              <span>Generating</span>
             </>
           ) : (
             <>
@@ -78,7 +80,7 @@ export function NLInput({ onTranslate, isPending, steps = [] }: NLInputProps) {
                   d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
                 />
               </svg>
-              <span>Translate</span>
+              <span>Generate</span>
               <span className="ml-0.5 text-xs text-indigo-200">↵</span>
             </>
           )}
@@ -135,9 +137,7 @@ export function NLInput({ onTranslate, isPending, steps = [] }: NLInputProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">
                     <span className="text-xs font-medium text-slate-700">{s.label}</span>
-                    {s.detail && (
-                      <span className="text-[11px] text-slate-400">{s.detail}</span>
-                    )}
+                    {s.detail && <span className="text-[11px] text-slate-400">{s.detail}</span>}
                   </div>
                   {s.step === "generate" && s.tokens && (
                     <pre className="mt-1.5 max-h-36 overflow-y-auto font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-all text-slate-500">
