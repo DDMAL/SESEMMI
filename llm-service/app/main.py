@@ -121,8 +121,8 @@ async def translate_stream(req: TranslateRequest):
                     out = (event.get("data") or {}).get("output") or {}
                     if name == "generate" and "sparql" in out:
                         sparql = out["sparql"]
-                    if name == "judge":
-                        confidence = out.get("confidence", confidence)
+                    if "confidence" in out:
+                        confidence = out["confidence"]
                     detail = _step_detail(name, out)
                     yield f"event: step_done\ndata: {json.dumps({'step': name, 'label': _STEP_LABELS[name], 'detail': detail})}\n\n"
                 elif etype == "on_chat_model_stream":
