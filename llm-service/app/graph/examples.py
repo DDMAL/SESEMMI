@@ -1,4 +1,19 @@
 FEW_SHOT_EXAMPLES = [
+    {
+        "nl": "Find all songs in the UTSI database written by Stephen Foster",
+        "sparql": """PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
+SELECT ?song
+WHERE {
+  GRAPH utsi: {
+    ?song a utsi:Song .
+    ?song wdt:P86 wd:Q305202
+  }
+}
+LIMIT 100""",
+    },
     # Challenge 1: find anything you can find via the databse's website
     {
         "nl": "Find all compositions in DIAMM that are composed by Guillaume de Machaut",
