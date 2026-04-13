@@ -19,7 +19,7 @@ def after_validate(state: GraphState) -> str:
         "max_repairs", settings.max_repair_iterations
     ):
         return "generate"
-    return "judge"
+    return END
 
 
 def after_judge(state: GraphState) -> str:
@@ -47,7 +47,7 @@ def build_graph():
     builder.add_edge("generate", "validate")
 
     builder.add_conditional_edges(
-        "validate", after_validate, ["execute", "generate", "judge"]
+        "validate", after_validate, ["execute", "generate", END]
     )
     builder.add_edge("execute", "judge")
     builder.add_conditional_edges("judge", after_judge, ["intake", END])

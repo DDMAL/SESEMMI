@@ -509,6 +509,45 @@ async def test_validate_aggregation_missing_count():
     )
 
 
+async def test_validate_exhausted_repairs_sets_confidence():
+    """Invalid query with repairs exhausted → confidence=low, assumptions collected."""
+    state = {
+        "sparql": "INVALID SPARQL",
+        "intent": "lookup",
+        "target_graphs": ["diamm"],
+        "entity_contexts": {},
+        "needs_federation": False,
+        "repair_count": 3,
+        "max_repairs": 3,
+        "assumptions": [],
+        "resolved_qids": {"Charlie Parker": "Q103767"},
+    }
+    result = await validate_node(state)
+
+    assert result["is_valid"] is False
+    assert result["confidence"] == "low"
+    assert any("Q103767" in a for a in result["assumptions"])
+
+
+async def test_validate_repairs_remaining_no_confidence():
+    """Invalid query with repairs remaining → no confidence/assumptions set."""
+    state = {
+        "sparql": "INVALID SPARQL",
+        "intent": "lookup",
+        "target_graphs": ["diamm"],
+        "entity_contexts": {},
+        "needs_federation": False,
+        "repair_count": 0,
+        "max_repairs": 3,
+        "assumptions": [],
+        "resolved_qids": {"Charlie Parker": "Q103767"},
+    }
+    result = await validate_node(state)
+
+    assert result["is_valid"] is False
+    assert "confidence" not in result
+
+
 # ---------------------------------------------------------------------------
 # Execute node
 # ---------------------------------------------------------------------------

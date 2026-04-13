@@ -211,7 +211,7 @@ async def test_repair_loop_invalid_then_valid():
 async def test_max_repairs_exceeded():
     """
     Always-invalid SPARQL: with max_repairs=1 the graph generates twice
-    (original + 1 repair), then routes to judge with confidence='low'.
+    (original + 1 repair), then validate sets confidence='low' and exits.
     """
     with (
         patch(
@@ -222,11 +222,6 @@ async def test_max_repairs_exceeded():
             "app.graph.nodes.generate.ChatGoogleGenerativeAI",
             return_value=_generate_mock(_INVALID_SPARQL, _INVALID_SPARQL),
         ),
-        patch(
-            "app.graph.nodes.judge.settings",
-            new=_answer_settings(semantic_judge_enabled=False),
-        ),
-        patch("app.graph.nodes.execute.execute_sparql", new_callable=AsyncMock),
     ):
         graph = build_graph()
         final = await graph.ainvoke(
