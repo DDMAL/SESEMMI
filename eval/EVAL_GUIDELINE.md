@@ -16,6 +16,23 @@ There are two evaluation pipelines:
 
 ---
 
+## Environment setup
+
+Run these once before any eval script:
+
+```bash
+# Install Python dependencies for the llm-service (required by local_eval.sh and csv_to_yaml.py)
+cd llm-service && uv sync && cd ..
+
+# Install the text2sparql benchmark client as a standalone uv tool
+uv tool install text2sparql-client
+```
+
+> `csv_to_yaml.py` depends on `pyyaml`, which is a transitive dependency of the llm-service.
+> If you need to run it outside of that environment, install it directly: `uv tool install pyyaml` or `pip install pyyaml`.
+
+---
+
 ## Step 0: Prepare the benchmark files
 
 Before running an evaluation, convert your benchmark CSV into the YAML format expected by the `text2sparql-client` tool. The CSV can live anywhere and be named anything.
@@ -51,8 +68,7 @@ If `--output-dir` is omitted, files are written next to the script at `eval/text
 
 - Run from the project root directory
 - API key exported in your shell (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY`)
-- `llm-service` dependencies installed: `cd llm-service && uv sync`
-- `text2sparql-client` installed as a standalone uv tool: `uv tool install text2sparql-client`
+- Environment setup complete (see above)
 
 ### Run
 
