@@ -830,7 +830,9 @@ graph. University of Tennessee Song Index. Contains songs and anthologies from A
 folk and popular music collections. Entity types use the `utsi:` prefix.
 </description>
 <qid-linking>
-UTSI entities do not carry wdt:P2888 in the current ontology.
+utsi:Song links directly to Wikidata entity URIs for wdt:P86 (composer),
+wdt:P676 (lyricist), and wdt:P1071 (creation location). Use the QID directly
+as the object — no intermediate variable is needed.
 </qid-linking>
 <cross-database>
 utsi:Song uses Wikidata properties (wdt:P86 "composer", wdt:P676 "lyricist",
@@ -928,8 +930,10 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
   - If a property's object is another defined class in the ontology (e.g., diamm:City
     wdt:P17 diamm:Country), the query must first navigate to that class and then use
     its wdt:P2888 property to match the QID.
-  - If a property's object is a literal string placeholder (e.g., ts:Session wdt:P17
-    "country"@en), the property links directly to a Wikidata URI — use the QID directly.
+  - If a property's object is a literal string placeholder — with or without a language
+    tag (e.g., ts:Session wdt:P17 "country"@en, or utsi:Song wdt:P86 "composer") — the
+    property links directly to a Wikidata URI. Use the QID directly as the object; do
+    not introduce an intermediate variable.
 - Once the SPARQL query is finalized, re-read it and double-check that all QIDs are correct.
 </rules>\
 """,
