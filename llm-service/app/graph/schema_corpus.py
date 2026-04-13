@@ -116,6 +116,10 @@ ts:Session and ts:Events link to Wikidata URIs directly via wdt:P17
 (country) and wdt:P276 (location), enabling geographic correlation with other databases.
 ts:Recording's wdt:P2888 can be correlated with matching entries in other LinkedMusic
 databases through shared Wikidata QIDs.
+ts:Recording wdt:P175 stores Wikidata entity URIs directly (it is NOT a local entity
+node). When joining Session recordings with MusicBrainz artists by performer, bind
+ts:Recording wdt:P175 ?performerQID and match it directly to mb:Artist wdt:P2888
+?performerQID — do NOT add a wdt:P2888 triple on the ?performerQID variable itself.
 </cross-database>
 <ontology>
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -933,7 +937,9 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
   - If a property's object is a literal string placeholder — with or without a language
     tag (e.g., ts:Session wdt:P17 "country"@en, or utsi:Song wdt:P86 "composer") — the
     property links directly to a Wikidata URI. Use the QID directly as the object; do
-    not introduce an intermediate variable.
+    not introduce an intermediate variable. This also applies when using the value as
+    a cross-graph join variable: the variable itself IS the Wikidata URI — never chain
+    wdt:P2888 off it to retrieve a separate ID.
 - Once the SPARQL query is finalized, re-read it and double-check that all QIDs are correct.
 </rules>\
 """,
