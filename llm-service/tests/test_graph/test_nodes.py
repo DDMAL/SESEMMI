@@ -245,19 +245,13 @@ async def test_retrieve_filtered_rag_called():
 
 
 def _mock_generate_llm(sparql_response: str):
-    """Return (mock_chat_cls_instance, mock_model) ready for generate_node patching.
+    """Return a mock model ready for generate_node patching.
 
-    mock_chat  — returned by ChatGoogleGenerativeAI(); used directly when no entities
-    mock_model — returned by mock_chat.bind_tools(); used when entities are present
-    Both have async ainvoke so either code path works.
+    The mock is returned by get_chat_model() and has async ainvoke.
     """
     mock_model = AsyncMock()
     mock_model.ainvoke.return_value = AIMessage(content=sparql_response)
-    mock_chat = MagicMock()
-    mock_chat.bind_tools.return_value = mock_model
-    # Also make the base model awaitable for the no-entities path
-    mock_chat.ainvoke = AsyncMock(return_value=AIMessage(content=sparql_response))
-    return mock_chat, mock_model
+    return mock_model
 
 
 async def test_generate_produces_sparql():
@@ -266,7 +260,7 @@ async def test_generate_produces_sparql():
         "SELECT ?x WHERE { GRAPH <https://linkedmusic.ca/graphs/diamm/> "
         "{ ?x a ?y } } LIMIT 10"
     )
-    mock_chat, _ = _mock_generate_llm(sparql)
+    mock_model = _mock_generate_llm(sparql)
     state = {
         "user_query": "Find all manuscripts",
         "schema_context": "ontology context",
@@ -277,7 +271,7 @@ async def test_generate_produces_sparql():
     }
 
     with patch(
-        "app.graph.nodes.generate.ChatGoogleGenerativeAI", return_value=mock_chat
+        "app.graph.nodes.generate.get_chat_model", return_value=mock_model
     ):
         result = await generate_node(state)
 
@@ -287,9 +281,9 @@ async def test_generate_produces_sparql():
 
 
 async def test_generate_prompt_has_output_rules():
-    """Generated prompt contains output rules; QID tool instruction only when entities are present."""
+    """Generated prompt contains output rules."""
     sparql = "SELECT ?x WHERE { GRAPH <https://linkedmusic.ca/graphs/diamm/> { ?x a ?y } } LIMIT 10"
-    mock_chat, mock_model = _mock_generate_llm(sparql)
+    mock_model = _mock_generate_llm(sparql)
     state = {
         "user_query": "Find solos from NYC",
         "schema_context": "ontology context",
@@ -300,95 +294,13 @@ async def test_generate_prompt_has_output_rules():
     }
 
     with patch(
-        "app.graph.nodes.generate.ChatGoogleGenerativeAI", return_value=mock_chat
+        "app.graph.nodes.generate.get_chat_model", return_value=mock_model
     ):
         await generate_node(state)
 
     messages = mock_model.ainvoke.call_args[0][0]
     prompt_text = messages[0].content
-    assert "OUTPUT RULES" in prompt_text
-    assert "wikidata_qid_lookup" in prompt_text
-    assert "Never ask the user" in prompt_text
-
-
-async def test_generate_no_qid_tool_when_no_entities():
-    """When no entity_contexts, QID tool is not bound and prompt omits the tool instruction."""
-    sparql = "SELECT ?s WHERE { GRAPH <https://linkedmusic.ca/graphs/thesession/> { ?s a ?t } } LIMIT 10"
-    mock_chat, _ = _mock_generate_llm(sparql)
-    state = {
-        "user_query": "find all sessions that took place in 2015",
-        "schema_context": "ontology context",
-        "few_shot_examples": "",
-        "resolved_qids": {},
-        "repair_count": 0,
-        "entity_contexts": {},
-    }
-
-    with patch(
-        "app.graph.nodes.generate.ChatGoogleGenerativeAI", return_value=mock_chat
-    ):
-        await generate_node(state)
-
-    # bind_tools should NOT have been called
-    mock_chat.bind_tools.assert_not_called()
-    # The base model's ainvoke was called directly
-    messages = mock_chat.ainvoke.call_args[0][0]
-    prompt_text = messages[0].content
-    assert "OUTPUT RULES" in prompt_text
-    assert "wikidata_qid_lookup" not in prompt_text
-
-
-async def test_generate_tool_loop_exhaustion_forces_final_call():
-    """When model returns tool_calls on all _MAX_TOOL_ITERATIONS, a final generation is forced."""
-    good_sparql = "SELECT ?s WHERE { GRAPH <https://linkedmusic.ca/graphs/thesession/> { ?s a ?t } } LIMIT 10"
-
-    # First _MAX_TOOL_ITERATIONS responses all have tool_calls; the final forced call returns SPARQL.
-    tool_response = AIMessage(
-        content="",
-        tool_calls=[
-            {
-                "name": "wikidata_qid_lookup",
-                "args": {"entity_name": "Ireland"},
-                "id": "call_1",
-            }
-        ],
-    )
-    final_response = AIMessage(content=good_sparql)
-
-    mock_model = AsyncMock()
-    # Return tool_response 3 times, then good SPARQL on the 4th (forced) call
-    mock_model.ainvoke.side_effect = [
-        tool_response,
-        tool_response,
-        tool_response,
-        final_response,
-    ]
-
-    mock_chat = MagicMock()
-    mock_chat.bind_tools.return_value = mock_model
-
-    state = {
-        "user_query": "find sessions in Ireland in 2015",
-        "schema_context": "ontology context",
-        "few_shot_examples": "",
-        "resolved_qids": {},
-        "repair_count": 0,
-        "entity_contexts": {"entity": ""},
-    }
-
-    with patch(
-        "app.graph.nodes.generate.ChatGoogleGenerativeAI", return_value=mock_chat
-    ):
-        with patch("app.graph.nodes.generate.wikidata_qid_lookup") as mock_tool:
-            mock_tool.ainvoke = AsyncMock(
-                return_value=[{"qid": "Q27", "label": "Ireland"}]
-            )
-            result = await generate_node(state)
-
-    assert result["sparql"]
-    assert "SELECT" in result["sparql"]
-    # Total calls: 3 loop iterations + 1 forced final = 4
-    assert mock_model.ainvoke.call_count == 4
+    assert "output_rules" in prompt_text
 
 
 async def test_generate_repair_context_injected():
@@ -397,7 +309,7 @@ async def test_generate_repair_context_injected():
         "SELECT ?x WHERE { GRAPH <https://linkedmusic.ca/graphs/diamm/> "
         "{ ?x a ?y } } LIMIT 10"
     )
-    mock_chat, mock_model = _mock_generate_llm(sparql)
+    mock_model = _mock_generate_llm(sparql)
     state = {
         "user_query": "Find manuscripts",
         "schema_context": "ontology context",
@@ -412,15 +324,14 @@ async def test_generate_repair_context_injected():
     }
 
     with patch(
-        "app.graph.nodes.generate.ChatGoogleGenerativeAI", return_value=mock_chat
+        "app.graph.nodes.generate.get_chat_model", return_value=mock_model
     ):
         result = await generate_node(state)
 
-    # Inspect the messages passed to ainvoke
     messages = mock_model.ainvoke.call_args[0][0]
-    prompt_text = messages[0].content
-    assert "REPAIR ATTEMPT" in prompt_text
-    assert "Missing LIMIT clause" in prompt_text
+    user_text = messages[1].content
+    assert "repair" in user_text
+    assert "Missing LIMIT clause" in user_text
     assert result["repair_count"] == 1
 
 
@@ -430,7 +341,7 @@ async def test_generate_judge_feedback_in_repair_context():
         "SELECT ?x WHERE { GRAPH <https://linkedmusic.ca/graphs/diamm/> "
         "{ ?x a ?y } } LIMIT 10"
     )
-    mock_chat, mock_model = _mock_generate_llm(sparql)
+    mock_model = _mock_generate_llm(sparql)
     state = {
         "user_query": "Find manuscripts",
         "schema_context": "ontology context",
@@ -445,14 +356,14 @@ async def test_generate_judge_feedback_in_repair_context():
     }
 
     with patch(
-        "app.graph.nodes.generate.ChatGoogleGenerativeAI", return_value=mock_chat
+        "app.graph.nodes.generate.get_chat_model", return_value=mock_model
     ):
         result = await generate_node(state)
 
     messages = mock_model.ainvoke.call_args[0][0]
-    prompt_text = messages[0].content
-    assert "Results don't match the requested time period" in prompt_text
-    assert "Semantic feedback" in prompt_text
+    user_text = messages[1].content
+    assert "Results don't match the requested time period" in user_text
+    assert "semantic_feedback" in user_text
     assert result["repair_count"] == 2
 
 
