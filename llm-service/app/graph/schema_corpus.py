@@ -993,6 +993,26 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
 - Aggregate functions (COUNT, SUM, AVG, MIN, MAX) must always be wrapped in
   parentheses and assigned to a variable using AS, e.g., (COUNT(?x) AS ?count).
 - Use (COUNT(DISTINCT ?x) AS ?count) when duplicate suppression is needed.
+- SPARQL 1.1 has no window functions. Never use OVER(), PARTITION BY, or similar
+  SQL syntax — they are invalid in SPARQL and will cause a parse error in Virtuoso.
+- "Top-N per group" (e.g., the most prolific lyricist per genre) cannot be expressed
+  cleanly in SPARQL 1.1. Do not attempt it with nested subqueries, HAVING tricks, or
+  window-function syntax. Instead, return ALL (group, entity, count) rows ordered by
+  group then DESC(?count) with a reasonable LIMIT, e.g.: ORDER BY ?genre DESC(?count) LIMIT 200.
+- When combining an aggregating subquery with SERVICE, follow this exact structure
+  and no other — deviating from it causes Virtuoso parse errors:
+    SELECT ?a ?b ?label ?count
+    WHERE {
+      { SELECT ?a ?b (COUNT(?x) AS ?count)
+        WHERE { GRAPH g: { ... } }
+        GROUP BY ?a ?b ORDER BY ?a DESC(?count) LIMIT N }
+      SERVICE <...> { ?b rdfs:label ?label . FILTER(LANG(?label) = "en") }
+    }
+  Mandatory constraints:
+  (1) No GRAPH block at the same outer WHERE level as the subquery.
+  (2) No outer GROUP BY when the subquery already aggregates.
+  (3) The subquery must appear BEFORE the SERVICE block.
+  Violation of any of these causes a "Expected SelectQuery" parse error.
 </rules>\
 """,
 }
