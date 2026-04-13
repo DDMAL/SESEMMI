@@ -45,7 +45,7 @@ function handleSseEvent(
   } else if (eventType === "token") {
     setSteps((prev) =>
       prev.map((s) =>
-        s.step === "generate" ? { ...s, tokens: s.tokens + (data.text as string) } : s,
+        s.step === "generate" && s.status === "running" ? { ...s, tokens: s.tokens + (data.text as string) } : s,
       ),
     );
   } else if (eventType === "done") {

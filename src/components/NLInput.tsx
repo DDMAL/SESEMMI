@@ -127,8 +127,8 @@ export function NLInput({ onTranslate, isPending, steps = [] }: NLInputProps) {
             </span>
           </div>
           <div className="divide-y divide-indigo-50">
-            {steps.map((s) => (
-              <div key={s.step} className="flex items-start gap-2.5 px-3 py-2">
+            {steps.map((s, i) => (
+              <div key={`${s.step}-${i}`} className="flex items-start gap-2.5 px-3 py-2">
                 <div className="mt-0.5 flex h-3.5 w-3.5 shrink-0 items-center justify-center">
                   <StepIcon status={s.status} />
                 </div>
