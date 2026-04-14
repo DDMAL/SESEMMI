@@ -1,0 +1,1723 @@
+id,dataset,category,nl,gold_sparql,databases,requires_federation,requires_qid,verified,notes
+gt-001,ground_truth,single_graph_lookup,Find all chants in Cantus DB in Lydian mode.,"PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
+SELECT ?chant
+WHERE {
+  GRAPH cdb: {
+    ?chant wdt:P826 wd:Q686115
+  }
+}
+LIMIT 100",cantusdb,False,True,True,Migrated from legacy CSV (Challenge 1). Q686115 = Lydian mode.
+gt-002,ground_truth,single_graph_lookup,Find all chants in Cantus DB in Mixolydian mode.,"PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX cdb:  <https://linkedmusic.ca/graphs/cantusdb/>
+SELECT ?chant
+WHERE {
+  GRAPH cdb: {
+    ?chant wdt:P826 wd:Q321814 .
+  }
+}
+LIMIT 100",cantusdb,False,True,True,"Migrated from dev_generated.json (dev-003). Q321814 = Mixolydian mode (corrected from Q735435 which is Vienne-en-Bessin, a French commune). Train has Lydian mode (Q686115)."
+gt-003,ground_truth,single_graph_complex,Find all chants in Cantus DB for the feast of Saint Stephen.,"PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
+SELECT ?chant
+WHERE {
+  GRAPH cdb: {
+    ?chant wdt:P837 ?feast .
+    FILTER(REGEX(STR(?feast), ""stephan"", ""i""))
+  }
+}
+LIMIT 100",cantusdb,False,False,True,Feast name 'Stephani' (Latin genitive of Stephen) is stored as a plain string literal on wdt:P837. STR() coercion used for safe literal matching. Endpoint returns up to 10000 rows per query; actual count 4850 confirmed via COUNT aggregation.
+gt-004,ground_truth,single_graph_complex,Find all chants in Cantus Index associated with the feast of the Purification of Mary.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX cantusindex: <https://linkedmusic.ca/graphs/cantusindex/>
+SELECT ?chantID
+WHERE {
+  GRAPH cantusindex: {
+    ?chantID wdt:P837 ?feast .
+    FILTER(STR(?feast) = ""Purificatio Mariae"")
+    ?chantID wdt:P6439 ?text
+  }
+}
+LIMIT 100",cantusindex,False,False,True,Migrated from legacy CSV (Challenge 1). Feast name 'Purificatio Mariae' is the Latin form stored as a string literal on wdt:P837.
+gt-005,ground_truth,single_graph_lookup,Find all compositions in DIAMM that are composed by Guillaume de Machaut,"PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+SELECT ?composition
+WHERE {
+  GRAPH diamm: {
+    ?composer wdt:P2888 wd:Q200580 .
+    ?composition wdt:P86 ?composer .
+  }
+}
+LIMIT 100",diamm,False,True,True,Migrated from legacy CSV (Challenge 1). Q200580 = Guillaume de Machaut.
+gt-006,ground_truth,single_graph_lookup,Find all DIAMM manuscript sources held in Paris,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+SELECT ?source
+WHERE {
+  GRAPH diamm: {
+    ?source a diamm:Source ;
+            wdt:P276 ?archive .
+    ?archive wdt:P131 ?city .
+    ?city wdt:P2888 wd:Q90 .
+  }
+}
+LIMIT 100",diamm,False,True,True,Q90 = Paris. Three-hop chain: Source -> Archive (wdt:P276) -> City (wdt:P131) -> QID (wdt:P2888). Tests multi-hop geographic lookup within a single graph without any aggregation.
+gt-007,ground_truth,single_graph_lookup,Find all solos in Dig That Lick.,"PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
+SELECT ?solo
+WHERE {
+  GRAPH dtl: {
+    ?solo rdf:type dtl:Solo
+  }
+}
+LIMIT 100",dig-that-lick,False,False,True,Migrated from legacy CSV (Challenge 1).
+gt-008,ground_truth,single_graph_lookup,Find all solos in Dig That Lick performed by Charlie Parker,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
+SELECT ?solo
+WHERE {
+  GRAPH dtl: {
+    ?solo a dtl:Solo ;
+          wdt:P175 wd:Q103767 .
+  }
+}
+LIMIT 100",dig-that-lick,False,True,True,Q103767 = Charlie Parker. wdt:P175 on dtl:Solo stores Wikidata QID URIs directly as the performer. Tests basic performer QID lookup on Solo class.
+gt-009,ground_truth,single_graph_lookup,Find all MusicBrainz recordings made by Taylor Swift,"PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX mb:  <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT ?recording
+WHERE {
+  GRAPH mb: {
+    ?artist a mb:Artist .
+    ?artist wdt:P2888 wd:Q26876 .
+    ?recording a mb:Recording .
+    ?recording wdt:P175 ?artist .
+  }
+}
+LIMIT 100",musicbrainz,False,True,True,Migrated from legacy CSV (Challenge 1). Q26876 = Taylor Swift.
+gt-010,ground_truth,single_graph_lookup,Find all recordings in MusicBrainz by Miles Davis,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT ?recording
+WHERE {
+  GRAPH mb: {
+    ?artist a mb:Artist .
+    ?artist wdt:P2888 wd:Q93341 .
+    ?recording a mb:Recording .
+    ?recording wdt:P175 ?artist .
+  }
+}
+LIMIT 100",musicbrainz,False,True,True,Migrated from dev_generated.json (dev-002). Q93341 = Miles Davis. Same pattern as Taylor Swift train example but different artist.
+gt-011,ground_truth,single_graph_lookup,Find all sources in RISM held at the British Library.,"PREFIX wd:    <http://www.wikidata.org/entity/>
+PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
+SELECT ?source
+WHERE {
+  GRAPH rism: {
+    ?source a rism:Source ;
+        wdt:P276 ?institution .
+    ?institution wdt:P2888 wd:Q23308 .
+  }
+}
+LIMIT 100",rism,False,True,True,Migrated from dev_generated.json (dev-004). Q23308 = British Library. Train has BnF (Q193563).
+gt-012,ground_truth,single_graph_lookup,Find all compositions in SIMSSA DB by Josquin des Prez.,"PREFIX wd:     <http://www.wikidata.org/entity/>
+PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
+SELECT ?work
+WHERE {
+  GRAPH simssa: {
+    ?work a simssa:Work .
+    ?work wdt:P86 ?composer . 
+    ?composer wdt:P2888 wd:Q143100
+  }
+}
+LIMIT 100",simssadb,False,True,True,Migrated from legacy CSV (Challenge 1). Q143100 = Josquin des Prez.
+gt-013,ground_truth,single_graph_lookup,Find all works in SIMSSA DB composed by Tomás Luis de Victoria.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
+SELECT ?work
+WHERE {
+  GRAPH simssa: {
+    ?work a simssa:Work ;
+          wdt:P86 ?composer .
+    ?composer wdt:P2888 wd:Q215128 .
+  }
+}
+LIMIT 100",simssadb,False,True,True,"Q215128 = Tomás Luis de Victoria (Spanish Renaissance composer). Two-hop composer QID lookup via simssa:Person wdt:P2888, parallel to existing Josquin (Q143100) query. Sample results: Missa Gaudeamus, Officium defunctorum, Beata Es Virgo Maria."
+gt-014,ground_truth,single_graph_complex,Find all Ethiopian songs in The Global Jukebox.,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX gj:   <https://linkedmusic.ca/graphs/theglobaljukebox/>
+SELECT ?song
+WHERE {
+  GRAPH <https://linkedmusic.ca/graphs/theglobaljukebox/> {
+    ?song a gj:Song .
+    ?song wdt:P495 wd:Q115 .
+  }
+}
+LIMIT 100",theglobaljukebox,False,True,True,Migrated from legacy CSV (Challenge 1). Q115 = Ethiopia.
+gt-015,ground_truth,single_graph_lookup,Find all songs in the Global Jukebox that use guitar.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
+SELECT ?song
+WHERE {
+  GRAPH gj: {
+    ?song a gj:Song ;
+          wdt:P870 wd:Q6607 .
+  }
+}
+LIMIT 100",theglobaljukebox,False,True,True,"Q6607 = guitar. wdt:P870 (instrumentation) on gj:Song stores Wikidata QID URIs directly. Tests basic instrument QID lookup, complementing the train example which uses country of origin."
+gt-016,ground_truth,single_graph_lookup,Find all sessions in France in The Session.,"PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
+SELECT ?session
+WHERE {
+  GRAPH ts: {
+    ?session a ts:Session ;
+             wdt:P17 wd:Q142 .
+  }
+}
+LIMIT 100",thesession,False,True,True,Migrated from legacy CSV (Challenge 1). Q142 = France.
+gt-017,ground_truth,single_graph_lookup,Find all sessions in Greece in The Session.,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
+SELECT ?session
+WHERE {
+  GRAPH ts: {
+    ?session a ts:Session ;
+             wdt:P17 wd:Q41 .
+  }
+}
+LIMIT 100",thesession,False,True,True,Migrated from dev_generated.json (dev-001). Q41 = Greece. Parallel to train example 'sessions in France' but different country.
+gt-018,ground_truth,single_graph_lookup,Find all sessions in The Session held in Ireland.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
+SELECT ?session
+WHERE {
+  GRAPH ts: {
+    ?session a ts:Session ;
+             wdt:P17 wd:Q27 .
+  }
+}
+LIMIT 100",thesession,False,True,True,Q27 = Ireland. wdt:P17 on ts:Session stores Wikidata QID URIs directly as the country value. Parallel to train examples for France (Q142) and dev-001 for Greece (Q41).
+gt-019,ground_truth,single_graph_lookup,Find all songs in the University of Tennessee Song Index composed by George Gershwin.,"PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
+SELECT ?song
+WHERE {
+  GRAPH utsi: {
+    ?song a utsi:Song .
+    ?song wdt:P86 wd:Q123829
+  }
+}
+LIMIT 100",utsi,False,True,True,Migrated from legacy CSV (Challenge 1). Fixed legacy UTSI variable mismatch (?solo -> ?song). Q123829 = George Gershwin.
+gt-020,ground_truth,single_graph_lookup,Find all solos in Weimar Jazz Database featuring clarinet.,"PREFIX wd:     <http://www.wikidata.org/entity/>
+PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+SELECT ?solo
+WHERE {
+  GRAPH wjazzd: {
+    ?solo a wjazzd:Solo .
+    ?solo wdt:P870 wd:Q8343
+  }
+}
+LIMIT 100",wjazzd,False,True,True,Migrated from legacy CSV (Challenge 1). Q8343 = clarinet.
+gt-021,ground_truth,single_graph_complex,What is the average number of chants per source in Cantus DB?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
+SELECT (AVG(?chantCount) AS ?avgChantsPerSource)
+WHERE {
+  {
+    SELECT ?source (COUNT(?chant) AS ?chantCount)
+    WHERE {
+      GRAPH cdb: {
+        ?chant wdt:P361 ?source .
+      }
+    }
+    GROUP BY ?source
+  }
+}
+LIMIT 100",cantusdb,False,False,True,Migrated from legacy CSV (Challenge 2).
+gt-022,ground_truth,single_graph_complex,How many chants are there for each mode in Cantus DB?,"PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX cdb:  <https://linkedmusic.ca/graphs/cantusdb/>
+SELECT ?mode (COUNT(?chant) AS ?chantCount)
+WHERE {
+  GRAPH cdb: {
+    ?chant wdt:P826 ?mode .
+  }
+}
+GROUP BY ?mode
+ORDER BY DESC(?chantCount)
+LIMIT 100",cantusdb,False,False,True,Migrated from dev_generated.json (dev-006). Simple aggregation on Cantus DB modes.
+gt-023,ground_truth,single_graph_complex,What are the top 10 most common liturgical uses (offices) in Cantus DB by number of chants?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
+SELECT ?office (COUNT(?chant) AS ?chantCount)
+WHERE {
+  GRAPH cdb: {
+    ?chant wdt:P366 ?office .
+  }
+}
+GROUP BY ?office
+ORDER BY DESC(?chantCount)
+LIMIT 10",cantusdb,False,False,True,"wdt:P366 (has use) on cdb:Chant stores the liturgical office, sometimes as a Wikidata URI (e.g. Q1437648 = Matins, 232510 chants) and sometimes as a plain string (e.g. 'Second Vespers', 37575 chants). Top result: Q1437648 (Matins) with 232510 chants. Tests GROUP BY + COUNT + ORDER BY + LIMIT on mixed literal/URI values."
+gt-024,ground_truth,single_graph_complex,How many chants are there in Cantus Index for each feast?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX cantusindex: <https://linkedmusic.ca/graphs/cantusindex/>
+SELECT ?feast (COUNT(?chant) AS ?count)
+WHERE {
+  GRAPH cantusindex: {
+    ?chant a cantusindex:Chant .
+    ?chant wdt:P837 ?feast .
+  }
+}
+GROUP BY ?feast
+ORDER BY DESC(?count)
+LIMIT 100",cantusindex,False,False,True,Migrated from legacy CSV (Challenge 2).
+gt-025,ground_truth,single_graph_complex,How many chants in Cantus Index are written in each language?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX cantusindex: <https://linkedmusic.ca/graphs/cantusindex/>
+SELECT ?language (COUNT(?chant) AS ?chantCount)
+WHERE {
+  GRAPH cantusindex: {
+    ?chant a cantusindex:Chant ;
+           wdt:P407 ?language .
+  }
+}
+GROUP BY ?language
+ORDER BY DESC(?chantCount)
+LIMIT 100",cantusindex,False,False,True,"wdt:P407 (language of work) on cantusindex:Chant stores language as a plain string code (e.g. 'cs', 'lzh'). Results: cs (232 chants), lzh (2 chants). Tests GROUP BY + COUNT + ORDER BY on a string literal property. Only 2 distinct languages represented in Cantus Index."
+gt-026,ground_truth,single_graph_complex,Find all DIAMM archives and list the number of sources that they contain.,"PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+SELECT ?archive (COUNT(?source) AS ?sourceCount)
+WHERE {
+  GRAPH diamm: {
+    ?archive a diamm:Archive .
+    ?source a diamm:Source .
+    ?source wdt:P276 ?archive .
+  }
+}
+GROUP BY ?archive
+ORDER BY DESC(?sourceCount)
+LIMIT 100",diamm,False,False,True,Migrated from legacy CSV (Challenge 2).
+gt-027,ground_truth,single_graph_complex,Find all DIAMM compositions that do not have a genre assigned.,"PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+SELECT ?composition
+WHERE {
+  GRAPH diamm: {
+    ?composition a diamm:Composition .
+    FILTER NOT EXISTS {
+      ?composition wdt:P136 ?genre .
+    }
+  }
+}
+LIMIT 100",diamm,False,False,True,Migrated from dev_generated.json (dev-019). Tests FILTER NOT EXISTS pattern for negation.
+gt-028,ground_truth,single_graph_complex,Find all DIAMM persons whose name contains 'Bach'.,"PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+SELECT ?person
+WHERE {
+  GRAPH diamm: {
+    ?person a diamm:Person .
+    FILTER (CONTAINS(LCASE(STR(?personLabel)), ""bach""))
+  }
+}
+LIMIT 100",diamm,False,False,True,Migrated from dev_generated.json (dev-018). String matching on person labels.
+gt-029,ground_truth,single_graph_lookup,Find all tracks in Dig That Lick recorded in New York City.,"PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
+SELECT DISTINCT ?track
+WHERE {
+  GRAPH dtl: {
+    ?track a dtl:Track .
+    ?track wdt:P8546 wd:Q60 .
+  }
+}
+LIMIT 100",dig-that-lick,False,True,True,Migrated from legacy CSV (Challenge 2). Q60 = New York City.
+gt-030,ground_truth,single_graph_complex,How many solos does each track in Dig That Lick contain?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
+SELECT ?track (COUNT(?solo) AS ?soloCount)
+WHERE {
+  GRAPH dtl: {
+    ?solo a dtl:Solo ;
+          wdt:P361 ?track .
+  }
+}
+LIMIT 100",dig-that-lick,False,False,True,"wdt:P361 (part of) links dtl:Solo to dtl:Track; rdfs:label on dtl:Track gives title. Top result: 'The Chase' (60 solos), followed by 'Sonnysphere' (42). Tests GROUP BY + COUNT + ORDER BY over Solo-to-Track join within a single graph."
+gt-031,ground_truth,single_graph_complex,What are the top 10 cities where the most jazz solos were recorded in Dig That Lick? List the city and the number of solos.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
+SELECT ?location (COUNT(?solo) AS ?soloCount)
+WHERE {
+  GRAPH dtl: {
+    ?solo a dtl:Solo ;
+          wdt:P361 ?track .
+    ?track wdt:P8546 ?location .
+  }
+}
+GROUP BY ?location
+ORDER BY DESC(?soloCount)
+LIMIT 10",dig-that-lick,False,False,True,"Two-hop chain: dtl:Solo -> dtl:Track (wdt:P361) -> recording location (wdt:P8546). Location values are Wikidata URIs and plain strings (e.g. 'Concert'). Top result: Q60 (New York City, 659 solos), Q65 (Los Angeles, 117), Q1297 (Chicago, 101). Tests multi-hop GROUP BY + COUNT + ORDER BY + LIMIT. Complements gt-021 which uses wdt:P8546 directly on Solo with a QID FILTER."
+gt-032,ground_truth,single_graph_complex,Find all bands that share at least two members with Radiohead in MusicBrainz.,"PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX mb:  <https://linkedmusic.ca/graphs/musicbrainz/>
+
+SELECT DISTINCT ?band
+WHERE {
+  GRAPH mb: {
+    ?radiohead a mb:Artist ;
+               wdt:P2888 wd:Q44190 .
+    ?radiohead wdt:P527 ?radiomember .
+    ?band a mb:Artist ;
+          wdt:P527 ?radiomember ;
+          wdt:P527 ?sharedMember .
+    ?radiohead wdt:P527 ?sharedMember .
+    FILTER(?band != ?radiohead)
+  }
+}
+GROUP BY ?band
+HAVING (COUNT(DISTINCT ?sharedMember) >= 2)",musicbrainz,False,True,True,Migrated from legacy CSV (Challenge 2). Q44190 = Radiohead.
+gt-033,ground_truth,single_graph_complex,Find all MusicBrainz artists born on January 1st.,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+
+SELECT ?artist ?birthDate
+WHERE {
+  GRAPH mb: {
+    ?artist a mb:Artist ;
+            wdt:P569 ?birthDate .
+    FILTER(REGEX(STR(?birthDate), ""-01-01""))
+  }
+}
+LIMIT 100",musicbrainz,False,False,True,Migrated from dev_generated.json (dev-020). Tests OPTIONAL pattern. LIMIT 100 to avoid huge result set.
+gt-034,ground_truth,single_graph_complex,How many recordings are there in MusicBrainz for each genre?,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT ?genre (COUNT(?recording) AS ?recordingCount)
+WHERE {
+  GRAPH mb: {
+    ?recording a mb:Recording .
+    ?recording wdt:P136 ?genre .
+  }
+}
+GROUP BY ?genre
+ORDER BY DESC(?recordingCount)
+LIMIT 100",musicbrainz,False,False,True,Migrated from dev_generated.json (dev-005). Aggregation with GROUP BY and ORDER BY. Large result set — compare live.
+gt-035,ground_truth,single_graph_complex,Which RISM composers have more than 50 sources attributed to them?,"PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-making#>
+PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
+
+SELECT ?composer
+WHERE {
+  GRAPH rism: {
+    ?composer a rism:Person .
+    ?source wdt:P86 ?composer .
+    FILTER NOT EXISTS { ?composer rdfs:label ?composerLabel }
+  }
+}
+GROUP BY ?composer
+HAVING (COUNT(?source) > 50)
+ORDER BY ?composer
+LIMIT 100",rism,False,False,True,Migrated from dev_generated.json (dev-008). Tests HAVING clause with threshold filter.
+gt-036,ground_truth,single_graph_complex,What are the top 10 most common keys used in RISM sources?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
+
+SELECT ?key
+WHERE {
+  GRAPH rism: {
+    ?source a rism:Source .
+    ?source wdt:P826 ?key .
+  }
+}
+GROUP BY ?key
+ORDER BY DESC(COUNT(?source))
+LIMIT 10",rism,False,False,True,"wdt:P826 (tonality) on rism:Source stores key as a string literal (e.g. 'C', 'G', 'D'). Top results: C (122885), G (110831), D (105080), F (98196), Bb (67071). Tests GROUP BY + COUNT + ORDER BY + LIMIT aggregation pattern on the largest LinkedMusic graph."
+gt-037,ground_truth,single_graph_complex,Find all RISM sources whose title contains the word 'sonata'.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
+SELECT ?source
+WHERE {
+  GRAPH rism: {
+    ?source a rism:Source ;
+            rdfs:label ?label .
+    FILTER(CONTAINS(LCASE(STR(?label)), ""sonata""))
+  }
+}
+LIMIT 100",rism,False,False,True,rdfs:label on rism:Source is a plain string literal. LCASE + CONTAINS pattern for case-insensitive substring match. 53021 matching sources in the 22.9M-triple RISM graph. Tests string filtering on the largest LinkedMusic database.
+gt-038,ground_truth,single_graph_complex,Which musical works in SIMSSA DB have at least two associated files?,"PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
+SELECT ?work
+WHERE {
+  GRAPH simssa: {
+    ?file a simssa:File ;
+          wdt:P6243 ?work .
+
+    ?work a simssa:Work .
+  }
+}
+GROUP BY ?work
+HAVING (COUNT(?file) >= 2)
+LIMIT 100",simssadb,False,False,True,Migrated from legacy CSV (Challenge 2).
+gt-039,ground_truth,single_graph_complex,Which composers in SIMSSA DB have composed more than two works?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
+
+SELECT ?composer
+WHERE {
+  GRAPH simssa: {
+    ?work a simssa:Work ;
+          wdt:P86 ?composer .
+  }
+}
+GROUP BY ?composer
+HAVING (COUNT(?work) > 2)
+LIMIT 100",simssadb,False,False,True,"wdt:P86 (composer) on simssa:Work links to simssa:Person, which has rdfs:label. 11 composers have more than one work in SIMSSA. Top results: Tomas Luis de Victoria (18), Johannes Martini (18), Josquin des Prez (17). Tests GROUP BY + COUNT + HAVING on a two-class join."
+gt-040,ground_truth,single_graph_complex,Find all Global Jukebox cultures that have at least one song with flute instrumentation.,"PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
+SELECT DISTINCT ?culture
+WHERE {
+  GRAPH gj: {
+    ?song a gj:Song .
+    ?song wdt:P2596 ?culture .
+    ?song wdt:P870 wd:Q11405 .
+    ?culture a gj:Culture .
+  }
+}
+LIMIT 100",theglobaljukebox,False,True,True,Migrated from legacy CSV (Challenge 2). Original result annotation: 69 (but if you include labels it becomes 75) Q11405 = flute.
+gt-041,ground_truth,single_graph_complex,Which Global Jukebox cultures have more than 10 songs?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gj: <https://linkedmusic.ca/graphs/theglobaljukebox/>
+
+SELECT ?culture
+WHERE {
+  GRAPH gj: {
+    ?song a gj:Song ;
+          wdt:P2596 ?culture .
+    ?culture a gj:Culture .
+  }
+}
+GROUP BY ?culture
+HAVING (COUNT(?song) > 10)
+LIMIT 100",theglobaljukebox,False,False,True,"wdt:P2596 (of culture) links gj:Song to gj:Culture; rdfs:label on culture gives the name. Top cultures: Ami (75 songs), Carriacou (73), Trinidad Creole (57). Tests GROUP BY + COUNT + HAVING threshold filter + ORDER BY pattern."
+gt-042,ground_truth,single_graph_complex,Find all the different time signatures for jigs in The Session,"PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
+SELECT DISTINCT ?timeSignature
+WHERE {
+  GRAPH ts: {
+    ?tune a ts:Tune ;
+          wdt:P747 ?tuneSetting .
+    ?tuneSetting wdt:P136 wd:Q1079270 ;
+                 wdt:P3440 ?timeSignature .
+  }
+}
+ORDER BY ?timeSignature
+LIMIT 100",thesession,False,True,True,Migrated from legacy CSV (Challenge 2). Q1079270 = Jig.
+gt-043,ground_truth,single_graph_complex,Find all tunes in The Session with 'reel' in their name,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
+SELECT ?tune
+WHERE {
+  GRAPH ts: {
+    ?tune a ts:Tune ;
+          rdfs:label ?tuneLabel .
+    FILTER (CONTAINS(LCASE(STR(?tuneLabel)), ""reel""))
+  }
+}
+LIMIT 100",thesession,False,False,True,Migrated from dev_generated.json (dev-017). Basic string matching with CONTAINS + LCASE.
+gt-044,ground_truth,single_graph_complex,Find all countries that have had more than 100 sessions in The Session.,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
+
+SELECT ?country
+WHERE {
+  GRAPH ts: {
+    ?session a ts:Session ;
+             wdt:P17 ?country .
+  }
+}
+GROUP BY ?country
+HAVING (COUNT(?session) > 100)
+LIMIT 10",thesession,False,True,True,Migrated from dev_generated.json (dev-007). Aggregation with LIMIT. Tests whether model adds LIMIT correctly.
+gt-045,ground_truth,single_graph_complex,"Determine the most prolific lyricist of each genre in the University of Tennessee Song Index. Do not count ""traditional"", ""none"", and ""anonymous"" as lyricists. List the genre and the corresponding lyricist. For ties, show each as a separate row.","PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
+SELECT ?genre ?lyricist
+WHERE {
+  GRAPH utsi: {
+    
+    # Subquery: count songs per lyricist per genre
+    {
+      SELECT ?genre ?lyricist (COUNT(DISTINCT ?song) AS ?songCount)
+      WHERE {
+        ?song a utsi:Song ;
+              wdt:P676 ?lyricist ;
+              wdt:P136 ?genre .
+        FILTER(?lyricist != <http://www.wikidata.org/entity/Q4233718>)
+        
+        # New Filter: Exclude specific string literals (case-insensitive)
+        FILTER(LCASE(STR(?lyricist)) NOT IN (""traditional"", ""none""))
+      }
+      GROUP BY ?genre ?lyricist 
+    }
+    
+    # Subquery: pick top lyricist per genre
+    {
+      SELECT ?genre (MAX(?songCount) AS ?maxCount)
+      WHERE {
+        {
+          SELECT ?genre ?lyricist (COUNT(DISTINCT ?song) AS ?songCount)
+          WHERE {
+            ?song a utsi:Song ;
+                  wdt:P676 ?lyricist ;
+                  wdt:P136 ?genre .
+            FILTER(?lyricist != <http://www.wikidata.org/entity/Q4233718>)
+            
+            # New Filter: Must be mirrored here so the MAX count is accurate
+            FILTER(LCASE(STR(?lyricist)) NOT IN (""traditional"", ""none""))
+          }
+          GROUP BY ?genre ?lyricist
+        }
+      }
+      GROUP BY ?genre
+    }
+    # Match only lyricists that have the max count per genre
+    FILTER(?songCount = ?maxCount)
+  }
+}
+ORDER BY ?genre",utsi,False,True,True,Migrated from legacy CSV (Challenge 2). Q4233718 = Anonymous (excluded via FILTER). Returns one row per genre: the lyricist with the most songs in that genre.
+gt-046,ground_truth,single_graph_complex,Find all UTSI songs whose title contains the word 'love',"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
+SELECT ?song
+WHERE {
+  GRAPH utsi: {
+    ?song a utsi:Song ;
+          rdfs:label ?label .
+    FILTER(CONTAINS(LCASE(STR(?label)), ""love""))
+  }
+}
+LIMIT 100",utsi,False,False,True,"LCASE + CONTAINS string matching on rdfs:label. STR() coercion ensures safe literal comparison. Sample results: 'INDIAN LOVE CALL', 'INDIAN LOVE SONG'. Tests case-insensitive substring search within a single graph."
+gt-047,ground_truth,single_graph_complex,Return all genres in the University of Tennessee Song Index that have over 15000 songs.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
+
+SELECT ?genre
+WHERE {
+  GRAPH utsi: {
+    ?song a utsi:Song ;
+          wdt:P136 ?genre .
+  }
+}
+GROUP BY ?genre
+HAVING (COUNT(?song) > 15000)",utsi,False,False,True,"wdt:P136 (genre) on utsi:Song stores values as Wikidata URIs (e.g. Q373342 = folk music, 18203 songs) and plain strings (e.g. 'SACRED', 629 songs). Top 3: Q373342 (18203), Q4797274 (16979), Q43343 (16055). Tests GROUP BY + COUNT + ORDER BY + LIMIT on the 638K-triple UTSI graph."
+gt-048,ground_truth,single_graph_complex,Which performers in Weimar Jazz Database have performed at least two solos in the same key?,"PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+SELECT ?performer
+WHERE {
+  GRAPH wjazzd: {
+    ?solo a wjazzd:Solo ;
+          wdt:P175 ?performer ;
+          wdt:P826 ?tonality .
+  }
+}
+GROUP BY ?performer
+HAVING (COUNT(DISTINCT ?solo) >= 2)
+ORDER BY DESC(COUNT(DISTINCT ?solo))
+LIMIT 100",wjazzd,False,False,True,Migrated from legacy CSV (Challenge 2).
+gt-049,ground_truth,single_graph_complex,Which jazz compositions in the Weimar Jazz Database have more than 2 solos recorded?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-replace#>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+
+SELECT ?composition
+WHERE {
+  GRAPH wjazzd: {
+    ?solo a wjazzd:Solo ;
+          wdt:P2550 ?composition .
+  }
+}
+GROUP BY ?composition
+HAVING (COUNT(?solo) > 2)
+LIMIT 100",wjazzd,False,False,True,wdt:P2550 (recording of) links wjazzd:Solo to wjazzd:Composition; rdfs:label gives composition title. Top result: 'Body and Soul' (14 solos). Tests GROUP BY + COUNT + HAVING + ORDER BY on a small database (9K triples).
+gt-050,ground_truth,single_graph_complex,How many solos in the Weimar Jazz Database were recorded on each record label? Return the record label and the number of solos.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+SELECT ?label (COUNT(?solo) AS ?soloCount)
+WHERE {
+  GRAPH wjazzd: {
+    ?solo a wjazzd:Solo ;
+          wdt:P361 ?track .
+    ?track wdt:P361 ?record .
+    ?record wdt:P264 ?label .
+  }
+}
+GROUP BY ?label
+ORDER BY DESC(?soloCount)
+LIMIT 100",wjazzd,False,False,True,"Three-hop chain: wjazzd:Solo -> wjazzd:Track (wdt:P361) -> wjazzd:Record (wdt:P361) -> record label (wdt:P264). Label values are mixed: some Wikidata URIs (e.g. Q885833), some plain strings (e.g. 'Membran Music Ltd.'). Top label: 'Membran Music Ltd.' (51 solos). 55 distinct labels. Tests multi-hop aggregation within a single graph."
+gt-051,ground_truth,federated,Retrieve all events associated with G minor chants that are named after women from Cantus DB.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
+SELECT ?event
+WHERE {
+  {
+    SELECT DISTINCT ?event WHERE {
+      GRAPH cdb: {
+        ?chant wdt:P826 wd:Q283895 ;
+               wdt:P837 ?event .
+        FILTER(isURI(?event))
+      }
+    }
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?event wdt:P138 ?person .
+    ?person wdt:P21 wd:Q6581072 .
+  }
+}
+LIMIT 100",cantusdb,True,True,True,Migrated from legacy CSV (Challenge 3). Q283895 = G minor. Q6581072 = Female. Fixed: original had ?Q6581072 (variable) instead of wd:Q6581072 (QID); added FILTER(isURI(?event)) to restrict to Wikidata-linked feast URIs (cdb wdt:P837 stores mixed string literals and URIs); restructured as local subquery before SERVICE per SP031 rule.
+gt-052,ground_truth,federated,"What are the 5 feast days with the most chants in Cantus DB, and what event or person are they named after according to Wikidata? Return the feast label in English and the named after label in English.","PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
+SELECT ?feastLabel ?namedAfterLabel
+WHERE {
+  {
+    SELECT ?feast (COUNT(?chant) AS ?chantCount) WHERE {
+      GRAPH cdb: {
+        ?chant wdt:P837 ?feast .
+        FILTER(isURI(?feast))
+      }
+    }
+    GROUP BY ?feast
+    ORDER BY DESC(?chantCount)
+    LIMIT 5
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?feast rdfs:label ?feastLabel .
+    FILTER(LANG(?feastLabel) = ""en"")
+    OPTIONAL {
+      ?feast wdt:P138 ?namedAfter .
+      ?namedAfter rdfs:label ?namedAfterLabel .
+      FILTER(LANG(?namedAfterLabel) = ""en"")
+    }
+  }
+}
+ORDER BY DESC(?chantCount)",cantusdb,True,False,True,"Inner subquery counts chants per Wikidata-linked feast (FILTER(isURI(?feast)) selects only the 588 feast QID rows, ignoring the majority of string-literal feast values), takes the top 5 by count. Only 5 QIDs are sent to Wikidata SERVICE. Wikidata returns the English rdfs:label for each feast (?feastLabel) and OPTIONAL P138 (named after) with English label (?namedAfterLabel). Results: Christmas (7,376 chants, no P138), Epiphany (5,787, no P138), Candlemas (5,336, named after: Presentation of Jesus at the Temple), Feast of the Assumption of Mary (5,241, named after: Assumption of Mary), Feast of the Ascension (5,092, named after: Ascension of Jesus). Musicologically: the five most-chanted feasts in the Western liturgical calendar — all central Christological or Marian observances. Christmas and Epiphany lack P138 in Wikidata because they are self-definitional feasts, not 'named after' any discrete event node. Distinct from gt-075 (same top-N pattern for Cantus Index with labels only) in database (CantusDB, 3.6M triples) and Wikidata enrichment depth (adds 2-hop OPTIONAL P138). Tests: COUNT + GROUP BY + ORDER BY + LIMIT before SERVICE (to control QIDs sent), OPTIONAL 2-hop inside SERVICE, mixed isURI guard for heterogeneous property values."
+gt-053,ground_truth,single_graph_complex,What are the top 5 feast days with the most chants in Cantus Index?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX cantusindex: <https://linkedmusic.ca/graphs/cantusindex/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?feast
+WHERE {
+  {
+    SELECT ?feast (COUNT(?chant) AS ?chantCount) WHERE {
+      GRAPH cantusindex: {
+        ?chant wdt:P837 ?feast .
+        FILTER(isURI(?feast))
+      }
+    }
+    GROUP BY ?feast
+    ORDER BY DESC(?chantCount)
+    LIMIT 5
+  }
+}
+ORDER BY DESC(?chantCount)",cantusindex,False,False,True,"wdt:P837 in Cantus Index stores MIXED values: mostly string literals (feast names) and some Wikidata QID URIs; FILTER(isURI(?feast)) selects only QID-linked feasts (14980 chants, 418 distinct URIs). LIMIT 5 in subquery passes only 5 URIs to SERVICE, avoiding timeout. Results: Christmas (857), Epiphany (544), Feast of Saint Mary Magdalene (532), Feast of the Ascension (435), Feast of Saint Ursula (388). Tests: isURI filter, top-N before SERVICE."
+gt-054,ground_truth,federated,"List all DIAMM compositions by Guillaume de Machaut and retrieve his birth year from Wikidata. Return two columns, one with the DIAMM composition IDs and the second with Guillaume de Machaut's birth year, populated for each composition.","PREFIX wd:    <http://www.wikidata.org/entity/>
+PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+SELECT ?composition ?birthDate
+WHERE {
+  {
+    SELECT ?composition ?composerWikidata WHERE {
+      GRAPH diamm: {
+        ?composition a diamm:Composition ;
+                     wdt:P86 ?composer .
+        ?composer wdt:P2888 ?composerWikidata .
+        FILTER(?composerWikidata = wd:Q200580)
+      }
+    }
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?composerWikidata wdt:P569 ?birthDate .
+  }
+}
+LIMIT 100",diamm,True,True,True,Q200580 = Guillaume de Machaut. Redesigned from original (which batched all DIAMM composers to Wikidata and timed out). Tests single-QID federated pattern: two-hop P2888 FILTER + Wikidata birth year (P569). Birth year returned: 1300.
+gt-055,ground_truth,federated,Return the inception dates of all DIAMM archives in France.,"PREFIX wd:    <http://www.wikidata.org/entity/>
+PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+SELECT DISTINCT ?inceptionDate
+WHERE {
+  {
+    SELECT ?archive ?archiveWikidata WHERE {
+      GRAPH diamm: {
+        ?archive a diamm:Archive ;
+                 wdt:P2888 ?archiveWikidata ;
+                 wdt:P131 ?city .
+        ?city wdt:P17 ?country .
+        ?country wdt:P2888 wd:Q142 .
+      }
+    }
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    OPTIONAL { ?archiveWikidata wdt:P571 ?inceptionDate . }
+  }
+}
+LIMIT 100",diamm,True,True,True,Q142 = France. Redesigned from original (which batched all 362 DIAMM archives with Wikidata links and timed out). Pre-filters to French archives via local city→country chain (wdt:P131→wdt:P17→wdt:P2888=Q142). Uses OPTIONAL since not all French archives have P571 in Wikidata. Returns 33 archives.
+gt-056,ground_truth,federated,Count how many solos were done by artists of each gender in Dig That Lick. Return one column for the gender and another for the number of solos.,"PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX dtl:  <https://linkedmusic.ca/graphs/dig-that-lick/>
+SELECT ?gender (SUM(?soloCount) AS ?totalSolos)
+WHERE {
+  {
+    SELECT ?artist (COUNT(?solo) AS ?soloCount)
+    WHERE {
+      GRAPH dtl: {
+        ?solo a dtl:Solo ;
+              wdt:P175 ?artist .
+              
+        FILTER(isURI(?artist)) 
+      }
+    }
+    GROUP BY ?artist
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?artist wdt:P21 ?gender . 
+  }
+}
+GROUP BY ?gender",dig-that-lick,True,False,True,Migrated from legacy CSV (Challenge 3). Original result annotation: 2 (1056 solos by male artist; 18 solos by female artists)
+gt-057,ground_truth,federated,Return the birth places of the 10 most prolific jazz soloists in Dig That Lick.,"PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX dtl:  <https://linkedmusic.ca/graphs/dig-that-lick/>
+
+SELECT DISTINCT ?birthCity
+WHERE {
+  {
+    SELECT ?wdPerformer (COUNT(?solo) AS ?soloCount) WHERE {
+      GRAPH dtl: {
+        ?solo a dtl:Solo ;
+              wdt:P361 ?track .
+        ?track a dtl:Track ;
+               wdt:P175 ?wdPerformer .
+      }
+    }
+    GROUP BY ?wdPerformer
+    ORDER BY DESC(?soloCount)
+    LIMIT 10
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?wdPerformer wdt:P19 ?birthCity .
+  }
+}",dig-that-lick,True,False,True,"dtl:Solo.wdt:P175 stores performer as a Wikidata QID URI directly. Inner subquery counts all solos per performer, orders by count descending, and takes the top 10 — only 10 QIDs are passed to SERVICE. Wikidata returns the English rdfs:label for each performer and, via OPTIONAL, their birth city (wdt:P19) with English label. 13 rows returned (not 10) because some performers have multiple P19 values in Wikidata: Sonny Rollins has both 'Harlem' and 'New York City' (Q60) as birth places; Charlie Parker appears twice (two Kansas City P19 entries with different QIDs, one for Kansas City Missouri and one for the broader metro); Lester Young has two Woodville entries. Top 10 soloists by solo count: Joshua Redman (49, Berkeley CA), Sonny Rollins (43, Harlem/NYC), Dexter Gordon (41, Los Angeles), Art Pepper (37, Gardena CA), Bob Cooper (34, Pittsburgh), Charlie Parker (29, Kansas City), Lester Young (24, Woodville MS), Dizzy Gillespie (21, Cheraw SC), Lionel Hampton (19, Louisville KY), Sonny Stitt (16, Boston MA). Musicologically: the most-analysed soloists in the WJazzD/DTL corpus skew heavily toward bebop and cool jazz, with almost all performers being from the American South or Mid-Atlantic. New federated pattern for DTL: top-N aggregation before SERVICE with OPTIONAL multi-valued property enrichment — distinct from the existing DTL federated query (performer gender, CSV C3) in using performer birth geography rather than demographic filtering. Tests: GROUP BY + COUNT + ORDER BY + LIMIT inside subquery to cap QIDs, OPTIONAL 2-hop inside SERVICE."
+gt-058,ground_truth,federated,Find all MusicBrainz artists born in London. Return both their MusicBrainz ID and their Wikidata QID.,"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+
+SELECT ?artist ?wdArtist
+WHERE {
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?wdArtist wdt:P19 wd:Q84 .
+    ?wdArtist wdt:P106 wd:Q639669 .
+  }
+  GRAPH mb: {
+    ?artist a mb:Artist ;
+            wdt:P2888 ?wdArtist .
+  }
+}
+LIMIT 100",musicbrainz,True,True,True,"Migrated from dev_generated.json (dev-009). Q84 = London. Birthplace (P19) is on Wikidata only, requires federation. Subquery before SERVICE to avoid SP031."
+gt-059,ground_truth,federated,What’s the average number of record labels that female singers in MusicBrainz have signed with?,"PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT (AVG(?labelCount) AS ?averageLabelsPerSinger)
+WHERE {
+  {
+    SELECT ?artist (COUNT(DISTINCT ?label) AS ?labelCount)
+    WHERE {
+      GRAPH mb: {
+        ?artist a mb:Artist .
+        ?artist wdt:P2888 ?artistWikidata .
+        ?artist wdt:P264 ?label .
+        ?artist wdt:P21 wd:Q6581072 .
+      }
+      SERVICE <https://query.wikidata.org/sparql> {
+        ?artistWikidata wdt:P106 wd:Q177220 . 
+      }
+    }
+    GROUP BY ?artist
+  }
+}",musicbrainz,True,True,True,Migrated from legacy CSV (Challenge 3). Original result annotation: 1 (the average is 1.400773195876289) Q6581072 = female. Q177220 = singer.
+gt-060,ground_truth,federated,"For each institution in RISM that is also listed as an archive on Wikidata, what is the Wikidata QID of the country is it in?","PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?instWD
+WHERE {
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?instWD wdt:P31  wd:Q166118 ;
+            wdt:P17  ?countryWD .
+    ?countryWD rdfs:label ?country .
+    FILTER(LANG(?country) = ""en"")
+  }
+  GRAPH rism: {
+    ?inst wdt:P2888 ?instWD ;
+          rdfs:label ?label .
+  }
+}
+LIMIT 100",rism,True,False,True,Q38 = Italy. rism:Institution uses wdt:P2888 to link to Wikidata; SERVICE filters for Italian institutions (P17 = Q38). Could not verify due to production server performance issues (timed out); expected to work after server upgrade. Tests: federated country filter + local graph join.
+gt-061,ground_truth,federated,What countries are the 10 most documented composers in RISM associated with according to Wikidata?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
+
+SELECT DISTINCT ?country
+WHERE {
+  {
+    SELECT ?composer ?composerQID (COUNT(?source) AS ?sourceCount) WHERE {
+      GRAPH rism: {
+        ?source wdt:P86 ?composer .
+        ?composer wdt:P2888 ?composerQID .
+      }
+    }
+    GROUP BY ?composer ?composerQID
+    ORDER BY DESC(?sourceCount)
+    LIMIT 10
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?composerQID wdt:P27 ?country .
+  }
+}
+LIMIT 100",rism,True,False,True,"Inner subquery aggregates RISM sources per composer (rism:Person.wdt:P2888 links to Wikidata QID) and takes the top 10 by source count, capping the QIDs sent to SERVICE at 10. Wikidata returns the composer's English label and OPTIONAL citizenship (wdt:P27). 16 rows returned (not 10) because some composers have multiple P27 values: Handel (3 citizenships: Holy Roman Empire, Brandenburg-Prussia, Kingdom of Great Britain), Bach (2), Chopin (4). Top 10 composers: Joseph Haydn (17,179 sources), Wolfgang Amadeus Mozart (17,155), George Frideric Handel (12,160), Giovanni Pierluigi da Palestrina (10,615), Michael Haydn (9,313), Johann Sebastian Bach (9,150), Ignaz Pleyel (8,588), Frédéric Chopin (6,835), Johann Adolph Hasse (6,446), Georg Philipp Telemann (5,848). All are European classical/Baroque composers, confirming the core of the RISM manuscript tradition. Follows the top-N-then-federate pattern of gt-073. Tests: subquery with GROUP BY + LIMIT before SERVICE, OPTIONAL inside SERVICE for multi-valued properties."
+gt-062,ground_truth,federated,Find all SIMSSA works whose composers appear as humans in Wikidata.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?work
+WHERE {
+  {
+    SELECT DISTINCT ?work ?composerQID WHERE {
+      GRAPH simssa: {
+        ?work a simssa:Work ;
+              wdt:P86 ?composer .
+        ?composer wdt:P2888 ?composerQID .
+      }
+    }
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?composerQID wdt:P31 wd:Q5 .
+  }
+}
+LIMIT 100",simssadb,True,True,True,simssa:Person uses wdt:P2888 to link to Wikidata. SERVICE verifies composer is a human (Q5). Tests: Wikidata existence check via federation.
+gt-063,ground_truth,federated,Find works in the SIMSSA digital scores library whose composers were born in Italy.,"PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX wd:     <http://www.wikidata.org/entity/>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
+SELECT DISTINCT ?work 
+WHERE {
+  {
+    SELECT DISTINCT ?work ?composerQID WHERE {
+      GRAPH simssa: {
+        ?work a simssa:Work ;
+              wdt:P86 ?composer .
+        ?composer wdt:P2888 ?composerQID .
+      }
+    }
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?composerQID wdt:P19 ?birthplace .
+    ?birthplace wdt:P17 wd:Q38 .
+  }
+}
+LIMIT 100",simssadb,True,True,True,"simssa:Work.wdt:P86 links to a simssa:Person node; simssa:Person.wdt:P2888 provides the Wikidata QID. The inner subquery passes all distinct (work, workLabel, composerQID) triples to SERVICE (only ~10 distinct composer QIDs in SIMSSA, making the call tractable). Wikidata resolves wdt:P19 (place of birth) → ?birthplace, then checks wdt:P17 (country) = wd:Q38 (Italy). 12 distinct works returned: Missa Aeterna Christi munera, Missa Hodie Christus Natus Est, Missa Papae Marcelli, Missa Te Deum laudamus (Palestrina), plus eight Italian madrigals (Amor che mi tormenti, Ben mi credea passar mio tempo homai, Chi della fede altrui piglia sospecto, De perché in odio m'hai, Donna benchè di rado et con riguardo, Perché donna non vuoi, Quando lo pomo vien da lo pomaro, Son io donna qual mostri ogni tuo bene). Musicologically: the Italian-born composers in SIMSSA are Palestrina (sacred mass) and the anonymous/known composers of 16th-century Italian madrigals. Note: wdt:P27 (citizenship) = Q38 returns 0 results because Italy as a modern sovereign state (Q38) did not exist in the Renaissance — the correct historical birthplace test is P19 (place of birth) → P17 (country of the birthplace QID) = Q38. Q38 = Italy. New database: first federated query covering SIMSSA. Tests: 2-hop local-Person-node pattern (Work → simssa:Person → wdt:P2888 → composerQID), 2-hop Wikidata birthplace filter (P19 → P17)."
+gt-064,ground_truth,federated,Find all Global Jukebox songs from Africa,"PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
+
+SELECT DISTINCT ?song
+WHERE {
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?country wdt:P30 wd:Q15 .
+  }
+  GRAPH gj: {
+    ?song a gj:Song .
+    ?song wdt:P2596 ?culture .
+    ?culture wdt:P17 ?country .
+  }
+}
+LIMIT 100",theglobaljukebox,True,True,True,Migrated from legacy CSV (Challenge 3). Q15 = Africa.
+gt-065,ground_truth,federated,Find all Global Jukebox songs from countries in Asia,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX wd:   <http://www.wikidata.org/entity/>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX gj:   <https://linkedmusic.ca/graphs/theglobaljukebox/>
+SELECT DISTINCT ?song
+WHERE {
+  {
+    SELECT ?song ?country
+    WHERE {
+      GRAPH gj: {
+        ?song a gj:Song .
+        ?song wdt:P2596 ?culture .
+        ?culture wdt:P17 ?country .
+      }
+    }
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?country wdt:P30 wd:Q48 .
+  }
+}
+LIMIT 100",theglobaljukebox,True,True,True,Migrated from dev_generated.json (dev-011). Q48 = Asia. Parallel to train 'songs from Africa' (Q15) but different continent. Could not verify due to production server timeout (HTTP 500); expected to work after server upgrade.
+gt-066,ground_truth,federated,Find the capital city of the country with the most sessions in The Session.,"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
+SELECT ?capitalCity
+WHERE {
+  {
+    SELECT ?country (COUNT(?session) AS ?sessionCount)
+    WHERE {
+      GRAPH ts: {
+        ?session a ts:Session .
+        ?session wdt:P17 ?country .
+      }
+    }
+    GROUP BY ?country
+    ORDER BY DESC(?sessionCount)
+    LIMIT 1
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?country wdt:P36 ?capitalCity .
+  }
+}",thesession,True,False,True,"Migrated from legacy CSV (Challenge 3). Original result annotation: 1 (""Washington, D.C."")"
+gt-067,ground_truth,federated,Find the ISO 3166-1 alpha-3 country code of all countries that have events in The Session.,"PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
+
+SELECT DISTINCT ?isoCode
+WHERE {
+  {
+    SELECT DISTINCT ?country
+    WHERE {
+      GRAPH ts: {
+        ?event a ts:Events ;
+               wdt:P17 ?country .
+      }
+    }
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?country wdt:P298 ?isoCode .
+  }
+}
+LIMIT 100",thesession,True,False,True,Migrated from dev_generated.json (dev-012). P1082 = population. Tests federation for a property not in the ontology.
+gt-068,ground_truth,federated,What countries (return Wikidata QIDs) are the 5 most prolific composers (by number of songs) from in the University of Tennessee Song Index?,"PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
+
+SELECT DISTINCT ?country
+WHERE {
+  {
+    SELECT ?composer WHERE {
+      GRAPH utsi: {
+        ?song a utsi:Song ;
+              wdt:P86 ?composer .
+        FILTER(isURI(?composer))
+      }
+    }
+    GROUP BY ?composer
+    ORDER BY DESC(COUNT(?song))
+    LIMIT 5
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?composer wdt:P27 ?country .
+  }
+}",utsi,True,False,True,"wdt:P86 on utsi:Song stores mixed values (some Wikidata QIDs, some string literals); FILTER(isURI(?composer)) selects only QID-linked composers. LIMIT 5 in subquery avoids sending 4345 URIs to SERVICE. Result count is 7 not 5 because some composers have multiple P27 nationalities in Wikidata. Tests: top-N subquery before SERVICE, OPTIONAL federation."
+gt-069,ground_truth,federated,How many songs belong to each music genre in the University of Tennessee Song Index? Only return the number of songs.,"PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
+
+SELECT ?songCount
+WHERE {
+  {
+    SELECT ?genre (COUNT(DISTINCT ?song) AS ?songCount) WHERE {
+      GRAPH utsi: {
+        ?song a utsi:Song ;
+              wdt:P136 ?genre .
+        FILTER(isURI(?genre))
+      }
+    }
+    GROUP BY ?genre
+  }
+}
+ORDER BY DESC(?songCount)
+LIMIT 100",utsi,True,False,True,"utsi:Song.wdt:P136 stores genre as a Wikidata QID URI (FILTER(isURI(?genre)) guards against any non-URI values; confirmed that all 10 genre values are QID URIs). Inner subquery aggregates distinct song counts per genre from UTSI (10 distinct genre QIDs); outer SERVICE retrieves the English rdfs:label for each genre from Wikidata. 10 rows returned, ordered by song count: popular music (18,203), art song (16,979), folk music (16,055), aria (2,590), spirituals (1,964), religious music (1,623), children's music (1,173), carol (531), patriotic music (512), anthem (259). Musicologically: the distribution reveals the UTSI repertoire as primarily American popular, art song, and folk traditions — the three pillars of the early-20th-century domestic song anthology tradition. New database: first federated query covering UTSI. Pattern: aggregation-before-SERVICE (GROUP BY + COUNT inside subquery, then label enrichment), identical structure to gt-101 (RISM) and gt-073 but applied to genre distribution rather than composer counts. Only 10 QIDs sent to Wikidata, making the SERVICE call very efficient."
+gt-070,ground_truth,federated,Find all solos in the Weimar Jazz Database whose performer was born in New Orleans.,"PREFIX wd:     <http://www.wikidata.org/entity/>
+PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+SELECT DISTINCT ?solo
+WHERE {
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?performer wdt:P19 wd:Q34404 ;
+               wdt:P106 wd:Q639669 .
+  }
+  GRAPH wjazzd: {
+    ?solo a wjazzd:Solo ;
+          wdt:P175 ?performer .
+  }
+}
+LIMIT 100
+",wjazzd,True,False,True,wdt:P175 on wjazzd:Solo stores Wikidata performer QID URIs directly. Subquery before SERVICE avoids SP031. Tests: federated count aggregation.
+gt-071,ground_truth,federated,"Find all jazz compositions in the Weimar Jazz Database written by musicians with Canadian citizenship, according to Wikidata.","PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX wd:     <http://www.wikidata.org/entity/>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-format#>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+
+SELECT DISTINCT ?composition
+WHERE {
+  {
+    SELECT DISTINCT ?composition ?composerQID WHERE {
+      GRAPH wjazzd: {
+        ?composition a wjazzd:Composition ;
+                     wdt:P86 ?composerQID .
+        FILTER(isURI(?composerQID))
+      }
+    }
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?composerQID wdt:P27 wd:Q16 .
+  }
+}
+LIMIT 100",wjazzd,True,True,True,"wjazzd:Composition.wdt:P86 stores composer as a Wikidata QID URI directly (FILTER(isURI(?composerQID)) guards against any non-URI values). Only 97 distinct composer QIDs in WJazzD, making the SERVICE call tractable. Wikidata filters to composers with wdt:P27 = wd:Q30 (United States citizenship). 217 distinct compositions returned — a near-comprehensive list of American jazz standards in the Weimar Jazz DB: 'A Night in Tunisia' (Dizzy Gillespie), '245' (Miles Davis), 'Airegin' (Sonny Rollins), 'Adam's Apple' (Wayne Shorter), 'All of Me', etc. Q30 = United States. Tests: direct-QID composer property (no intermediate Person node), isURI guard, citizenship filter via Wikidata P27."
+gt-072,ground_truth,cross_database,Find all compositions in DIAMM whose composer also appears as a composer in RISM,"PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
+SELECT DISTINCT ?composition
+WHERE {
+  GRAPH diamm: {
+    ?composition a diamm:Composition ;
+                 wdt:P86 ?composer .
+    ?composer wdt:P2888 ?wikidata .
+  }
+  GRAPH rism: {
+    ?rismComposer wdt:P2888 ?wikidata .
+    ?rismSource wdt:P86 ?rismComposer .
+  }
+}
+LIMIT 100","diamm, rism",False,False,True,"Migrated from dev_generated.json (dev-013). Cross-database join via shared wdt:P2888 Wikidata URI. No federation needed. Full count could not be retrieved due to server timeout on large RISM join; query confirmed to return results (e.g. Palestrina, Handl)."
+gt-073,ground_truth,cross_database,Find all Dig That Lick tracks where the performer also has recordings in MusicBrainz,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX dtl:  <https://linkedmusic.ca/graphs/dig-that-lick/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT DISTINCT ?track 
+WHERE {
+  GRAPH dtl: {
+    ?track a dtl:Track ;
+           wdt:P175 ?wikidataArtist .
+  }
+  GRAPH mb: {
+    ?mbArtist a mb:Artist ;
+              wdt:P2888 ?wikidataArtist .
+    ?recording a mb:Recording ;
+               wdt:P175 ?mbArtist .
+  }
+}
+LIMIT 100","dig-that-lick, musicbrainz",False,False,True,Migrated from dev_generated.json (dev-015). Cross-database via wdt:P2888 Wikidata match on artist. Full count not obtainable due to join size timeout; query confirmed working.
+gt-074,ground_truth,cross_database,"Find all entities in LinkedMusic with ""death"" in their label.","PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?entity
+WHERE {
+  GRAPH ?graph {
+    ?entity rdf:type  ?type ;
+            rdfs:label ?label .
+    FILTER (CONTAINS(LCASE(STR(?label)), ""death""))
+  }
+  FILTER (
+    STRSTARTS(STR(?graph), ""https://linkedmusic.ca/graphs/"")
+  )
+}
+LIMIT 100",all,False,False,True,"Migrated from legacy CSV (Challenge 4). Do we not want to count gj:Song and ts:Tune as well?
+And what about the use of skos:altLabel?"
+gt-075,ground_truth,cross_database,Find all music events in The Session or MusicBrainz that happened on a day where at least one South Korean music label dissolved,"PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX mb:  <https://linkedmusic.ca/graphs/musicbrainz/>
+PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
+SELECT DISTINCT ?event WHERE {
+  GRAPH mb: {
+    ?label a mb:Label ;
+           wdt:P17 ?area ;
+           wdt:P576 ?dissolutionDate .
+    ?area wdt:P2888 wd:Q884 .
+  }
+
+  {
+    GRAPH ts: {
+      ?event a ts:Events ;
+             wdt:P580 ?eventDate .
+    }
+  }
+  UNION
+  {
+    GRAPH mb: {
+      ?event a mb:Event ;
+             wdt:P585 ?eventDate .
+    }
+  }
+
+  FILTER (?eventDate = ?dissolutionDate)
+}
+LIMIT 100","musicbrainz, thesession",False,True,True,Migrated from legacy CSV (Challenge 4). Q884 = South Korea. Correction: xsd:dateTime value need to be truncated to xsd:date before comparison
+gt-076,ground_truth,cross_database,"Find all musical instruments in the Global Jukebox featured in songs from Madagascar, and find recordings in MusicBrainz featuring these same instruments.","PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
+PREFIX mb:  <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT DISTINCT ?wikidataInstrument WHERE {
+  GRAPH gj: {
+    ?song wdt:P495 wd:Q1019 .
+    ?song wdt:P870 ?wikidataInstrument .
+  }
+  GRAPH mb: {
+    ?recording wdt:P870 ?musicBrainzInstrument .
+    ?musicBrainzInstrument wdt:P2888 ?wikidataInstrument .
+  }
+}
+LIMIT 100","musicbrainz, theglobaljukebox",False,True,True,Migrated from legacy CSV (Challenge 4). Q1019 = Madagascar. BROKEN: MusicBrainz graph has no P870 (instrumentation) data loaded on any entity; the cross-database join on instrument fails and the query returns 0 results. Query needs redesign when MB instrumentation data is available.
+gt-077,ground_truth,cross_database,Return the Wikidata QID for institutions that appear in both DIAMM and RISM.,"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-format-ns#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
+
+SELECT DISTINCT ?wikidataLink
+WHERE {
+  GRAPH diamm: {
+    ?diammArchive wdt:P2888 ?wikidataLink .
+  }
+  GRAPH rism: {
+    ?rismInstitution wdt:P2888 ?wikidataLink .
+  }
+}
+LIMIT 100","diamm, rism",False,True,True,"Migrated from legacy CSV (Challenge 4). Q103767 = Charlie Parker. BROKEN: mb:Work entities are not loaded in the LinkedMusic Virtuoso instance (MB graph contains only Artist, Recording, Release, Label, Area, Event, Place, Genre, Instrument). The join on ?work a mb:Work returns nothing; query returns 0 results. Query needs redesign to target mb:Recording instead of mb:Work, or await MB Work data loading."
+gt-078,ground_truth,cross_database,Which feast day has the largest difference in chant counts between CantusDB and CantusIndex?,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
+PREFIX ci:  <https://linkedmusic.ca/graphs/cantusindex/>
+
+SELECT ?feast (ABS(?cdbCount - ?ciCount) AS ?difference)
+WHERE {
+  {
+    SELECT ?feast (COUNT(?chant) AS ?cdbCount)
+    WHERE {
+      GRAPH cdb: { ?chant wdt:P837 ?feast }
+      FILTER(isLiteral(?feast))
+    }
+    GROUP BY ?feast
+  }
+  {
+    SELECT ?feast (COUNT(?chant) AS ?ciCount)
+    WHERE {
+      GRAPH ci: { ?chant wdt:P837 ?feast }
+      FILTER(isLiteral(?feast))
+    }
+    GROUP BY ?feast
+  }
+}
+ORDER BY DESC(?difference)
+LIMIT 1","cantusdb, cantusindex",False,False,True,"Migrated from legacy CSV (Challenge 4). BROKEN: The MusicBrainz graph has no P826 (tonality/mode) data loaded; the inner join on ?mode between CDB and MB yields no common modes, and the query returns 0 results (not 3). The original gold_result_count of 3 was also inconsistent with LIMIT 1. Query needs redesign or awaits MB mode data loading."
+gt-079,ground_truth,cross_database,Find all cultures in the Global Jukebox from countries that have at least one RISM institution,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX gj:   <https://linkedmusic.ca/graphs/theglobaljukebox/>
+PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
+SELECT DISTINCT ?culture
+WHERE {
+  GRAPH gj: {
+    ?culture a gj:Culture ;
+             wdt:P17 ?country .
+  }
+  GRAPH rism: {
+    ?institution a rism:Institution ;
+                 wdt:P2888 ?country .
+  }
+}
+LIMIT 100","theglobaljukebox, rism",False,False,True,"Migrated from dev_generated.json (dev-016). Cross-database join GJ cultures to RISM institutions via country. Confirmed: rism:Institution wdt:P2888 stores the Wikidata country QID for the institution's host country (e.g. Q230 = Georgia), matching the country QIDs on gj:Culture wdt:P17. 118 distinct cultures matched."
+gt-080,ground_truth,cross_database,Find all songs in The Global Jukebox from countries with more than four sessions in the Session.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
+PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
+SELECT DISTINCT ?song
+WHERE {
+  GRAPH gj: {
+    ?song a gj:Song ;
+          wdt:P495 ?country .
+  }
+  GRAPH ts: {
+    SELECT ?country (COUNT(DISTINCT ?session) AS ?sessionCount)
+    WHERE {
+      ?session a ts:Session ;
+               wdt:P17 ?country .
+    }
+    GROUP BY ?country
+    HAVING (COUNT(DISTINCT ?session) > 4)
+  }
+}
+LIMIT 100","theglobaljukebox, thesession",False,False,True,Migrated from legacy CSV (Challenge 4). Result count 839 uses gj:Song wdt:P495 (country of origin); a broader count of 2417 would result from additionally joining via gj:Culture wdt:P17.
+gt-081,ground_truth,cross_database,Find all recordings in The Session whose performer also appears as an artist in MusicBrainz.,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT DISTINCT ?recording
+WHERE {
+  GRAPH ts: {
+    ?recording a ts:Recording ;
+               wdt:P175 ?performerQID .
+    FILTER(isURI(?performerQID))
+  }
+  GRAPH mb: {
+    ?artist a mb:Artist ;
+            wdt:P2888 ?performerQID .
+  }
+}
+LIMIT 100","thesession, musicbrainz",False,False,True,Migrated from dev_generated.json (dev-014). Cross-database string join. Tests case-insensitive label matching across graphs. NOTE: mb:Work entities are not currently loaded in the LinkedMusic Virtuoso MB graph; query will return 0 results until MB Work data is available.
+gt-082,ground_truth,cross_database,Find all tracks in the Weimar Jazz Database whose performer also appears as an artist in MusicBrainz.,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+PREFIX mb:    <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT DISTINCT ?track
+WHERE {
+  GRAPH wjazzd: {
+    ?track a wjazzd:Track ;
+           wdt:P175 ?performerQID .
+  }
+  GRAPH mb: {
+    ?artist a mb:Artist ;
+            wdt:P2888 ?performerQID .
+  }
+}
+LIMIT 100
+","wjazzd, musicbrainz",False,False,True,"wdt:P175 on wjazzd:Track stores Wikidata performer QID URIs directly; mb:Artist uses wdt:P2888 to link to the same Wikidata QIDs. Cross-database join via shared Wikidata URI without any hardcoded QID. 328 of the Weimar Jazz DB's tracks have a performer also in MusicBrainz (e.g. Pat Metheny, Dexter Gordon, Fats Navarro, Wayne Shorter). First cross_database query covering wjazzd."
+gt-083,ground_truth,cross_database,Find songs in the University of Tennessee Song Index whose composer also appears as an artist in MusicBrainz.,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT DISTINCT ?song
+WHERE {
+  GRAPH utsi: {
+    ?song a utsi:Song ;
+          wdt:P86 ?composerQID .
+    FILTER(isURI(?composerQID))
+  }
+  GRAPH mb: {
+    ?artist a mb:Artist ;
+            wdt:P2888 ?composerQID .
+  }
+}
+LIMIT 100
+","utsi, musicbrainz",False,False,True,"wdt:P86 on utsi:Song stores mixed values (some Wikidata QID URIs, some plain strings); FILTER(isURI(?composerQID)) selects only QID-linked composers. mb:Artist links to the same Wikidata QIDs via wdt:P2888. 27101 total matching songs (COUNT verified without LIMIT); LIMIT 100 in SPARQL means the query returns exactly 100 rows. Sample results: INTERMEZZO, JASMINENSTRAUCH. First cross_database query covering utsi."
+gt-084,ground_truth,cross_database,Find all works in SIMSSA DB whose composer also has compositions in DIAMM.,"PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
+PREFIX diamm:  <https://linkedmusic.ca/graphs/diamm/>
+SELECT DISTINCT ?work
+WHERE {
+  GRAPH simssa: {
+    ?work a simssa:Work ;
+          wdt:P86 ?composer .
+    ?composer wdt:P2888 ?composerQID .
+  }
+  GRAPH diamm: {
+    ?diammPerson wdt:P2888 ?composerQID .
+    ?diammComp   wdt:P86   ?diammPerson .
+  }
+}
+LIMIT 100","simssadb, diamm",False,False,True,"Both SIMSSA and DIAMM use local Person nodes with wdt:P2888 linking to Wikidata. Cross-database join resolves via the shared composer QID. 74 SIMSSA works matched (e.g. Missa De beata virgine, Gaude virgo mater Christi, Regina celi) — all Renaissance sacred repertoire overlapping between the two databases. First cross_database query covering simssadb."
+gt-085,ground_truth,cross_database,Find all feast names that appear in both Cantus DB and Cantus Index.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
+PREFIX cantusindex: <https://linkedmusic.ca/graphs/cantusindex/>
+SELECT DISTINCT ?feast
+WHERE {
+  GRAPH cdb: {
+    ?chant wdt:P837 ?feast .
+  }
+  GRAPH cantusindex: {
+    ?chant2 wdt:P837 ?feast .
+  }
+}
+ORDER BY ?feast
+LIMIT 100","cantusdb, cantusindex",False,False,True,"Both Cantus DB and Cantus Index store feast names as plain string literals on wdt:P837. Cross-database join is a direct string equality match. 779 distinct feast names shared (e.g. 'Acacii et sociorum', 'Ad Benedictus', 'Ad Missam'). First cross_database query covering cantusindex."
+gt-086,ground_truth,cross_database,Find all tracks in Dig That Lick whose performer also has solos in the Weimar Jazz Database.,"PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX dtl:    <https://linkedmusic.ca/graphs/dig-that-lick/>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+SELECT DISTINCT ?track
+WHERE {
+  GRAPH dtl: {
+    ?track a dtl:Track ;
+           wdt:P175 ?performerQID .
+  }
+  GRAPH wjazzd: {
+    ?solo a wjazzd:Solo ;
+          wdt:P175 ?performerQID .
+  }
+}
+LIMIT 100","dig-that-lick, wjazzd",False,False,True,"Both dtl:Track and wjazzd:Solo store performer as a Wikidata QID URI directly via wdt:P175. Cross-database join via shared performer QID URI — no intermediate entity or wdt:P2888 needed. 280 DTL tracks matched (e.g. Dinah, Hot Mallets, Swedish Suite), all jazz performers who appear in both corpora. Tests the direct-QID join pattern distinct from the local-Person-node pattern used in gt-078."
+gt-087,ground_truth,cross_database,Find all works in SIMSSA DB whose composer also has sources in RISM.,"PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
+PREFIX rism:   <https://linkedmusic.ca/graphs/rism/>
+SELECT DISTINCT ?work
+WHERE {
+  GRAPH simssa: {
+    ?work a simssa:Work ;
+          wdt:P86 ?simssaComposer .
+    ?simssaComposer wdt:P2888 ?composerQID .
+  }
+  GRAPH rism: {
+    ?rismPerson wdt:P2888 ?composerQID .
+    ?rismSource wdt:P86 ?rismPerson .
+  }
+}
+LIMIT 100","simssadb, rism",False,False,True,"Both SIMSSA and RISM use local Person nodes (simssa:Person, rism:Person) with wdt:P2888 linking to Wikidata QIDs. Join resolves via shared composer QID through two hops in each graph: Work -> Person -> wdt:P2888 -> QID. 27 SIMSSA works matched (e.g. Missa Papae Marcelli, Missa Aeterna Christi munera, Laetatus Sum) — Renaissance sacred polyphony with representation in both databases. First cross_database query joining simssadb with rism."
+gt-088,ground_truth,cross_database,Find all songs in the University of Tennessee Song Index whose composer also has compositions in DIAMM.,"PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX utsi:  <https://linkedmusic.ca/graphs/utsi/>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+SELECT DISTINCT ?song
+WHERE {
+  GRAPH utsi: {
+    ?song a utsi:Song ;
+          wdt:P86 ?composerQID .
+    FILTER(isURI(?composerQID))
+  }
+  GRAPH diamm: {
+    ?diammPerson wdt:P2888 ?composerQID .
+    ?diammComp   wdt:P86   ?diammPerson .
+  }
+}
+LIMIT 100
+","utsi, diamm",False,False,True,"UTSI stores composer as a mixed-type value on wdt:P86 (some Wikidata QID URIs, some plain strings); FILTER(isURI(?composerQID)) selects only the QID-linked ones. DIAMM uses a local Person node with wdt:P2888 to Wikidata. Cross-database join via shared Wikidata QID. 799 UTSI songs matched (e.g. IT WAS A LOVER AND HIS LASS, JE N'AI AUTRE RETENANCE) — songs whose composers appear in both the UTSI anthology index and DIAMM manuscript sources. Tests the asymmetric join pattern: one graph stores QID directly, the other via a local entity node."
+gt-089,ground_truth,cross_database,Find all MusicBrainz recordings whose credited artist also has musical sources preserved in RISM.,"PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
+SELECT DISTINCT ?recording
+WHERE {
+  GRAPH mb: {
+    ?recording a mb:Recording ;
+               wdt:P175 ?artist .
+    ?artist wdt:P2888 ?performerQID .
+  }
+  GRAPH rism: {
+    ?rismPerson wdt:P2888 ?performerQID .
+    ?rismSource wdt:P86 ?rismPerson .
+  }
+}
+LIMIT 100","musicbrainz, rism",False,False,True,"mb:Recording.wdt:P175 links to mb:Artist; mb:Artist.wdt:P2888 contains a mix of external URLs including Wikidata QID URIs. rism:Person.wdt:P2888 stores Wikidata QID URIs. The join resolves for the subset where MB has the same Wikidata QID URI as RISM. 898 recordings matched (e.g. Götterdämmerung scenes by Wagner, Chopin preludes, Hildegard von Bingen's O vis aeternitatis, Beethoven trios) — classical composers documented in both RISM manuscript archives and MusicBrainz recordings. MB is ~8% loaded so result count is partial. Tests: two-hop Person-node join where both sides use wdt:P2888 to a shared Wikidata URI."
+gt-090,ground_truth,cross_database,Find all musical keys used in both Irish traditional music settings and jazz solos.,"PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX ts:     <https://linkedmusic.ca/graphs/thesession/>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+SELECT DISTINCT ?key
+WHERE {
+  GRAPH ts: {
+    ?setting wdt:P826 ?key .
+  }
+  GRAPH wjazzd: {
+    ?solo a wjazzd:Solo ;
+          wdt:P826 ?key .
+  }
+}
+LIMIT 100","thesession, wjazzd",False,False,True,"Both ts:TuneSetting and wjazzd:Solo store tonality/key via wdt:P826 as Wikidata QID URIs. Cross-database join is a direct property-value match on the shared key QID — no intermediate entity node needed. 9 distinct key QIDs shared (e.g. Q5728362, Q913790, Q1022293, Q283895 — a spread of major and minor keys used in both Irish traditional music and jazz). Musicologically interesting: these are the modal/tonal common ground between two very different folk traditions. Tests the simplest possible cross-database join: direct wdt:P826 value equality."
+gt-091,ground_truth,cross_database,"Find composers whose works appear in DIAMM, RISM, and MusicBrainz.","PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
+PREFIX mb:    <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT DISTINCT ?composerQID
+WHERE {
+  GRAPH diamm: {
+    ?diammPerson wdt:P2888 ?composerQID .
+    ?diammComp wdt:P86 ?diammPerson .
+  }
+  GRAPH rism: {
+    ?rismPerson wdt:P2888 ?composerQID .
+    ?rismSource wdt:P86 ?rismPerson .
+  }
+  GRAPH mb: {
+    ?mbRelease wdt:P86 ?mbArtist .
+    ?mbArtist wdt:P2888 ?composerQID .
+  }
+}
+LIMIT 100
+","diamm, rism, musicbrainz",False,False,True,"Three-database join via shared Wikidata QID: diamm:Person.wdt:P2888, rism:Person.wdt:P2888, and mb:Artist.wdt:P2888 must all resolve to the same URI. DIAMM and RISM use a two-hop Person-node pattern; MB Artist stores the QID directly in wdt:P2888 (among other external URLs). 137 distinct composer names matched (e.g. Palestrina, Monteverdi, Heinrich Schütz, Giaches de Wert, Oswald von Wolkenstein, Leonel Power) — Renaissance and Baroque polyphonic composers with manuscripts in DIAMM, sources in RISM, and an artist entry in MusicBrainz. MB is ~8% loaded so some composers may be absent. Tests: 3-way cross-graph join using the same shared-QID mechanism across three databases simultaneously."
+gt-092,ground_truth,cross_database,Find all archives in DIAMM that are also documented as institutions in RISM.,"PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
+SELECT DISTINCT ?archive
+WHERE {
+  GRAPH diamm: {
+    ?archive a diamm:Archive ;
+             wdt:P2888 ?instQID .
+  }
+  GRAPH rism: {
+    ?rismInst wdt:P2888 ?instQID .
+  }
+}
+LIMIT 100
+","diamm, rism",False,False,True,"diamm:Archive.wdt:P2888 and rism:Institution.wdt:P2888 both store Wikidata institution QID URIs. Cross-database join resolves via the shared QID: 337 distinct DIAMM archives are also documented as RISM institutions (e.g. Alamire Foundation, Archives Départementales du Nord, East Kent Archives Centre — European archives holding both medieval music manuscripts catalogued in DIAMM and sources catalogued in RISM). This is the first cross_database join on institution identity (rather than person/composer identity). Tests: wdt:P2888 equality join between Archive and Institution entity types across two databases."
+gt-093,ground_truth,cross_database,Find all countries that have both folk music sessions in The Session and documented musical cultures in the Global Jukebox.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
+PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
+SELECT DISTINCT ?country
+WHERE {
+  GRAPH ts: {
+    ?session wdt:P17 ?country .
+  }
+  GRAPH gj: {
+    ?culture wdt:P17 ?country .
+  }
+}
+ORDER BY ?country
+LIMIT 100","thesession, theglobaljukebox",False,False,True,"ts:Session.wdt:P17 and gj:Culture.wdt:P17 both store country as Wikidata QID URIs (or occasionally a plain string literal such as 'Puerto Rico'). Cross-database join is a direct property-value equality on wdt:P17. 52 distinct country values shared (e.g. wd:Q142 France, wd:Q183 Germany, wd:Q17 Japan — countries with both a living folk session tradition and an ethnomusicologically documented indigenous culture in the Global Jukebox). Tests: direct wdt:P17 equality join between two geographically indexed databases with different scope (folk session recordings vs world music ethnography)."
+gt-094,ground_truth,cross_database,Find all instruments that appear in both solo recordings in Dig That Lick and songs in the Global Jukebox.,"PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
+PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
+SELECT DISTINCT ?instrument
+WHERE {
+  GRAPH dtl: {
+    ?solo a dtl:Solo ;
+          wdt:P870 ?instrument .
+  }
+  GRAPH gj: {
+    ?song a gj:Song ;
+          wdt:P870 ?instrument .
+  }
+}
+ORDER BY ?instrument
+LIMIT 100","dig-that-lick, theglobaljukebox",False,False,True,"dtl:Solo.wdt:P870 and gj:Song.wdt:P870 both store instrumentation as Wikidata QID URIs directly. Cross-database join is a direct property-value equality on wdt:P870. 10 distinct instrument QIDs shared (including Q11405 flute, Q8350 saxophone, and 8 others) — instruments that bridge the jazz solo repertoire (Dig That Lick) and the Global Jukebox world music corpus. Musicologically interesting: identifies the organological common ground between two corpora with very different geographic and stylistic scope. Tests: direct wdt:P870 equality join between two single-hop instrumentation properties."
+gt-095,ground_truth,cross_database,Find all songs in UTSI whose composer also has works catalogued in RISM.,"PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX utsi:  <https://linkedmusic.ca/graphs/utsi/>
+PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
+SELECT DISTINCT ?song
+WHERE {
+  GRAPH utsi: {
+    ?song a utsi:Song ;
+          wdt:P86 ?composerQID .
+    FILTER(isURI(?composerQID))
+  }
+  GRAPH rism: {
+    ?rismPerson wdt:P2888 ?composerQID .
+    ?rismSource wdt:P86 ?rismPerson .
+  }
+}
+LIMIT 100
+","utsi, rism",False,False,True,"utsi:Song.wdt:P86 stores mixed values (some Wikidata QID URIs, some plain strings); FILTER(isURI(?composerQID)) selects only QID-linked composers. rism:Person.wdt:P2888 stores Wikidata QID URIs. Cross-database join via the shared composer QID: 14548 total UTSI songs matched (COUNT verified); LIMIT 100 added to the NLQ because the full result set is large. Sample results include French art songs (e.g. INVITATION AU VOYAGE by Duparc, Q364983) and operetta repertoire (e.g. INDIAN LOVE CALL by Friml) — composers whose output spans both the UTSI anthology index and RISM historical archive. Tests the asymmetric join pattern: one graph stores composer QID directly on the song (utsi P86 direct URI), the other resolves via a local Person node (rism:Person→wdt:P2888). Contrast with gt-081 (simssadb+rism) which uses a two-hop local Person node on both sides."
+gt-096,ground_truth,cross_database,Find all compositions in the Weimar Jazz Database whose composer also has works catalogued in RISM.,"PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+PREFIX rism:   <https://linkedmusic.ca/graphs/rism/>
+SELECT DISTINCT ?comp
+WHERE {
+  GRAPH wjazzd: {
+    ?comp a wjazzd:Composition ;
+          wdt:P86 ?composerQID .
+    FILTER(isURI(?composerQID))
+  }
+  GRAPH rism: {
+    ?rismPerson wdt:P2888 ?composerQID .
+    ?rismSource wdt:P86 ?rismPerson .
+  }
+}
+LIMIT 100
+","wjazzd, rism",False,False,True,"wjazzd:Composition.wdt:P86 stores composer as a Wikidata QID URI directly (unlike wjazzd:Solo.wdt:P175 which stores performer QID). rism:Person.wdt:P2888 stores Wikidata QID URIs. FILTER(isURI(?composerQID)) guards against any non-URI P86 values. 25 Weimar Jazz DB compositions matched, including works by Irving Berlin (Q128746: How Deep Is the Ocean, Remember), Cole Porter (Q215120: Begin the Beguine, I've Got You Under My Skin), Tom Jobim (Q200131: Desafinado, Insensatez), and Lil Hardin Armstrong (Q462562: Hotter than That — note: Q462562 maps to Lil Hardin Armstrong, Louis Armstrong's wife; Louis Armstrong's correct QID is Q1779. If wjazzd stores Q462562 as the composer of Hotter than That, that is a data error in the underlying Weimar Jazz DB). Musicologically interesting: these are 20th-century jazz composers and Tin Pan Alley songwriters whose sheet music or manuscripts are also catalogued in RISM, documenting the overlap between the jazz repertoire and historical music source archives. Tests: direct-QID join from wjazzd:Composition (no local Person node) to rism:Person node pattern."
+gt-097,ground_truth,cross_database,What compositions in the Weimar Jazz Database share a title with a track in Dig That Lick?,"PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+PREFIX dtl:    <https://linkedmusic.ca/graphs/dig-that-lick/>
+SELECT DISTINCT ?comp
+WHERE {
+  GRAPH wjazzd: {
+    ?comp a wjazzd:Composition ;
+          rdfs:label ?title .
+  }
+  GRAPH dtl: {
+    ?track a dtl:Track ;
+           rdfs:label ?title .
+  }
+}
+ORDER BY ?title
+LIMIT 100","wjazzd, dig-that-lick",False,False,True,"Cross-database join via rdfs:label string equality — no QID or wdt:P2888 involved. Both wjazzd:Composition and dtl:Track have rdfs:label title literals; matching on the same string identifies shared repertoire. 17 distinct titles: Avalon, Basin Street Blues, Caravan, Cherokee, Dinah, Don't Blame Me, Donna Lee, I Didn't Know What Time It Was, Jo-Jo, Just Friends, Limehouse Blues, Milestones, Nutty, St. Thomas, Summertime, Undecided, Yesterdays. All are canonical jazz standards documented in both the Weimar Jazz Database (which has transcribed and analyzed solos) and Dig That Lick (which indexes a separate set of jazz solos). Musicologically interesting: identifies the shared repertoire core between two independent jazz corpora assembled by different research teams. Tests the label-string equality join pattern — distinct from all wdt:P2888 and direct-QID join patterns used in other cross_database queries."
+gt-098,ground_truth,cross_database,Find composers whose works are encoded in SIMSSA and who are also catalogued as artists in MusicBrainz.,"PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
+PREFIX mb:     <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT DISTINCT ?qid
+WHERE {
+  GRAPH simssa: {
+    ?work rdf:type simssa:Work ;
+          wdt:P86 ?composer .
+    ?composer wdt:P2888 ?qid .
+  }
+  GRAPH mb: {
+    ?artist wdt:P2888 ?qid .
+  }
+}
+ORDER BY ?qid
+LIMIT 100
+","simssadb, musicbrainz",False,False,True,"simssa:Work.wdt:P86 → simssa:Person.wdt:P2888 matches mb:Artist.wdt:P2888 — both store the same Wikidata QID. Two-hop join on the simssadb side (local Person node → QID), single-hop on the MusicBrainz side. 15 distinct composer name strings returned: all Renaissance polyphonic composers (Josquin des Prez, Palestrina, Ockeghem, Isaac, Obrecht, Busnoys, La Rue, Compère, etc.) whose works are both encoded in SIMSSA (digital scores for computational music analysis) and represented in MusicBrainz recordings. Note: 'des Prez Josquin' appears as a second rdfs:label variant for Josquin in SIMSSA — a data quirk, not a separate composer. Tests the two-hop wdt:P2888 identity join from simssa:Person to mb:Artist; same join mechanism as simssadb+diamm (gt-078) and simssadb+rism (gt-081) but with MusicBrainz as the second hub."
+gt-099,ground_truth,cross_database,Find musical modes that appear in both Cantus DB chants and Weimar Jazz Database solos.,"PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cdb:    <https://linkedmusic.ca/graphs/cantusdb/>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+SELECT DISTINCT ?mode
+WHERE {
+  GRAPH cdb: {
+    ?chant wdt:P826 ?mode .
+  }
+  GRAPH wjazzd: {
+    ?solo rdf:type wjazzd:Solo ;
+          wdt:P826 ?mode .
+  }
+}
+LIMIT 100","cantusdb, wjazzd",False,False,True,"cdb:Chant.wdt:P826 and wjazzd:Solo.wdt:P826 both store tonality/mode as Wikidata QID URIs — direct property-value equality join on wdt:P826, no intermediate node needed. 3 shared mode QIDs returned: Q283895 (G minor), Q283903 (D minor), Q309994 (C minor) — modal identities that bridge 9th–16th century Catholic plainchant (Cantus DB) and 20th-century jazz improvisation (Weimar Jazz DB). Musicologically interesting: reveals which modal frameworks appear in both the medieval sacred music tradition and modern jazz practice. Tests the same single-hop P826 equality pattern as gt-084 (thesession+wjazzd) but applied to a historically much more distant database pair."
+gt-100,ground_truth,cross_database,Find all compositions in the Weimar Jazz Database whose composer also has songs documented in UTSI.,"PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX utsi:   <https://linkedmusic.ca/graphs/utsi/>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+SELECT DISTINCT ?comp
+WHERE {
+  GRAPH utsi: {
+    ?song rdf:type utsi:Song ;
+          wdt:P86 ?composerQID .
+    FILTER(isURI(?composerQID))
+  }
+  GRAPH wjazzd: {
+    ?comp rdf:type wjazzd:Composition ;
+          wdt:P86 ?composerQID .
+    FILTER(isURI(?composerQID))
+  }
+}
+ORDER BY ?comp
+LIMIT 100
+","utsi, wjazzd",False,False,True,"utsi:Song.wdt:P86 stores composer as a mixed value (Wikidata QID URIs or plain strings); FILTER(isURI(?composerQID)) retains only QID-linked composers. wjazzd:Composition.wdt:P86 stores composer as a Wikidata QID URI directly. Cross-database join via direct QID equality on wdt:P86 — no local Person node on either side (contrast with simssadb+diamm gt-078 which navigates through local Person nodes). 70 distinct jazz composition labels, including April in Paris, Begin the Beguine, Caravan, Cherokee, Desafinado, Don't Get Around Much Anymore — all jazz standards by composers (Cole Porter, Duke Ellington, Thelonious Monk, Tom Jobim, etc.) who also have songs documented in the UTSI anthology. 31 distinct composers matched; 1551 UTSI songs satisfy the join on their side. Musicologically interesting: quantifies the overlap between the Tin Pan Alley / popular song tradition (UTSI) and the jazz compositional canon (Weimar Jazz DB)."
+gt-101,ground_truth,cross_database,"Find instruments that appear in solos in both Dig That Lick and the Weimar Jazz Database, and also feature in songs in the Global Jukebox.","PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dtl:    <https://linkedmusic.ca/graphs/dig-that-lick/>
+PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
+PREFIX gj:     <https://linkedmusic.ca/graphs/theglobaljukebox/>
+SELECT DISTINCT ?instrument
+WHERE {
+  GRAPH dtl: {
+    ?solo a dtl:Solo ;
+          wdt:P870 ?instrument .
+  }
+  GRAPH wjazzd: {
+    ?wSolo a wjazzd:Solo ;
+           wdt:P870 ?instrument .
+  }
+  GRAPH gj: {
+    ?song a gj:Song ;
+          wdt:P870 ?instrument .
+  }
+}
+ORDER BY ?instrument
+LIMIT 100","dig-that-lick, wjazzd, theglobaljukebox",False,False,True,"Three-database intersection via direct wdt:P870 (instrumentation) equality: dtl:Solo.wdt:P870, wjazzd:Solo.wdt:P870, and gj:Song.wdt:P870 all store Wikidata instrument QID URIs directly. 6 instrument QIDs in the triple intersection (including Q8350 saxophone and 5 others), a tighter subset of the 10 found in gt-088 (dtl+gj) and 9 found in the wjazzd+gj pair. Instruments that fall out of the 3-way intersection include Q5994 (piano), Q6607 (guitar), and Q8343 (clarinet) — present in wjazzd+gj but absent from dtl, revealing the narrower organological core shared across all three corpora. Musicologically interesting: the 6 instruments represent the universal cross-cultural toolkit appearing in both independent jazz solo corpora (Dig That Lick and Weimar Jazz DB) and the Global Jukebox ethnomusicological corpus. Tests: 3-graph direct-QID equality join on wdt:P870, a new 3-database combination extending the 2-way P870 join pattern established in gt-088."
+gt-102,ground_truth,cross_database,What countries have both traditional music sessions in The Session and popular songs documented in UTSI?,"PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
+PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
+SELECT DISTINCT ?country
+WHERE {
+  GRAPH ts: {
+    ?session a ts:Session ;
+             wdt:P17 ?country .
+    FILTER(isURI(?country))
+  }
+  GRAPH utsi: {
+    ?song a utsi:Song ;
+          wdt:P1071 ?country .
+  }
+}
+ORDER BY ?country
+LIMIT 100","thesession, utsi",False,False,True,"ts:Session.wdt:P17 stores country as a Wikidata QID URI (FILTER(isURI(?country)) guards against the small number of plain-string country literals in The Session). utsi:Song.wdt:P1071 (location of creation) stores country/city as a Wikidata QID URI. Cross-database join via direct property-value equality on the shared country QID: 50 distinct country Wikidata URIs matched (including Q142 France, Q17 Japan, Q183 Germany, Q16 Canada, Q20 Norway) — countries where traditional folk music sessions occur AND where popular songs in the UTSI anthology were created. New pair: first cross_database query joining thesession with utsi. New mechanism: joins wdt:P17 (country) with wdt:P1071 (location of creation), distinct from all prior P826 (mode/key), P870 (instrument), P175 (performer), and P86 (composer) join patterns used elsewhere. Musicologically interesting: reveals the geographic overlap between the living Irish/folk session tradition and the popular song anthology repertoire."
+gt-103,ground_truth,cross_database,Find all works encoded in SIMSSA whose composer is also documented in both DIAMM and RISM.,"PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
+PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
+PREFIX rism:   <https://linkedmusic.ca/graphs/rism/>
+PREFIX diamm:  <https://linkedmusic.ca/graphs/diamm/>
+SELECT DISTINCT ?work
+WHERE {
+  GRAPH simssa: {
+    ?work a simssa:Work ;
+          wdt:P86 ?simssaComposer .
+    ?simssaComposer wdt:P2888 ?composerQID .
+  }
+  GRAPH rism: {
+    ?rismPerson wdt:P2888 ?composerQID .
+    ?rismSource wdt:P86 ?rismPerson .
+  }
+  GRAPH diamm: {
+    ?diammPerson wdt:P2888 ?composerQID .
+    ?diammComp   wdt:P86   ?diammPerson .
+  }
+}
+LIMIT 100
+","simssadb, rism, diamm",False,False,True,"Three-database join via shared composer Wikidata QID: simssa:Person.wdt:P2888, rism:Person.wdt:P2888, and diamm:Person.wdt:P2888 must all resolve to the same URI. All three databases use the two-hop local-Person-node pattern (Work/Source → Person → wdt:P2888 → QID). 27 SIMSSA works returned (Missa Papae Marcelli, Missa Aeterna Christi munera, Missa Hodie Christus Natus Est, Laetatus Sum, Vidi Aquam, O Magnum Mysterium, Beati Immaculati, and others) — Renaissance sacred polyphony by composers (Palestrina, Victoria, Morales, etc.) with manuscripts in DIAMM, archival sources in RISM, and digital scores in SIMSSA. Notably, the 27-work count matches the 2-way simssadb+rism result (gt-081), meaning every SIMSSA composer documented in RISM also appears in DIAMM: the two historical archives cover the same Renaissance polyphonic canon completely for this small digital-score corpus. New 3-database combination: simssadb+rism+diamm not previously combined (distinct from gt-085 which uses diamm+rism+musicbrainz). Tests: 3-graph symmetric two-hop P2888 identity join pattern."
+gt-104,ground_truth,cross_database,Find all archives in DIAMM that also hold plainchant manuscript sources documented in Cantus DB.,"PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cdb:   <https://linkedmusic.ca/graphs/cantusdb/>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+SELECT DISTINCT ?archive
+WHERE {
+  GRAPH cdb: {
+    ?source a cdb:Source ;
+            wdt:P276 ?locStr .
+  }
+  GRAPH diamm: {
+    ?archive a diamm:Archive ;
+             wdt:P11550 ?siglum .
+  }
+  FILTER(CONTAINS(STR(?locStr), CONCAT('(', STR(?siglum), ')')))
+}
+ORDER BY ?archive
+LIMIT 100
+","cantusdb, diamm",False,False,True,"cdb:Source.wdt:P276 stores location as a string literal containing the institution name and RISM siglum in parentheses, e.g. 'Bayerische Staatsbibliothek (D-Mbs)'. diamm:Archive.wdt:P11550 stores the RISM siglum as a plain string, e.g. 'D-Mbs'. Cross-database join via string containment: CONTAINS(STR(?locStr), CONCAT('(', STR(?siglum), ')')) tests whether the RISM siglum embedded in the CantusDB P276 string matches a DIAMM archive's wdt:P11550 siglum. 51 distinct archive labels matched (54 distinct archive IRIs; 3 archives share a label with another archive) — major European institutions including Abbaye Saint-Pierre de Solesmes (F-SO), Biblioteca Apostolica Vaticana (V-CVbav), Bayerische Staatsbibliothek (D-Mbs), Biblioteca Medicea-Laurenziana (I-Fl) — libraries known for both medieval plainchant collections (CantusDB) and broader historical music manuscript holdings (DIAMM). New pair: cantusdb + diamm. New join mechanism: string-containment match across two properties of different types (P276 embedded string vs P11550 siglum literal) — the first cross_database query that joins on an embedded string identifier rather than a shared Wikidata QID or direct property-value equality. CantusDB has 235 sources; DIAMM has 681 archives with siglums."
+gt-105,ground_truth,cross_database,Find all countries that have medieval music manuscript archives in DIAMM and traditional music sessions in The Session.,"PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+PREFIX ts:    <https://linkedmusic.ca/graphs/thesession/>
+SELECT DISTINCT ?countryQID
+WHERE {
+  GRAPH diamm: {
+    ?archive a diamm:Archive ;
+             wdt:P131 ?city .
+    ?city wdt:P17 ?country .
+    ?country wdt:P2888 ?countryQID .
+  }
+  GRAPH ts: {
+    ?session a ts:Session ;
+             wdt:P17 ?countryQID .
+    FILTER(isURI(?countryQID))
+  }
+}
+ORDER BY ?countryQID
+LIMIT 100
+","diamm, thesession",False,False,True,"diamm:Archive.wdt:P131 links to a diamm:City node; diamm:City.wdt:P17 links to a diamm:Country node; diamm:Country.wdt:P2888 provides the Wikidata country QID (all 680 DIAMM cities have a direct wdt:P17 → Country link — only 11 cities have an intermediate Region node, making the 3-hop Archive→City→Region→Country path near-empty). ts:Session.wdt:P17 stores country as a Wikidata QID URI directly; FILTER(isURI(?countryQID)) guards against the handful of plain-string country literals in The Session. Cross-database join via shared country QID: diamm:Country.wdt:P2888 = ts:Session.wdt:P17. 28 distinct country labels matched — European countries with medieval manuscript archives (France, Germany, Italy, England, Ireland, Spain, Belgium, Netherlands, Poland, Austria, Switzerland, Portugal, Russia, Denmark, Sweden, Czech Republic, Hungary, Latvia, Iceland) plus non-European countries with active folk session communities (USA, Australia, South Africa, Peru, Colombia, Mexico). New pair: diamm + thesession. New join mechanism: 2-hop geographic path (Archive→City.wdt:P17→Country.wdt:P2888) meeting a direct P17 country QID in The Session — distinct from the single-hop P17 joins in gt-087 (thesession+gj) and gt-096 (thesession+utsi). Musicologically interesting: reveals geographic continuity between the medieval European manuscript tradition and the modern folk/traditional music session movement."
+gt-106,ground_truth,cross_database,Find all tracks in Dig That Lick whose performer is also catalogued as a person in RISM.,"PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dtl:  <https://linkedmusic.ca/graphs/dig-that-lick/>
+PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
+SELECT DISTINCT ?track
+WHERE {
+  GRAPH dtl: {
+    ?solo a dtl:Solo ;
+          wdt:P175 ?performerQID ;
+          wdt:P361 ?track .
+  }
+  GRAPH rism: {
+    ?rismPerson wdt:P2888 ?performerQID .
+  }
+}
+ORDER BY ?track
+LIMIT 100
+","dig-that-lick, rism",False,False,True,"dtl:Solo.wdt:P175 stores performer as a Wikidata QID URI directly. rism:Person.wdt:P2888 stores Wikidata QID URI for RISM-catalogued musicians. Cross-database join via shared performer/person QID: dtl:Solo.wdt:P175 = rism:Person.wdt:P2888. 7 distinct performers matched: Louis Armstrong (Q1779), Benny Goodman (Q46755), Lionel Hampton (Q313525), Billie Holiday (Q104358), Irving Mills (Q1292110), Artie Shaw (Q320065), Miles Davis (Q93341) — swing-era and bebop musicians whose compositions or arrangements were also formally catalogued in RISM. 27 distinct track labels returned across those 7 performers (e.g. Airmail Special, Body And Soul, Fine And Mellow, Hotter Than That, Digga Digga Do, Dinah, Darn That Dream). Musicologically interesting: identifies jazz artists who bridge both the improvised solo tradition (Dig That Lick) and the written/published music tradition documented in RISM — Irving Mills appears as a publisher who formally registered music in RISM; others appear because their arrangements were published. New pair: dig-that-lick + rism. New join mechanism: dtl:Solo.wdt:P175 (direct performer QID on Solo entity) = rism:Person.wdt:P2888 (QID on RISM Person node) — performer identity linking a jazz improvisation corpus to a historical manuscript archive."

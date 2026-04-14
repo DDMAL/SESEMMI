@@ -40,7 +40,7 @@ def _normalize_sparql(sparql: str) -> str:
 def parse_args() -> argparse.Namespace:
     here = Path(__file__).parent
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--input", default=str(here / "samples.csv"), help="Path to the input CSV file")
+    p.add_argument("--input", default=str(here / "samples_apr13.csv"), help="Path to the input CSV file")
     p.add_argument("--output-dir", default=str(here), help="Directory to write the generated YAML files")
     return p.parse_args()
 
