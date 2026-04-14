@@ -40,12 +40,15 @@ def _build_system(state: GraphState) -> str:
     parts.append(
         "<output_rules>\n"
         "Respond with a valid SPARQL query ONLY. No prose, no explanation.\n"
+        "Return exactly one column — the URI that answers the question. Add a label column only when the question explicitly asks for a name, title, or label.\n"
+        "Add LIMIT 100 unless the question specifies a different count.\n"
+        "Do not add ORDER BY unless the question explicitly asks for ordering (e.g. \"most\", \"earliest\", \"top N\").\n"
         "</output_rules>"
     )
 
     schema_context = state.get("schema_context", "")
     if schema_context:
-        parts.append(f"\n{schema_context}\n>")
+        parts.append(f"\n{schema_context}\n")
 
     few_shot = state.get("few_shot_examples", "")
     if few_shot:

@@ -834,15 +834,18 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
 """,
     "output_format_rules": """\
 <rules category="output-format">
-- Only return the columns that directly answer the user's question. Do not add extra
-  columns unless the user explicitly asks for them or they are needed
-  to answer the question (e.g. "find titles containing 'death'" requires the label).
-- For any entity searched within the LinkedMusic graph (not in Wikidata), add a triple
-  using the rdf:type property to explicitly verify its type.
-- Add a LIMIT clause to SELECT queries to avoid excessive results (e.g. LIMIT 100).
-- Always declare PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> at the top of the
-  query whenever rdfs:label is used.
-- Always wrap IRIs in angle brackets `<>` in PREFIX declarations, e.g., `PREFIX ts: <https://linkedmusic.ca/graphs/thesession/>`. Never omit the angle brackets around a URI in a PREFIX statement.
+- Return exactly one column — the URI that answers the question. Add a label column
+  only when the question explicitly asks for a name, title, or label.
+- When a label IS requested, return one label column and filter to the language of
+  the question with FILTER(LANG(?label) = "en"). String matching inside the query
+  may use other languages as needed (e.g. Latin titles in Cantus DB).
+- For any entity searched within the LinkedMusic graph, add a triple using rdf:type
+  to explicitly verify its class.
+- Add LIMIT 100 unless the question specifies a different count.
+- Do not add ORDER BY unless the question explicitly asks for ordering (e.g. "most",
+  "earliest", "top N by"). A naked LIMIT 100 returns an arbitrary window deliberately.
+- Always declare PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> when rdfs:label is used.
+- Always wrap IRIs in angle brackets in PREFIX declarations.
 </rules>\
 """,
     "qid_resolution_rules": """\
@@ -872,6 +875,8 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
   the required information is not available at all in the LinkedMusic graph ontology.
 - When performing a federated query, ensure the SPARQL is efficient (avoid Cartesian
   products; use a subquery to bind variables before the SERVICE block).
+- Consider the placement of the SERVICE block carefully: ordering it to minimise
+  unbound variables passed to Wikidata is the most common way to avoid timeouts.
 <constraints reason="violations will cause query failure">
 - Do not put any triples verifying entity type (wdt:P31 or rdf:type) inside SERVICE blocks.
 - Do not put any SERVICE blocks inside a GRAPH block.
