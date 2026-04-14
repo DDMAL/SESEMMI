@@ -168,14 +168,13 @@ ts:Recording
 <description>
 All triples for MusicBrainz are stored in the
 &lt;https://linkedmusic.ca/graphs/musicbrainz/&gt; graph. Open music encyclopedia covering
-artists, works, recordings, releases, labels, events, and places. Entity types use
-the `mb:` prefix. Note: prefer mb:Work over mb:Recording for Wikidata reconciliation,
-as very few mb:Recording entities have wdt:P2888 links.
+artists, recordings, releases, labels, events, places, genres, and instruments. Entity
+types use the `mb:` prefix. Note: the LinkedMusic import does not include mb:Work,
+mb:ReleaseGroup, or mb:Series — queries must not reference these classes.
 </description>
 <qid-linking>
 mb:Area, mb:Artist, mb:Event, mb:Genre, mb:Instrument, mb:Label, mb:Place,
-mb:Recording, mb:Release, mb:ReleaseGroup, mb:Series, and mb:Work all have wdt:P2888
-"exact match" for Wikidata reconciliation.
+mb:Recording, and mb:Release all have wdt:P2888 "exact match" for Wikidata reconciliation.
 </qid-linking>
 <cross-database>
 MusicBrainz has the broadest Wikidata coverage of all LinkedMusic
@@ -197,7 +196,6 @@ mb:Area
 \twdt:P571\t"inception" ;
 \twdt:P576\t"dissolved, abolished or demolished date" ;
 \twdt:P131\tmb:Area ;
-\twdt:P85\tmb:Work ;
 \tskos:altLabel\t"alt label" .
 mb:Artist
 \trdfs:label\t"label" ;
@@ -207,7 +205,7 @@ mb:Artist
 \twdt:P127\tmb:Place ;
 \twdt:P1344\tmb:Event ;
 \twdt:P136\tmb:Genre ;
-\twdt:P138\tmb:Artist , mb:Label , mb:Place , mb:ReleaseGroup , mb:Work ;
+\twdt:P138\tmb:Artist , mb:Label , mb:Place ;
 \twdt:P1416\tmb:Place ;
 \twdt:P21\t"sex or gender" ;
 \twdt:P26\tmb:Artist ;
@@ -219,7 +217,7 @@ mb:Artist
 \twdt:P3174\tmb:Artist ;
 \twdt:P3300\tmb:Artist ;
 \twdt:P3373\tmb:Artist ;
-\twdt:P361\tmb:Artist , mb:Series ;
+\twdt:P361\tmb:Artist ;
 \twdt:P40\tmb:Artist ;
 \twdt:P451\tmb:Artist ;
 \twdt:P521\tmb:Artist ;
@@ -233,7 +231,6 @@ mb:Artist
 \twdt:P742\tmb:Artist ;
 \twdt:P825\tmb:Artist ;
 \twdt:P8810\tmb:Artist ;
-\twdt:P972\tmb:Series ;
 \twdt:P57\tmb:Place ;
 \twdt:P19\tmb:Area ;
 \twdt:P20\tmb:Area ;
@@ -250,11 +247,9 @@ mb:Event
 \twdt:P1366\tmb:Event ;
 \twdt:P110\tmb:Artist ;
 \twdt:P12484\tmb:Artist ;
-\twdt:P144\tmb:Recording , mb:Release , mb:ReleaseGroup ;
+\twdt:P144\tmb:Recording , mb:Release ;
 \twdt:P170\tmb:Artist ;
 \twdt:P175\tmb:Artist ;
-\twdt:P179\tmb:Series ;
-\twdt:P2550\tmb:ReleaseGroup ;
 \twdt:P276\tmb:Area , mb:Place ;
 \twdt:P287\tmb:Artist ;
 \twdt:P371\tmb:Artist ;
@@ -268,7 +263,7 @@ mb:Event
 \tskos:altLabel\t"alt label" .
 mb:Genre
 \trdfs:label\t"label" ;
-\twdt:P138\tmb:Artist , mb:Area , mb:Label , mb:Place , mb:ReleaseGroup ;
+\twdt:P138\tmb:Artist , mb:Area , mb:Label , mb:Place ;
 \twdt:P2888\t"exact match" ;
 \twdt:P495\tmb:Area .
 mb:Instrument
@@ -289,7 +284,6 @@ mb:Label
 \trdfs:label\t"label" ;
 \twdt:P127\tmb:Artist ;
 \twdt:P136\tmb:Genre ;
-\twdt:P138\tmb:Work ;
 \twdt:P2888\t"exact match" ;
 \twdt:P31\t"instance of" ;
 \twdt:P571\t"inception" ;
@@ -315,7 +309,6 @@ mb:Place
 \twdt:P527\tmb:Place ;
 \twdt:P571\t"inception" ;
 \twdt:P576\t"dissolved, abolished or demolished date" ;
-\twdt:P825\tmb:Work ;
 \twdt:P131\tmb:Area ;
 \twdt:P112\tmb:Artist ;
 \twdt:P1365\tmb:Place ;
@@ -363,8 +356,6 @@ mb:Recording
 \twdt:P110\tmb:Artist ;
 \twdt:P144\tmb:Recording ;
 \twdt:P175\tmb:Artist ;
-\twdt:P179\tmb:Series ;
-\twdt:P2550\tmb:Work ;
 \twdt:P287\tmb:Artist ;
 \twdt:P5028\tmb:Artist ;
 \twdt:P915\tmb:Area , mb:Event , mb:Place ;
@@ -380,7 +371,6 @@ mb:Release
 \twdt:P31\t"instance of" ;
 \twdt:P3174\tmb:Artist , mb:Label ;
 \twdt:P3300\tmb:Artist ;
-\twdt:P361\tmb:ReleaseGroup ;
 \twdt:P57\tmb:Artist ;
 \twdt:P1534\t"end cause" ;
 \twdt:P655\tmb:Artist ;
@@ -422,73 +412,6 @@ mb:Release
 \twdt:P495\tmb:Area ;
 \tskos:altLabel\t"alt label" ;
 \twdt:P1081\tmb:Area .
-mb:ReleaseGroup
-\trdfs:label\t"label" ;
-\twdt:P136\tmb:Genre ;
-\twdt:P2888\t"exact match" ;
-\twdt:P31\t"instance of" ;
-\twdt:P361\tmb:ReleaseGroup ;
-\twdt:P527\tmb:ReleaseGroup ;
-\twdt:P825\tmb:Artist , mb:Label ;
-\twdt:P12617\tmb:Artist ;
-\twdt:P9810\tmb:ReleaseGroup ;
-\twdt:P144\tmb:Series , mb:ReleaseGroup ;
-\twdt:P175\tmb:Artist ;
-\twdt:P179\tmb:Series ;
-\twdt:P2550\tmb:ReleaseGroup ;
-\twdt:P577\t"publication date" ;
-\twdt:P629\tmb:ReleaseGroup ;
-\twdt:P658\tmb:ReleaseGroup ;
-\tskos:altLabel\t"alt label" .
-mb:Series
-\trdfs:label\t"label" ;
-\twdt:P123\tmb:Label ;
-\twdt:P136\tmb:Genre ;
-\twdt:P138\tmb:Artist , mb:ReleaseGroup ;
-\twdt:P2888\t"exact match" ;
-\twdt:P31\t"instance of" ;
-\twdt:P361\tmb:Series ;
-\twdt:P527\tmb:Series ;
-\twdt:P112\tmb:Artist ;
-\twdt:P175\tmb:Artist ;
-\twdt:P179\tmb:Release , mb:ReleaseGroup ;
-\twdt:P276\tmb:Area , mb:Place ;
-\twdt:P50\tmb:Artist ;
-\tskos:altLabel\t"alt label" .
-mb:Work
-\trdfs:label\t"label" ;
-\twdt:P123\tmb:Artist , mb:Label ;
-\twdt:P136\tmb:Genre ;
-\twdt:P138\tmb:Artist , mb:Work ;
-\twdt:P2888\t"exact match" ;
-\twdt:P31\t"instance of" ;
-\twdt:P361\tmb:Work ;
-\twdt:P527\tmb:Work ;
-\twdt:P825\tmb:Artist , mb:Area , mb:Label , mb:Place ;
-\twdt:P655\tmb:Artist ;
-\twdt:P1071\tmb:Area , mb:Place ;
-\twdt:P10806\tmb:Artist ;
-\twdt:P4969\tmb:Work ;
-\twdt:P5202\tmb:Artist ;
-\twdt:P87\tmb:Artist ;
-\twdt:P144\tmb:Work ;
-\twdt:P179\tmb:Series ;
-\twdt:P50\tmb:Artist ;
-\twdt:P629\tmb:Work ;
-\twdt:P676\tmb:Artist ;
-\twdt:P86\tmb:Artist ;
-\twdt:P11849\tmb:Artist ;
-\tskos:altLabel\t"alt label" ;
-\twdt:P1701\tmb:Area ;
-\twdt:P2567\tmb:Artist ;
-\twdt:P407\t"language of work or name" ;
-\twdt:P4647\tmb:Area , mb:Event , mb:Place ;
-\twdt:P5059\tmb:Work ;
-\twdt:P6166\tmb:Work ;
-\twdt:P826\t"tonality" ;
-\twdt:P8535\t"tala" ;
-\twdt:P8536\t"raga" ;
-\twdt:P88\tmb:Artist , mb:Area , mb:Label , mb:Place , mb:Series .
 </ontology>
 </database>\
 """,
@@ -984,8 +907,8 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
 <rules category="musicbrainz-specific">
 - Very few mb:Recording entities are reconciled against Wikidata, because Wikidata does
   not carry information about specific recordings — only about songs (works).
-- Prefer matching reconciled data against mb:Work entities rather than mb:Recording
-  when Wikidata Q-ID linking is required.
+- mb:Work, mb:ReleaseGroup, and mb:Series are not present in the LinkedMusic import;
+  do not reference these classes in any query.
 </rules>\
 """,
     "aggregation_rules": """\
