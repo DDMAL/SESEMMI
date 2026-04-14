@@ -16,6 +16,9 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          proxy_host: ${{ secrets.SSH_PROXY_HOST }}
+          proxy_username: ${{ secrets.SSH_PROXY_USER }}
+          proxy_key: ${{ secrets.SSH_PROXY_KEY }}
           script: |
             set -e
             cd ${{ secrets.SSH_WORK_DIR }}
