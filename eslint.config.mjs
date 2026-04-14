@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Python service — contains vendored JS files we don't own
+    "llm-service/**",
   ]),
 ]);
 

@@ -19,7 +19,9 @@ function ResultsShell({
   return (
     <div className="flex flex-1 flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-widest text-slate-600">Results</span>
+        <span className="text-xs font-semibold uppercase tracking-widest text-slate-600">
+          Results
+        </span>
         {action}
       </div>
       {children}
