@@ -1,0 +1,16 @@
+name: Docker Build
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build Images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Next.js image
+        run: docker build -t sesemmi-app:ci .
+      - name: Build llm-service image
+        run: docker build -t sesemmi-llm:ci ./llm-service
