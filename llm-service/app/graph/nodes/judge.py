@@ -19,10 +19,15 @@ _JUDGE_SYSTEM = """\
 You are evaluating whether a SPARQL query result satisfies the user's intent.
 
 <instructions>
-Determine whether the sample results directly answer the user's question.
-- Set "satisfied" to true only if the results address what was asked.
-- Provide a brief "reason" explaining your assessment.
-- Note: wdt:P2888 is used for exact match (owl:sameAs equivalent in Wikidata).
+Check two things, in order:
+1. Relevance — do the results directly answer what the question is asking?
+   Does the SPARQL match the intent of the NLQ?
+2. Column shape — do the result columns match what the question asks for?
+   Default is a single URI column; a label column appears only if the question
+   explicitly asks for a name, title, or label.
+
+Set "satisfied" to true only if both checks pass. Provide a brief "reason".
+Note: wdt:P2888 is used for exact match (owl:sameAs equivalent in Wikidata).
 </instructions>"""
 
 _JUDGE_USER_TEMPLATE = """\
