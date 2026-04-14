@@ -270,9 +270,7 @@ async def test_generate_produces_sparql():
         "entity_contexts": {"entity": ""},
     }
 
-    with patch(
-        "app.graph.nodes.generate.get_chat_model", return_value=mock_model
-    ):
+    with patch("app.graph.nodes.generate.get_chat_model", return_value=mock_model):
         result = await generate_node(state)
 
     assert result["sparql"]
@@ -293,9 +291,7 @@ async def test_generate_prompt_has_output_rules():
         "entity_contexts": {"entity": ""},
     }
 
-    with patch(
-        "app.graph.nodes.generate.get_chat_model", return_value=mock_model
-    ):
+    with patch("app.graph.nodes.generate.get_chat_model", return_value=mock_model):
         await generate_node(state)
 
     messages = mock_model.ainvoke.call_args[0][0]
@@ -323,9 +319,7 @@ async def test_generate_repair_context_injected():
         "judge_feedback": None,
     }
 
-    with patch(
-        "app.graph.nodes.generate.get_chat_model", return_value=mock_model
-    ):
+    with patch("app.graph.nodes.generate.get_chat_model", return_value=mock_model):
         result = await generate_node(state)
 
     messages = mock_model.ainvoke.call_args[0][0]
@@ -355,9 +349,7 @@ async def test_generate_judge_feedback_in_repair_context():
         "judge_feedback": "Results don't match the requested time period",
     }
 
-    with patch(
-        "app.graph.nodes.generate.get_chat_model", return_value=mock_model
-    ):
+    with patch("app.graph.nodes.generate.get_chat_model", return_value=mock_model):
         result = await generate_node(state)
 
     messages = mock_model.ainvoke.call_args[0][0]

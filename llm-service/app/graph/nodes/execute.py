@@ -10,7 +10,11 @@ async def execute_node(state: GraphState) -> dict:
     try:
         result = await execute_sparql(state["sparql"])
         if result["error"] is not None:
-            return {"execution_error": result["error"], "results": None, "result_count": 0}
+            return {
+                "execution_error": result["error"],
+                "results": None,
+                "result_count": 0,
+            }
         bindings = result["results"].get("results", {}).get("bindings", [])
         return {
             "results": result["results"],
@@ -19,4 +23,8 @@ async def execute_node(state: GraphState) -> dict:
         }
     except Exception as exc:
         logger.exception("execute_node raised unexpectedly")
-        return {"execution_error": str(exc) or repr(exc), "results": None, "result_count": 0}
+        return {
+            "execution_error": str(exc) or repr(exc),
+            "results": None,
+            "result_count": 0,
+        }

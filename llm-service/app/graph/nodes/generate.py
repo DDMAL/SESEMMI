@@ -42,7 +42,7 @@ def _build_system(state: GraphState) -> str:
         "Respond with a valid SPARQL query ONLY. No prose, no explanation.\n"
         "Return exactly one column — the URI that answers the question. Add a label column only when the question explicitly asks for a name, title, or label.\n"
         "Add LIMIT 100 unless the question specifies a different count.\n"
-        "Do not add ORDER BY unless the question explicitly asks for ordering (e.g. \"most\", \"earliest\", \"top N\").\n"
+        'Do not add ORDER BY unless the question explicitly asks for ordering (e.g. "most", "earliest", "top N").\n'
         "</output_rules>"
     )
 
