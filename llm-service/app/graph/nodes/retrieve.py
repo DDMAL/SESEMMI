@@ -80,10 +80,12 @@ async def _resolve_qids(
     for name in entities:
         try:
             context = entity_contexts.get(name, "")
-            matches = await wikidata_qid_lookup.ainvoke({
-                "entity_name": name,
-                "context": context,
-            })
+            matches = await wikidata_qid_lookup.ainvoke(
+                {
+                    "entity_name": name,
+                    "context": context,
+                }
+            )
             if matches:
                 resolved[name] = matches[0]["qid"]
         except Exception:
@@ -112,7 +114,9 @@ async def retrieve_node(state: GraphState) -> dict:
 
     resolved_qids: dict[str, str] = {}
     if entity_contexts:
-        resolved_qids = await _resolve_qids(list(entity_contexts.keys()), entity_contexts)
+        resolved_qids = await _resolve_qids(
+            list(entity_contexts.keys()), entity_contexts
+        )
 
     return {
         "schema_context": schema_context,

@@ -25,13 +25,21 @@ def _make_search_tool(return_value):
 
 def test_parse_json_list_response():
     items = [
-        {"id": "Q1339", "label": "Johann Sebastian Bach", "description": "German composer"},
+        {
+            "id": "Q1339",
+            "label": "Johann Sebastian Bach",
+            "description": "German composer",
+        },
         {"id": "Q57233", "label": "Bach (crater)", "description": "crater on Mercury"},
     ]
     blocks = [_make_text_block(json.dumps(items))]
     result = _parse_mcp_response(blocks)
     assert result == [
-        {"qid": "Q1339", "label": "Johann Sebastian Bach", "description": "German composer"},
+        {
+            "qid": "Q1339",
+            "label": "Johann Sebastian Bach",
+            "description": "German composer",
+        },
         {"qid": "Q57233", "label": "Bach (crater)", "description": "crater on Mercury"},
     ]
 
@@ -39,7 +47,11 @@ def test_parse_json_list_response():
 def test_parse_json_wrapped_search_key():
     data = {
         "search": [
-            {"id": "Q26876", "label": "Taylor Swift", "description": "American singer-songwriter"},
+            {
+                "id": "Q26876",
+                "label": "Taylor Swift",
+                "description": "American singer-songwriter",
+            },
         ]
     }
     blocks = [_make_text_block(json.dumps(data))]
@@ -48,7 +60,13 @@ def test_parse_json_wrapped_search_key():
 
 
 def test_parse_concepturi_fallback():
-    items = [{"concepturi": "http://www.wikidata.org/entity/Q42", "label": "Douglas Adams", "description": ""}]
+    items = [
+        {
+            "concepturi": "http://www.wikidata.org/entity/Q42",
+            "label": "Douglas Adams",
+            "description": "",
+        }
+    ]
     blocks = [_make_text_block(json.dumps(items))]
     result = _parse_mcp_response(blocks)
     assert result[0]["qid"] == "Q42"
@@ -57,8 +75,16 @@ def test_parse_concepturi_fallback():
 def test_parse_plain_text_qid_regex():
     text = "Q1339: Johann Sebastian Bach — German composer (1685-1750)\nQ57233: Bach (crater) — crater on Mercury"
     result = _parse_mcp_response([_make_text_block(text)])
-    assert result[0] == {"qid": "Q1339", "label": "Johann Sebastian Bach", "description": "German composer (1685-1750)"}
-    assert result[1] == {"qid": "Q57233", "label": "Bach (crater)", "description": "crater on Mercury"}
+    assert result[0] == {
+        "qid": "Q1339",
+        "label": "Johann Sebastian Bach",
+        "description": "German composer (1685-1750)",
+    }
+    assert result[1] == {
+        "qid": "Q57233",
+        "label": "Bach (crater)",
+        "description": "crater on Mercury",
+    }
 
 
 def test_parse_empty_blocks_returns_empty():
@@ -86,21 +112,37 @@ def test_parse_content_attribute_unwrapped():
 
 async def test_successful_search_returns_parsed_results():
     items = [
-        {"id": "Q1339", "label": "Johann Sebastian Bach", "description": "German composer"},
+        {
+            "id": "Q1339",
+            "label": "Johann Sebastian Bach",
+            "description": "German composer",
+        },
     ]
     fake_tool = _make_search_tool([_make_text_block(json.dumps(items))])
 
-    with patch("app.graph.tools.wikidata._get_search_tool", AsyncMock(return_value=fake_tool)):
+    with patch(
+        "app.graph.tools.wikidata._get_search_tool", AsyncMock(return_value=fake_tool)
+    ):
         result = await wikidata_qid_lookup.ainvoke({"entity_name": "Bach"})
 
-    assert result == [{"qid": "Q1339", "label": "Johann Sebastian Bach", "description": "German composer"}]
+    assert result == [
+        {
+            "qid": "Q1339",
+            "label": "Johann Sebastian Bach",
+            "description": "German composer",
+        }
+    ]
 
 
 async def test_context_is_appended_to_query():
     fake_tool = _make_search_tool([_make_text_block("[]")])
 
-    with patch("app.graph.tools.wikidata._get_search_tool", AsyncMock(return_value=fake_tool)):
-        await wikidata_qid_lookup.ainvoke({"entity_name": "Bach", "context": "Find works in RISM"})
+    with patch(
+        "app.graph.tools.wikidata._get_search_tool", AsyncMock(return_value=fake_tool)
+    ):
+        await wikidata_qid_lookup.ainvoke(
+            {"entity_name": "Bach", "context": "Find works in RISM"}
+        )
 
     call_args = fake_tool.ainvoke.call_args
     query = call_args[0][0]["query"]
@@ -112,7 +154,9 @@ async def test_mcp_error_returns_empty_list():
     fake_tool = MagicMock()
     fake_tool.ainvoke = AsyncMock(side_effect=Exception("MCP server unavailable"))
 
-    with patch("app.graph.tools.wikidata._get_search_tool", AsyncMock(return_value=fake_tool)):
+    with patch(
+        "app.graph.tools.wikidata._get_search_tool", AsyncMock(return_value=fake_tool)
+    ):
         result = await wikidata_qid_lookup.ainvoke({"entity_name": "Bach"})
 
     assert result == []
@@ -121,7 +165,9 @@ async def test_mcp_error_returns_empty_list():
 async def test_empty_results_returns_empty_list():
     fake_tool = _make_search_tool([_make_text_block("[]")])
 
-    with patch("app.graph.tools.wikidata._get_search_tool", AsyncMock(return_value=fake_tool)):
+    with patch(
+        "app.graph.tools.wikidata._get_search_tool", AsyncMock(return_value=fake_tool)
+    ):
         result = await wikidata_qid_lookup.ainvoke({"entity_name": "zzznomatchxyz"})
 
     assert result == []
@@ -130,7 +176,9 @@ async def test_empty_results_returns_empty_list():
 async def test_malformed_mcp_response_handled_gracefully():
     fake_tool = _make_search_tool([_make_text_block("not valid json {{")])
 
-    with patch("app.graph.tools.wikidata._get_search_tool", AsyncMock(return_value=fake_tool)):
+    with patch(
+        "app.graph.tools.wikidata._get_search_tool", AsyncMock(return_value=fake_tool)
+    ):
         result = await wikidata_qid_lookup.ainvoke({"entity_name": "Bach"})
 
     # Should not raise; may return empty or regex-matched items
