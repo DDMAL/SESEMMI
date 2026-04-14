@@ -6,7 +6,7 @@ class GraphState(TypedDict, total=False):
     user_query: str
 
     # Intake
-    intent: str  # lookup | aggregation
+    intents: list[str]  # e.g. ["lookup"] or ["intersection", "aggregation"]
     target_graphs: list[str]  # e.g. ["diamm", "musicbrainz"]
     needs_federation: bool
     entity_contexts: dict[str, str]  # e.g. {"Charlie Parker": "American jazz saxophonist"}
