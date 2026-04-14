@@ -69,22 +69,20 @@ def test_clean_sparql_non_sparql_code_fence_ignored():
 async def test_intake_single_graph():
     """Single-database query classifies with correct intent and target_graphs."""
     classification = IntakeClassification(
-        intent="lookup",
+        intents=["lookup"],
         target_graphs=["diamm"],
         needs_federation=False,
-        entity_contexts={},
+        entity_contexts=[],
     )
     mock_chain = AsyncMock()
     mock_chain.ainvoke.return_value = classification
     mock_model = MagicMock()
     mock_model.with_structured_output.return_value = mock_chain
 
-    with patch(
-        "app.graph.nodes.intake.ChatGoogleGenerativeAI", return_value=mock_model
-    ):
+    with patch("app.graph.nodes.intake.get_chat_model", return_value=mock_model):
         result = await intake_node({"user_query": "Find DIAMM manuscripts from 1400"})
 
-    assert result["intent"] == "lookup"
+    assert result["intents"] == ["lookup"]
     assert result["target_graphs"] == ["diamm"]
     assert result["needs_federation"] is False
 
@@ -92,24 +90,22 @@ async def test_intake_single_graph():
 async def test_intake_cross_graph():
     """Cross-database query sets multiple target_graphs."""
     classification = IntakeClassification(
-        intent="lookup",
+        intents=["lookup"],
         target_graphs=["diamm", "musicbrainz"],
         needs_federation=True,
-        entity_contexts={"DIAMM": "", "MusicBrainz": ""},
+        entity_contexts=[],
     )
     mock_chain = AsyncMock()
     mock_chain.ainvoke.return_value = classification
     mock_model = MagicMock()
     mock_model.with_structured_output.return_value = mock_chain
 
-    with patch(
-        "app.graph.nodes.intake.ChatGoogleGenerativeAI", return_value=mock_model
-    ):
+    with patch("app.graph.nodes.intake.get_chat_model", return_value=mock_model):
         result = await intake_node(
             {"user_query": "Compare DIAMM composers with MusicBrainz artists"}
         )
 
-    assert result["intent"] == "lookup"
+    assert "lookup" in result["intents"]
     assert "diamm" in result["target_graphs"]
     assert "musicbrainz" in result["target_graphs"]
     assert result["needs_federation"] is True
@@ -397,7 +393,7 @@ async def test_validate_aggregation_missing_count():
     """aggregation intent without COUNT/SUM/AVG/GROUP BY → is_valid=False."""
     state = {
         "sparql": _VALID_SPARQL,
-        "intent": "aggregation",
+        "intents": ["aggregation"],
         "target_graphs": ["diamm"],
         "entity_contexts": {},
         "needs_federation": False,
@@ -576,9 +572,7 @@ async def test_answer_judge_satisfied():
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
-        with patch(
-            "app.graph.nodes.judge.ChatGoogleGenerativeAI", return_value=mock_chat
-        ):
+        with patch("app.graph.nodes.judge.get_chat_model", return_value=mock_chat):
             result = await answer_node(state)
 
     assert result["confidence"] == "high"
@@ -595,9 +589,7 @@ async def test_answer_judge_unsatisfied_repairs_left():
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
-        with patch(
-            "app.graph.nodes.judge.ChatGoogleGenerativeAI", return_value=mock_chat
-        ):
+        with patch("app.graph.nodes.judge.get_chat_model", return_value=mock_chat):
             result = await answer_node(state)
 
     assert result["judge_feedback"] == "Missing time filter"
@@ -613,9 +605,7 @@ async def test_answer_judge_unsatisfied_exhausted():
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
-        with patch(
-            "app.graph.nodes.judge.ChatGoogleGenerativeAI", return_value=mock_chat
-        ):
+        with patch("app.graph.nodes.judge.get_chat_model", return_value=mock_chat):
             result = await answer_node(state)
 
     assert result["confidence"] == "low"

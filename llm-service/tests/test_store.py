@@ -1,6 +1,6 @@
 """Tests for app/rag/store.py — seeding and ID generation."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from app.rag.store import _example_id, seed_store
 
@@ -21,9 +21,8 @@ def test_example_id_differs_for_different_examples():
 async def test_seed_store_passes_deterministic_ids():
     """seed_store calls add_documents with stable IDs so re-seeding is idempotent."""
     mock_store = MagicMock()
-    mock_store.add_documents = MagicMock()
 
-    with patch("app.rag.store.get_vector_store", return_value=mock_store):
+    with patch("app.rag.store.PGVector", return_value=mock_store):
         await seed_store()
         first_ids = mock_store.add_documents.call_args[1]["ids"]
 
@@ -38,9 +37,8 @@ async def test_seed_store_id_count_matches_corpus():
     from app.rag.corpus import RAG_CORPUS
 
     mock_store = MagicMock()
-    mock_store.add_documents = MagicMock()
 
-    with patch("app.rag.store.get_vector_store", return_value=mock_store):
+    with patch("app.rag.store.PGVector", return_value=mock_store):
         await seed_store()
 
     ids = mock_store.add_documents.call_args[1]["ids"]

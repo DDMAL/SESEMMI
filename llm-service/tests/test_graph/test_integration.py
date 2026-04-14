@@ -53,17 +53,17 @@ _VIRTUOSO_ERROR = {
 # ---------------------------------------------------------------------------
 
 _DIAMM_LOOKUP = IntakeClassification(
-    intent="lookup",
+    intents=["lookup"],
     target_graphs=["diamm"],
     needs_federation=False,
-    entity_contexts={},
+    entity_contexts=[],
 )
 
 _DIAMM_AGGREGATION = IntakeClassification(
-    intent="aggregation",
+    intents=["aggregation"],
     target_graphs=["diamm"],
     needs_federation=False,
-    entity_contexts={},
+    entity_contexts=[],
 )
 
 # ---------------------------------------------------------------------------
@@ -72,7 +72,7 @@ _DIAMM_AGGREGATION = IntakeClassification(
 
 
 def _intake_mock(classification: IntakeClassification):
-    """ChatGoogleGenerativeAI mock for intake_node (uses with_structured_output)."""
+    """get_chat_model mock for intake_node (uses with_structured_output)."""
     chain = AsyncMock()
     chain.ainvoke.return_value = classification
     model = MagicMock()
@@ -136,11 +136,11 @@ async def test_happy_path():
     """
     with (
         patch(
-            "app.graph.nodes.intake.ChatGoogleGenerativeAI",
+            "app.graph.nodes.intake.get_chat_model",
             return_value=_intake_mock(_DIAMM_LOOKUP),
         ),
         patch(
-            "app.graph.nodes.generate.ChatGoogleGenerativeAI",
+            "app.graph.nodes.generate.get_chat_model",
             return_value=_generate_mock(_VALID_SPARQL),
         ),
         patch(
@@ -177,11 +177,11 @@ async def test_repair_loop_invalid_then_valid():
     """
     with (
         patch(
-            "app.graph.nodes.intake.ChatGoogleGenerativeAI",
+            "app.graph.nodes.intake.get_chat_model",
             return_value=_intake_mock(_DIAMM_LOOKUP),
         ),
         patch(
-            "app.graph.nodes.generate.ChatGoogleGenerativeAI",
+            "app.graph.nodes.generate.get_chat_model",
             return_value=_generate_mock(_INVALID_SPARQL, _VALID_SPARQL),
         ),
         patch(
@@ -215,11 +215,11 @@ async def test_max_repairs_exceeded():
     """
     with (
         patch(
-            "app.graph.nodes.intake.ChatGoogleGenerativeAI",
+            "app.graph.nodes.intake.get_chat_model",
             return_value=_intake_mock(_DIAMM_LOOKUP),
         ),
         patch(
-            "app.graph.nodes.generate.ChatGoogleGenerativeAI",
+            "app.graph.nodes.generate.get_chat_model",
             return_value=_generate_mock(_INVALID_SPARQL, _INVALID_SPARQL),
         ),
     ):
@@ -243,11 +243,11 @@ async def test_execution_error_triggers_repair():
     """
     with (
         patch(
-            "app.graph.nodes.intake.ChatGoogleGenerativeAI",
+            "app.graph.nodes.intake.get_chat_model",
             return_value=_intake_mock(_DIAMM_LOOKUP),
         ),
         patch(
-            "app.graph.nodes.generate.ChatGoogleGenerativeAI",
+            "app.graph.nodes.generate.get_chat_model",
             return_value=_generate_mock(_VALID_SPARQL, _VALID_SPARQL),
         ),
         patch(
@@ -281,11 +281,11 @@ async def test_structural_intent_check_triggers_repair():
     """
     with (
         patch(
-            "app.graph.nodes.intake.ChatGoogleGenerativeAI",
+            "app.graph.nodes.intake.get_chat_model",
             return_value=_intake_mock(_DIAMM_AGGREGATION),
         ),
         patch(
-            "app.graph.nodes.generate.ChatGoogleGenerativeAI",
+            "app.graph.nodes.generate.get_chat_model",
             # First: valid syntax but no COUNT (fails structural intent check)
             # Second: valid SPARQL with COUNT (passes both checks)
             return_value=_generate_mock(_VALID_SPARQL, _VALID_SPARQL_WITH_COUNT),
@@ -322,15 +322,15 @@ async def test_semantic_judge_triggers_repair_then_satisfied():
     """
     with (
         patch(
-            "app.graph.nodes.intake.ChatGoogleGenerativeAI",
+            "app.graph.nodes.intake.get_chat_model",
             return_value=_intake_mock(_DIAMM_LOOKUP),
         ),
         patch(
-            "app.graph.nodes.generate.ChatGoogleGenerativeAI",
+            "app.graph.nodes.generate.get_chat_model",
             return_value=_generate_mock(_VALID_SPARQL, _VALID_SPARQL),
         ),
         patch(
-            "app.graph.nodes.judge.ChatGoogleGenerativeAI",
+            "app.graph.nodes.judge.get_chat_model",
             return_value=_judge_mock(
                 (False, "Results don't cover the requested date range"),
                 (True, "Results now correctly cover the date range"),
