@@ -33,7 +33,9 @@ class EntityContext(BaseModel):
 
 
 class IntakeClassification(BaseModel):
-    intent: Literal["lookup", "aggregation"]
+    intents: list[
+        Literal["lookup", "aggregation", "existence", "intersection", "comparison"]
+    ]
     target_graphs: list[
         Literal[
             "diamm",
@@ -61,8 +63,11 @@ _SYSTEM_PROMPT = """\
 </databases>
 
 <intent_types>
-  <intent name="lookup">Find specific entities or facts</intent>
-  <intent name="aggregation">Count, sum, average, or group by</intent>
+  <intent name="lookup">Find specific entities or facts (simple SELECT WHERE)</intent>
+  <intent name="aggregation">Count, sum, average, or group by (GROUP BY / COUNT / AVG / SUM)</intent>
+  <intent name="existence">Find entities that do or do not have a certain property or relationship (FILTER NOT EXISTS / FILTER EXISTS / OPTIONAL+FILTER)</intent>
+  <intent name="intersection">Find entities that appear in or link across two or more databases, or that require Wikidata federation to join external data with LinkedMusic — joined via shared Wikidata QIDs or equivalent identifiers (JOIN across GRAPH blocks or SERVICE blocks)</intent>
+  <intent name="comparison">Compare counts or values across two datasets, often requiring arithmetic between subquery results (subqueries with ABS / MINUS / value arithmetic)</intent>
 </intent_types>
 
 <federation_guidance>
@@ -80,7 +85,7 @@ _SYSTEM_PROMPT = """\
 
 <entity_guidance>
   <rule>Extract specific named entities that may need Wikidata QID resolution for SPARQL filtering. These will be looked up against the Wikidata API to obtain QIDs (e.g., Q5765 → Charlie Parker).</rule>
-  <rule>Include: person names (composers, performers, authors), place names (cities, countries, regions), work titles (compositions, manuscripts, albums), organization names (ensembles, labels, institutions), and music domain-specific identifiers (e.g., modal designations like "mode 1", scale names like "blues scale", opus numbers like "Opus 40", catalogue numbers like "BWV 244", instrument names like "lute", genre/form names like "motet" or "reel").</rule>
+  <rule>Include: person names (composers, performers, authors), place names (cities, countries, regions), work titles (compositions, manuscripts, albums), organization names (ensembles, labels, institutions), and music domain-specific identifiers (e.g., modal designations like "dorian mode", scale names like "blues scale", opus numbers like "Opus 40", catalogue numbers like "BWV 244", instrument names like "lute", genre/form names like "motet" or "reel").</rule>
   <rule>Exclude: overly broad descriptors that do not name a specific filterable concept (e.g., "music", "medieval", "chant", "song"), date or year constraints (e.g., "after 1950", "before 1800", "in 2015"), and numeric qualifiers that express quantity or rank (e.g., "top 10", "at least 3").</rule>
   <rule>Use canonical Wikidata forms (e.g., "Johann Sebastian Bach" not "Bach", "New York City" not "NYC").</rule>
   <rule>For each entity, infer a short disambiguation description from the query's wording (e.g., "composed by X" → X is a "composer"; "recorded in Y" → Y is a "city" or "town"; "held at Z" → Z is an "institution").</rule>
@@ -96,16 +101,16 @@ _SYSTEM_PROMPT = """\
   </example>
   <example>
     <query>works by Mozart held at the British Library</query>
-    <entity_contexts>{{"Wolfgang Amadeus Mozart": "composer", "British Library": "library that holds works"}}</entity_contexts>
+    <entity_contexts>{{"Wolfgang Amadeus Mozart": "composer", "British Library": "institution"}}</entity_contexts>
   </example>
   <example>
-    <query>Find all chants in Cantus DB in mode 5</query>
-    <entity_contexts>{{"mode 5": "Lydian chant mode"}}</entity_contexts>
+    <query>Find all chants in Cantus DB in lydian mode</query>
+    <entity_contexts>{{"lydian mode": "tonality"}}</entity_contexts>
   </example>
 </entity_guidance>
 
 <output_fields>
-  <field name="intent">The query's primary purpose (one of the intent types above)</field>
+  <field name="intents">One or more applicable intent types. Most queries have one, but complex queries may combine several (e.g. ["intersection", "aggregation"] for "how many composers appear in both DIAMM and RISM?")</field>
   <field name="target_graphs">Which databases are relevant (can be multiple)</field>
   <field name="needs_federation">true if Wikidata federation (SERVICE clause) is likely needed</field>
   <field name="entity_contexts">A dict mapping each extracted entity name to a short disambiguation description inferred from the query. Return an empty dict if no entities.</field>
@@ -135,11 +140,12 @@ def _build_repair_block(state: GraphState) -> str:
         f"<previous_query>\n{previous_sparql}\n</previous_query>\n\n"
         f"<failure_reason>\n{failure_text}\n</failure_reason>\n\n"
         "Think through:\n"
+        "- Did an inefficient query structure cause a timeout?\n"
         "- Did the previous attempt target the wrong databases?\n"
-        "- Was the intent (lookup vs aggregation) misidentified?\n"
+        "- Were the intents misidentified (wrong types selected, or a type missing)?\n"
         "- Was federation incorrectly set?\n"
         "- Were important entities missing or incorrectly described?\n"
-        "Adjust intent, target_graphs, needs_federation, and entity_contexts "
+        "Adjust intents, target_graphs, needs_federation, and entity_contexts "
         "to address the root cause of the failure.\n"
         "</repair_context>"
     )
@@ -155,7 +161,7 @@ async def intake_node(state: GraphState) -> dict:
             [SystemMessage(content=system), HumanMessage(content=user)]
         )
         return {
-            "intent": result.intent,
+            "intents": result.intents,
             "target_graphs": result.target_graphs,
             "needs_federation": result.needs_federation,
             "entity_contexts": {
@@ -165,7 +171,7 @@ async def intake_node(state: GraphState) -> dict:
     except Exception:
         logger.exception("intake_node classification failed, using broad fallback")
         return {
-            "intent": "lookup",
+            "intents": ["lookup"],
             "target_graphs": VALID_DB_NAMES,
             "needs_federation": False,
             "entity_contexts": {},

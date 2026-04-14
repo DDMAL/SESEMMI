@@ -79,9 +79,9 @@ _STEP_LABELS = {
 
 def _step_detail(name: str, output: dict) -> str:
     if name == "intake":
-        intent = output.get("intent", "")
+        intents = ", ".join(output.get("intents") or [])
         graphs = ", ".join(output.get("target_graphs") or [])
-        return f"{intent} · {graphs}" if graphs else intent
+        return f"{intents} · {graphs}" if graphs else intents
     if name == "retrieve":
         qids = output.get("resolved_qids") or {}
         n = len(qids)

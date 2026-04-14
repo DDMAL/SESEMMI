@@ -69,14 +69,14 @@ def validate_sparql(sparql: str, target_graphs: list[str] | None = None) -> list
 
 def validate_intent(
     sparql: str,
-    intent: str,
+    intents: list[str],
     has_entities: bool,
     needs_federation: bool,
 ) -> list[str]:
     errors: list[str] = []
     upper = sparql.upper()
 
-    if intent == "aggregation":
+    if "aggregation" in intents:
         if not re.search(r"\b(COUNT|SUM|AVG|GROUP\s+BY)\b", upper):
             errors.append("Intent 'aggregation' requires COUNT, SUM, AVG, or GROUP BY")
 
