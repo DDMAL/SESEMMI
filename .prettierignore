@@ -1,0 +1,12 @@
+# Dependencies / build artifacts
+node_modules/
+.next/
+out/
+build/
+llm-service/.venv/
+
+# Non-JS/TS config & docs
+*.yml
+*.yaml
+*.md
+eval/
