@@ -9,20 +9,45 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
+      - name: Load SSH keys
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          proxy_host: ${{ secrets.SSH_PROXY_HOST }}
-          proxy_username: ${{ secrets.SSH_PROXY_USER }}
-          proxy_key: ${{ secrets.SSH_PROXY_KEY }}
-          script: |
-            set -e
-            cd ${{ secrets.SSH_WORK_DIR }}
-            git pull origin main
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml \
-              up -d --build --remove-orphans
-            docker image prune -f
+          ssh-private-key: |
+            ${{ secrets.SSH_PROXY_KEY }}
+            ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Configure SSH hop chain
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          cat >> ~/.ssh/config << EOF
+          Host jumpbox
+            HostName ${{ secrets.SSH_PROXY_HOST }}
+            User ${{ secrets.SSH_PROXY_USER }}
+            StrictHostKeyChecking no
+
+          Host edge
+            HostName ${{ secrets.SSH_EDGE_HOST }}
+            User ${{ secrets.SSH_EDGE_USER }}
+            ProxyJump jumpbox
+            StrictHostKeyChecking no
+
+          Host server
+            HostName ${{ secrets.SSH_HOST }}
+            User ${{ secrets.SSH_USER }}
+            Port ${{ secrets.SSH_PORT }}
+            ProxyJump edge
+            StrictHostKeyChecking no
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Deploy
+        run: |
+          ssh server << 'ENDSSH'
+          set -e
+          cd ${{ secrets.SSH_WORK_DIR }}
+          sudo git pull origin main
+          sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+            up -d --build --remove-orphans
+          sudo docker image prune -f
+          ENDSSH
