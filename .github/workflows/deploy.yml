@@ -50,11 +50,11 @@ jobs:
 
       - name: Deploy
         run: |
-          ssh -T server << 'ENDSSH'
+          ssh -T server 'sudo bash -s' << 'ENDSSH'
           set -e
           cd ${{ secrets.SSH_WORK_DIR }}
-          sudo git pull origin main
-          sudo docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+          git pull origin main
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml \
             up -d --build --remove-orphans
-          sudo docker image prune -f
+          docker image prune -f
           ENDSSH
