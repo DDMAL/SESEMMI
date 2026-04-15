@@ -3,6 +3,7 @@ name: Deploy
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -25,12 +26,16 @@ jobs:
             HostName ${{ secrets.SSH_PROXY_HOST }}
             User ${{ secrets.SSH_PROXY_USER }}
             StrictHostKeyChecking no
+            ConnectTimeout 15
+            RequestTTY no
 
           Host edge
             HostName ${{ secrets.SSH_EDGE_HOST }}
             User ${{ secrets.SSH_EDGE_USER }}
             ProxyJump jumpbox
             StrictHostKeyChecking no
+            ConnectTimeout 15
+            RequestTTY no
 
           Host server
             HostName ${{ secrets.SSH_HOST }}
@@ -38,12 +43,14 @@ jobs:
             Port ${{ secrets.SSH_PORT }}
             ProxyJump edge
             StrictHostKeyChecking no
+            ConnectTimeout 15
+            RequestTTY no
           EOF
           chmod 600 ~/.ssh/config
 
       - name: Deploy
         run: |
-          ssh server << 'ENDSSH'
+          ssh -T server << 'ENDSSH'
           set -e
           cd ${{ secrets.SSH_WORK_DIR }}
           sudo git pull origin main
