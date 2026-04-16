@@ -20,7 +20,7 @@ _DB_DESCRIPTIONS = {
     "rism": "Historical music manuscripts — sources, persons, institutions",
     "weimarjazz": "Weimar Jazz Database — jazz compositions, records, tracks, solo transcriptions",
     "simssadb": "SIMSSA DB — symbolic music scores, works, sections, sources, persons",
-    "utsi": "University of Tennessee Song Index — folk and popular songs, anthologies",
+    "utsi": "University of Tennessee Song Index — American folk and popular songs, anthologies",
     "cantusindex": "Cantus Index — medieval Latin chant index linking chant traditions across sources",
 }
 
@@ -89,7 +89,7 @@ _SYSTEM_PROMPT = """\
   <rule>Exclude: overly broad descriptors that do not name a specific filterable concept (e.g., "music", "medieval", "chant", "song"), date or year constraints (e.g., "after 1950", "before 1800", "in 2015"), and numeric qualifiers that express quantity or rank (e.g., "top 10", "at least 3").</rule>
   <rule>Use canonical Wikidata forms (e.g., "Johann Sebastian Bach" not "Bach", "New York City" not "NYC").</rule>
   <rule>For each entity, infer a short disambiguation description from the query's wording (e.g., "composed by X" → X is a "composer"; "recorded in Y" → Y is a "city" or "town"; "held at Z" → Z is an "institution").</rule>
-  <rule>Keep descriptions concise: use a single noun or role word. For persons, use only their role (e.g., "composer", "musician", "performer") — never append additional nouns like "of musical compositions" or "of works", as these cause Wikidata search to return related objects instead of the person.</rule>
+  <rule>Keep descriptions concise. For persons, use their role optionally prefixed with a single qualifying adjective (nationality, era, or style) when it can be inferred from the target database's description — e.g., if the target database is specifically American, use "American composer" rather than "composer". Never append additional nouns after the role (e.g., avoid "composer of musical compositions" or "composer of works"), as these cause Wikidata search to return related objects instead of the person.</rule>
   <rule>Return a dict mapping each entity name to its description. Return an empty dict if no entities apply.</rule>
   <example>
     <query>solos by Charlie Parker recorded in New York</query>
@@ -106,6 +106,11 @@ _SYSTEM_PROMPT = """\
   <example>
     <query>Find all chants in Cantus DB in lydian mode</query>
     <entity_contexts>{{"lydian mode": "tonality"}}</entity_contexts>
+  </example>
+  <example>
+    <query>Find all songs in the University of Tennessee Song Index composed by Stephen Foster</query>
+    <entity_contexts>{{"Stephen Foster": "American composer"}}</entity_contexts>
+    <reason>UTSI is an American folk/popular music database, so "American composer" better disambiguates the Wikidata lookup than the generic "composer".</reason>
   </example>
 </entity_guidance>
 
