@@ -8,8 +8,7 @@ def make_graph(edge_tuples: list[tuple[str, str]]) -> tuple[Graph, dict[str, Nod
             if name not in node_map:
                 node_map[name] = Node(name)
     edges = {
-        Edge(node_map[src], node_map[tgt], f"{src}->{tgt}")
-        for src, tgt in edge_tuples
+        Edge(node_map[src], node_map[tgt], f"{src}->{tgt}") for src, tgt in edge_tuples
     }
     return Graph(set(node_map.values()), edges), node_map
 

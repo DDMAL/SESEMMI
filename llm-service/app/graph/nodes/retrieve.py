@@ -11,7 +11,10 @@ from app.graph.model import get_chat_model
 from app.graph.schema_corpus import INSTRUCTION_CHUNKS, ONTOLOGY_CHUNKS
 from app.graph.state import GraphState
 from app.graph.tools.graph_traverse import Node, Edge, Graph
-from app.graph.tools.ontology_parser import parse_ontology_to_graph, parse_graph_to_ontology
+from app.graph.tools.ontology_parser import (
+    parse_ontology_to_graph,
+    parse_graph_to_ontology,
+)
 from app.graph.tools.wikidata import wikidata_qid_lookup
 
 logger = logging.getLogger(__name__)
@@ -28,13 +31,13 @@ def format_examples_to_xml(examples: list[dict]) -> str:
 
 
 def _build_schema_context(
-        db_to_ontology: dict[str, str],
-        has_entities: bool,
-        needs_federation: bool,
-        intents: list[str] | None = None,
+    db_to_ontology: dict[str, str],
+    has_entities: bool,
+    needs_federation: bool,
+    intents: list[str] | None = None,
 ) -> str:
     ontologies = "\n\n".join(
-        f'<ontology>\n{ontology}\n</ontology>' for _, ontology in db_to_ontology.items()
+        f"<ontology>\n{ontology}\n</ontology>" for _, ontology in db_to_ontology.items()
     )
 
     keys = ["named_graph_rules", "output_format_rules", "entity_type_rules"]
@@ -82,7 +85,7 @@ def _get_rag_examples(query: str, target_graphs: list[str]) -> list[dict]:
 
 
 async def _resolve_qids(
-        entities: list[str], entity_contexts: dict[str, str]
+    entities: list[str], entity_contexts: dict[str, str]
 ) -> dict[str, str]:
     resolved: dict[str, str] = {}
     for name in entities:
@@ -130,7 +133,27 @@ def _build_graph_from_edges(edges: set[Edge]) -> Graph:
     return Graph(nodes, edges)
 
 
-async def _get_needed_ontologies(query: str, target_graphs: list[str]) -> dict[str, str]:
+def _get_sub_ontology_related_to_nodes(
+    ontology_graph: Graph, related_nodes: list[Node]
+) -> str:
+    node_pairs = list(combinations(related_nodes, 2))
+    sub_edges: set[Edge] = set()
+    for pair in node_pairs:
+        sub_edges.update(
+            ontology_graph.get_edges_on_paths(source=pair[0], target=pair[1])
+        )
+        sub_edges.update(
+            ontology_graph.get_edges_on_paths(source=pair[1], target=pair[0])
+        )
+
+    sub_graph: Graph = _build_graph_from_edges(edges=sub_edges)
+    sub_ontology: str = parse_graph_to_ontology(graph=sub_graph)
+    return sub_ontology
+
+
+async def _get_needed_ontologies(
+    query: str, target_graphs: list[str]
+) -> dict[str, str]:
     ontology_graphs = {
         db: parse_ontology_to_graph(ONTOLOGY_CHUNKS[db])
         for db in target_graphs
@@ -151,21 +174,23 @@ async def _get_needed_ontologies(query: str, target_graphs: list[str]) -> dict[s
             return node_names
 
     results = await asyncio.gather(
-        *[_query_db(db, [n.name for n in graph.nodes]) for db, graph in ontology_graphs.items()]
+        *[
+            _query_db(db, [n.name for n in graph.nodes])
+            for db, graph in ontology_graphs.items()
+        ]
     )
-    nodes: list[list[Node]] = [[Node(name) for name in db_nodes] for db_nodes in results]
-    db_to_needed_nodes: dict[str, list[Node]] = dict(zip(ontology_graphs.keys(), nodes))
-    db_to_sub_ontology: dict[str, str] = {}
-    for db, db_nodes in db_to_needed_nodes.items():
-        node_pairs = list(combinations(db_nodes, 2))
-        sub_edges: set[Edge] = set()
-        for pair in node_pairs:
-            sub_edges.update(ontology_graphs[db].get_edges_on_paths(source=pair[0], target=pair[1]))
-            sub_edges.update(ontology_graphs[db].get_edges_on_paths(source=pair[1], target=pair[0]))
-
-        sub_graph: Graph = _build_graph_from_edges(edges=sub_edges)
-        sub_ontology: str = parse_graph_to_ontology(graph=sub_graph)
-        db_to_sub_ontology[db] = sub_ontology
+    nodes: list[list[Node]] = [
+        [Node(name) for name in db_nodes] for db_nodes in results
+    ]
+    db_to_related_nodes: dict[str, list[Node]] = dict(
+        zip(ontology_graphs.keys(), nodes)
+    )
+    db_to_sub_ontology: dict[str, str] = {
+        k: _get_sub_ontology_related_to_nodes(
+            ontology_graph=ontology_graphs[k], related_nodes=v
+        )
+        for k, v in db_to_related_nodes.items()
+    }
     return db_to_sub_ontology
 
 
@@ -174,9 +199,14 @@ async def retrieve_node(state: GraphState) -> dict:
     entity_contexts: dict[str, str] = state.get("entity_contexts") or {}
     needs_federation: bool = state.get("needs_federation", False)
     query: str = state["user_query"]
-    db_to_sub_ontology = await _get_needed_ontologies(query=query, target_graphs=target_graphs)
+    db_to_sub_ontology = await _get_needed_ontologies(
+        query=query, target_graphs=target_graphs
+    )
     schema_context = _build_schema_context(
-        db_to_sub_ontology, bool(entity_contexts), needs_federation, state.get("intents"),
+        db_to_sub_ontology,
+        bool(entity_contexts),
+        needs_federation,
+        state.get("intents"),
     )
 
     if settings.rag_enabled:

@@ -16,7 +16,7 @@ class Edge:
         self.name = name
 
     def __str__(self):
-        return f'{self.name}: {self.source} -> {self.target}'
+        return f"{self.name}: {self.source} -> {self.target}"
 
 
 class Graph:
@@ -50,6 +50,7 @@ class Graph:
                     queue.append(edge.source)
 
         return {
-            e for e in self.edges
+            e
+            for e in self.edges
             if e.source in forward_reachable and e.target in backward_reachable
         }
