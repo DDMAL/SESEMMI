@@ -174,9 +174,9 @@ async def retrieve_node(state: GraphState) -> dict:
     entity_contexts: dict[str, str] = state.get("entity_contexts") or {}
     needs_federation: bool = state.get("needs_federation", False)
     query: str = state["user_query"]
-
-    db_to_sub_ontology = _get_needed_ontologies(query=query, target_graphs=target_graphs)
-    schema_context = _build_schema_context(target_graphs, db_to_sub_ontology, bool(entity_contexts), needs_federation, state.get("intents")
+    db_to_sub_ontology = await _get_needed_ontologies(query=query, target_graphs=target_graphs)
+    schema_context = _build_schema_context(
+        db_to_sub_ontology, bool(entity_contexts), needs_federation, state.get("intents"),
     )
 
     if settings.rag_enabled:
