@@ -15,8 +15,14 @@ def _safe_metadata_version(package: str) -> str:
 _importlib_metadata.version = _safe_metadata_version
 
 import json
+import logging
 import os
 from contextlib import asynccontextmanager
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+)
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse

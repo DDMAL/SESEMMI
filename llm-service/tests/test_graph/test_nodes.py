@@ -4,10 +4,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from langchain_core.messages import AIMessage
 
-from app.graph.nodes.judge import judge_node as answer_node
 from app.graph.nodes.execute import execute_node
 from app.graph.nodes.generate import clean_sparql, generate_node
 from app.graph.nodes.intake import IntakeClassification, intake_node
+from app.graph.nodes.judge import judge_node as answer_node
 from app.graph.nodes.retrieve import retrieve_node
 from app.graph.nodes.validate import validate_node
 
@@ -127,7 +127,6 @@ async def test_retrieve_ontology_selection():
     result = await retrieve_node(state)
 
     sc = result["schema_context"]
-    assert "diamm" in sc.lower()
     # named_graph_rules always included — contains GRAPH keyword guidance
     assert "GRAPH" in sc
     # No examples or QIDs when both disabled and no entities

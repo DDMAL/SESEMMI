@@ -1,10 +1,21 @@
+import asyncio
 import logging
+from itertools import combinations
+
+from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import BaseModel
 
 from app.config import settings
-from app.graph.state import GraphState
-from app.graph.tools.wikidata import wikidata_qid_lookup
 from app.graph.examples import FEW_SHOT_EXAMPLES
+from app.graph.model import get_chat_model
 from app.graph.schema_corpus import INSTRUCTION_CHUNKS, ONTOLOGY_CHUNKS
+from app.graph.state import GraphState
+from app.graph.tools.graph_traverse import Node, Edge, Graph
+from app.graph.tools.ontology_parser import (
+    parse_ontology_to_graph,
+    parse_graph_to_ontology,
+)
+from app.graph.tools.wikidata import wikidata_qid_lookup
 
 logger = logging.getLogger(__name__)
 
@@ -20,28 +31,28 @@ def format_examples_to_xml(examples: list[dict]) -> str:
 
 
 def _build_schema_context(
-    target_graphs: list[str],
+    db_to_ontology: dict[str, str],
     has_entities: bool,
     needs_federation: bool,
     intents: list[str] | None = None,
 ) -> str:
-    ontology = "\n\n".join(
-        ONTOLOGY_CHUNKS[db] for db in target_graphs if db in ONTOLOGY_CHUNKS
+    ontologies = "\n\n".join(
+        f"<ontology>\n{ontology}\n</ontology>" for _, ontology in db_to_ontology.items()
     )
 
     keys = ["named_graph_rules", "output_format_rules", "entity_type_rules"]
     if has_entities:
         keys += ["qid_resolution_rules", "string_matching_rules"]
-    if needs_federation or len(target_graphs) > 1:
+    if needs_federation or len(db_to_ontology) > 1:
         keys.append("federated_query_rules")
-    if "musicbrainz" in target_graphs:
+    if "musicbrainz" in db_to_ontology:
         keys.append("musicbrainz_specific")
     if intents and "aggregation" in intents:
         keys.append("aggregation_rules")
 
     instructions = "\n\n".join(INSTRUCTION_CHUNKS[k] for k in keys)
     return (
-        f"<schema-context>\n<databases>\n{ontology}\n</databases>\n\n"
+        f"<schema-context>\n<databases>\n{ontologies}\n</databases>\n\n"
         f"<instructions>\n{instructions}\n</instructions>\n</schema-context>"
     )
 
@@ -93,14 +104,109 @@ async def _resolve_qids(
     return resolved
 
 
+class _NeededNodes(BaseModel):
+    nodes: list[str]
+
+
+get_sub_nodes_prompt = """\
+You are a SPARQL query planner for linked music databases.
+
+Given a natural language query and the entity types available in one target database, \
+select only the entity types that are necessary to answer the query.
+
+<rules>
+- Include an entity type if it must appear in the SPARQL query as a subject, object, or intermediate join node.
+- If a relationship requires traversing through an intermediate node, include that node too.
+- Exclude entity types that are irrelevant to the query — do not include them just because they exist.
+- Return node names exactly as given (e.g. "diamm:Composition", "mb:Artist").
+</rules>
+
+<available_nodes>
+{node_names}
+</available_nodes>
+
+Return only the list of required node names."""
+
+
+def _build_graph_from_edges(edges: set[Edge]) -> Graph:
+    nodes = {e.source for e in edges} | {e.target for e in edges}
+    return Graph(nodes, edges)
+
+
+def _get_sub_ontology_related_to_nodes(
+    ontology_graph: Graph, related_nodes: list[Node]
+) -> str:
+    node_pairs = list(combinations(related_nodes, 2))
+    sub_edges: set[Edge] = set()
+    for pair in node_pairs:
+        sub_edges.update(
+            ontology_graph.get_edges_on_paths(source=pair[0], target=pair[1])
+        )
+        sub_edges.update(
+            ontology_graph.get_edges_on_paths(source=pair[1], target=pair[0])
+        )
+
+    sub_graph: Graph = _build_graph_from_edges(edges=sub_edges)
+    sub_ontology: str = parse_graph_to_ontology(graph=sub_graph)
+    return sub_ontology
+
+
+async def _get_needed_ontologies(
+    query: str, target_graphs: list[str]
+) -> dict[str, str]:
+    ontology_graphs = {
+        db: parse_ontology_to_graph(ONTOLOGY_CHUNKS[db])
+        for db in target_graphs
+        if db in ONTOLOGY_CHUNKS
+    }
+
+    model = get_chat_model().with_structured_output(_NeededNodes)
+
+    async def _query_db(db: str, node_names: list[str]) -> list[str]:
+        system = get_sub_nodes_prompt.format(node_names=", ".join(node_names))
+        try:
+            result = await model.ainvoke(
+                [SystemMessage(content=system), HumanMessage(content=query)]
+            )
+            return result.nodes
+        except Exception:
+            logger.exception("Node selection failed for db %r, returning all nodes", db)
+            return node_names
+
+    results = await asyncio.gather(
+        *[
+            _query_db(db, [n.name for n in graph.nodes])
+            for db, graph in ontology_graphs.items()
+        ]
+    )
+    nodes: list[list[Node]] = [
+        [Node(name) for name in db_nodes] for db_nodes in results
+    ]
+    db_to_related_nodes: dict[str, list[Node]] = dict(
+        zip(ontology_graphs.keys(), nodes)
+    )
+    db_to_sub_ontology: dict[str, str] = {
+        k: _get_sub_ontology_related_to_nodes(
+            ontology_graph=ontology_graphs[k], related_nodes=v
+        )
+        for k, v in db_to_related_nodes.items()
+    }
+    return db_to_sub_ontology
+
+
 async def retrieve_node(state: GraphState) -> dict:
     target_graphs: list[str] = state.get("target_graphs") or []
     entity_contexts: dict[str, str] = state.get("entity_contexts") or {}
     needs_federation: bool = state.get("needs_federation", False)
     query: str = state["user_query"]
-
+    db_to_sub_ontology = await _get_needed_ontologies(
+        query=query, target_graphs=target_graphs
+    )
     schema_context = _build_schema_context(
-        target_graphs, bool(entity_contexts), needs_federation, state.get("intents")
+        db_to_sub_ontology,
+        bool(entity_contexts),
+        needs_federation,
+        state.get("intents"),
     )
 
     if settings.rag_enabled:

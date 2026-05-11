@@ -60,3 +60,6 @@ docs/
 .venv-eval/
 responses.db
 retries.log
+
+# PyCharm
+.idea
