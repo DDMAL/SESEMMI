@@ -54,3 +54,9 @@ class Graph:
             for e in self.edges
             if e.source in forward_reachable and e.target in backward_reachable
         }
+
+    def get_node_by_name(self, name: str) -> Node | None:
+        for node in self.nodes:
+            if node.name == name:
+                return node
+        return None

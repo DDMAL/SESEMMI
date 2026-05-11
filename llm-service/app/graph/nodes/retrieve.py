@@ -145,7 +145,6 @@ def _get_sub_ontology_related_to_nodes(
         sub_edges.update(
             ontology_graph.get_edges_on_paths(source=pair[1], target=pair[0])
         )
-
     sub_graph: Graph = _build_graph_from_edges(edges=sub_edges)
     sub_ontology: str = parse_graph_to_ontology(graph=sub_graph)
     return sub_ontology
@@ -179,12 +178,14 @@ async def _get_needed_ontologies(
             for db, graph in ontology_graphs.items()
         ]
     )
-    nodes: list[list[Node]] = [
-        [Node(name) for name in db_nodes] for db_nodes in results
-    ]
-    db_to_related_nodes: dict[str, list[Node]] = dict(
-        zip(ontology_graphs.keys(), nodes)
+
+    db_to_related_node_name: dict[str, list[str]] = dict(
+        zip(ontology_graphs.keys(), results)
     )
+    db_to_related_nodes: dict[str, list[Node]] = {
+        k: [ontology_graphs[k].get_node_by_name(name=n) for n in v]
+        for k, v in db_to_related_node_name.items()
+    }
     db_to_sub_ontology: dict[str, str] = {
         k: _get_sub_ontology_related_to_nodes(
             ontology_graph=ontology_graphs[k], related_nodes=v
