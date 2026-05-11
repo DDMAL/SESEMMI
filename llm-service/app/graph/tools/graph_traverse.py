@@ -8,6 +8,12 @@ class Node:
     def __str__(self):
         return self.name
 
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __hash__(self):
+        return hash(self.name)
+
 
 class Edge:
     def __init__(self, source: Node, target: Node, name: str):
@@ -17,6 +23,16 @@ class Edge:
 
     def __str__(self):
         return f"{self.name}: {self.source} -> {self.target}"
+
+    def __eq__(self, other):
+        return (
+            self.name == other.name
+            and self.source == other.source
+            and self.target == other.target
+        )
+
+    def __hash__(self):
+        return hash((self.source.name, self.target.name, self.name))
 
 
 class Graph:

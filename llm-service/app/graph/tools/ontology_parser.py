@@ -59,6 +59,7 @@ def parse_ontology_to_graph(ontology_chunk: str) -> Graph:
                 if obj not in nodes:
                     nodes[obj] = Node(obj)
                 edges.add(Edge(nodes[current_subject], nodes[obj], predicate))
+                edges.add(Edge(nodes[obj], nodes[current_subject], predicate))
 
     return Graph(set(nodes.values()), edges)
 

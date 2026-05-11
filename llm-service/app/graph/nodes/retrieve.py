@@ -128,16 +128,16 @@ select only the entity types that are necessary to answer the query.
 Return only the list of required node names."""
 
 
-def _build_graph_from_edges(edges: set[Edge]) -> Graph:
-    nodes = {e.source for e in edges} | {e.target for e in edges}
-    return Graph(nodes, edges)
+def _build_graph(nodes: set[Node], edges: set[Edge]) -> Graph:
+    full_nodes = nodes | {e.source for e in edges} | {e.target for e in edges}
+    return Graph(full_nodes, edges)
 
 
 def _get_sub_ontology_related_to_nodes(
     ontology_graph: Graph, related_nodes: list[Node]
 ) -> str:
-    node_pairs = list(combinations(related_nodes, 2))
     sub_edges: set[Edge] = set()
+    node_pairs = list(combinations(related_nodes, 2))
     for pair in node_pairs:
         sub_edges.update(
             ontology_graph.get_edges_on_paths(source=pair[0], target=pair[1])
@@ -145,7 +145,7 @@ def _get_sub_ontology_related_to_nodes(
         sub_edges.update(
             ontology_graph.get_edges_on_paths(source=pair[1], target=pair[0])
         )
-    sub_graph: Graph = _build_graph_from_edges(edges=sub_edges)
+    sub_graph: Graph = _build_graph(nodes=set(related_nodes), edges=sub_edges)
     sub_ontology: str = parse_graph_to_ontology(graph=sub_graph)
     return sub_ontology
 
