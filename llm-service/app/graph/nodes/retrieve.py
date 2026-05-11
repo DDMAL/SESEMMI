@@ -116,7 +116,6 @@ select only the entity types that are necessary to answer the query.
 
 <rules>
 - Include an entity type if it must appear in the SPARQL query as a subject, object, or intermediate join node.
-- If a relationship requires traversing through an intermediate node, include that node too.
 - Exclude entity types that are irrelevant to the query — do not include them just because they exist.
 - Return node names exactly as given (e.g. "diamm:Composition", "mb:Artist").
 </rules>
