@@ -34,6 +34,15 @@ def get_chat_model() -> BaseChatModel:
             google_api_key=settings.gemini_api_key,
             temperature=0,
         )
+    elif provider == "qwen":
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(
+            model=settings.llm_model,
+            api_key=settings.dashscope_api_key,
+            base_url=settings.qwen_base_url,
+            temperature=0,
+        )
     else:  # ollama (default)
         from langchain_ollama import ChatOllama
 

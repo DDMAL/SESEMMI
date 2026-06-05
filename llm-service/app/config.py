@@ -11,7 +11,7 @@ class Settings(BaseSettings):
         env_file=str(_ROOT_ENV), env_file_encoding="utf-8", extra="ignore"
     )
 
-    # LLM provider — ollama | openai | anthropic | gemini
+    # LLM provider — ollama | openai | anthropic | gemini | qwen
     llm_provider: str = "ollama"
     llm_model: str = "qwen3:1.7b"
 
@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
     gemini_api_key: str | None = None
+    dashscope_api_key: str | None = None
+    qwen_base_url: str = "https://ws-1vm56exj78uoz68h.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
 
     ollama_base_url: str = "http://ollama:11434"
     ollama_num_ctx: int = 8192  # context length
