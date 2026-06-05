@@ -529,7 +529,7 @@ WHERE {
 }""",
     },
     {
-        "nl": 'Find all chants in Cantus DB in Lydian mode.',
+        "nl": "Find all chants in Cantus DB in Lydian mode.",
         "sparql": """PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
@@ -542,7 +542,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all chants in Cantus DB in Mixolydian mode.',
+        "nl": "Find all chants in Cantus DB in Mixolydian mode.",
         "sparql": """PREFIX wd:   <http://www.wikidata.org/entity/>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX cdb:  <https://linkedmusic.ca/graphs/cantusdb/>
@@ -555,7 +555,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all chants in Cantus DB for the feast of Saint Stephen.',
+        "nl": "Find all chants in Cantus DB for the feast of Saint Stephen.",
         "sparql": """PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
 SELECT ?chant
 WHERE {
@@ -567,7 +567,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all chants in Cantus Index associated with the feast of the Purification of Mary.',
+        "nl": "Find all chants in Cantus Index associated with the feast of the Purification of Mary.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX cantusindex: <https://linkedmusic.ca/graphs/cantusindex/>
 SELECT ?chantID
@@ -581,7 +581,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all DIAMM manuscript sources held in Paris',
+        "nl": "Find all DIAMM manuscript sources held in Paris",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
@@ -597,7 +597,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all solos in Dig That Lick.',
+        "nl": "Find all solos in Dig That Lick.",
         "sparql": """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
 SELECT ?solo
@@ -609,7 +609,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all solos in Dig That Lick performed by Charlie Parker',
+        "nl": "Find all solos in Dig That Lick performed by Charlie Parker",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
@@ -623,7 +623,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all recordings in MusicBrainz by Miles Davis',
+        "nl": "Find all recordings in MusicBrainz by Miles Davis",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX wd:   <http://www.wikidata.org/entity/>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -640,7 +640,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all sources in RISM held at the British Library.',
+        "nl": "Find all sources in RISM held at the British Library.",
         "sparql": """PREFIX wd:    <http://www.wikidata.org/entity/>
 PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
 PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
@@ -655,7 +655,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all compositions in SIMSSA DB by Josquin des Prez.',
+        "nl": "Find all compositions in SIMSSA DB by Josquin des Prez.",
         "sparql": """PREFIX wd:     <http://www.wikidata.org/entity/>
 PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
@@ -671,7 +671,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all works in SIMSSA DB composed by Tomás Luis de Victoria.',
+        "nl": "Find all works in SIMSSA DB composed by Tomás Luis de Victoria.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
@@ -686,7 +686,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all Ethiopian songs in The Global Jukebox.',
+        "nl": "Find all Ethiopian songs in The Global Jukebox.",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wd:   <http://www.wikidata.org/entity/>
@@ -702,7 +702,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all songs in the Global Jukebox that use guitar.',
+        "nl": "Find all songs in the Global Jukebox that use guitar.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
@@ -716,7 +716,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all sessions in France in The Session.',
+        "nl": "Find all sessions in France in The Session.",
         "sparql": """PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
@@ -730,7 +730,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all sessions in Greece in The Session.',
+        "nl": "Find all sessions in Greece in The Session.",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX wd:   <http://www.wikidata.org/entity/>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -745,7 +745,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all sessions in The Session held in Ireland.',
+        "nl": "Find all sessions in The Session held in Ireland.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
@@ -759,7 +759,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all songs in the University of Tennessee Song Index composed by George Gershwin.',
+        "nl": "Find all songs in the University of Tennessee Song Index composed by George Gershwin.",
         "sparql": """PREFIX wd:   <http://www.wikidata.org/entity/>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -774,7 +774,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all solos in Weimar Jazz Database featuring clarinet.',
+        "nl": "Find all solos in Weimar Jazz Database featuring clarinet.",
         "sparql": """PREFIX wd:     <http://www.wikidata.org/entity/>
 PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
@@ -789,7 +789,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'What is the average number of chants per source in Cantus DB?',
+        "nl": "What is the average number of chants per source in Cantus DB?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
 SELECT (AVG(?chantCount) AS ?avgChantsPerSource)
@@ -807,7 +807,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'How many chants are there for each mode in Cantus DB?',
+        "nl": "How many chants are there for each mode in Cantus DB?",
         "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX cdb:  <https://linkedmusic.ca/graphs/cantusdb/>
 SELECT ?mode (COUNT(?chant) AS ?chantCount)
@@ -821,7 +821,7 @@ ORDER BY DESC(?chantCount)
 LIMIT 100""",
     },
     {
-        "nl": 'What are the top 10 most common liturgical uses (offices) in Cantus DB by number of chants?',
+        "nl": "What are the top 10 most common liturgical uses (offices) in Cantus DB by number of chants?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
 SELECT ?office (COUNT(?chant) AS ?chantCount)
@@ -835,7 +835,7 @@ ORDER BY DESC(?chantCount)
 LIMIT 10""",
     },
     {
-        "nl": 'How many chants are there in Cantus Index for each feast?',
+        "nl": "How many chants are there in Cantus Index for each feast?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX cantusindex: <https://linkedmusic.ca/graphs/cantusindex/>
 SELECT ?feast (COUNT(?chant) AS ?count)
@@ -850,7 +850,7 @@ ORDER BY DESC(?count)
 LIMIT 100""",
     },
     {
-        "nl": 'How many chants in Cantus Index are written in each language?',
+        "nl": "How many chants in Cantus Index are written in each language?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX cantusindex: <https://linkedmusic.ca/graphs/cantusindex/>
 SELECT ?language (COUNT(?chant) AS ?chantCount)
@@ -865,7 +865,7 @@ ORDER BY DESC(?chantCount)
 LIMIT 100""",
     },
     {
-        "nl": 'Find all DIAMM archives and list the number of sources that they contain.',
+        "nl": "Find all DIAMM archives and list the number of sources that they contain.",
         "sparql": """PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
 PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
 SELECT ?archive (COUNT(?source) AS ?sourceCount)
@@ -881,7 +881,7 @@ ORDER BY DESC(?sourceCount)
 LIMIT 100""",
     },
     {
-        "nl": 'Find all DIAMM compositions that do not have a genre assigned.',
+        "nl": "Find all DIAMM compositions that do not have a genre assigned.",
         "sparql": """PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
@@ -912,7 +912,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all tracks in Dig That Lick recorded in New York City.',
+        "nl": "Find all tracks in Dig That Lick recorded in New York City.",
         "sparql": """PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
@@ -926,7 +926,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'How many solos does each track in Dig That Lick contain?',
+        "nl": "How many solos does each track in Dig That Lick contain?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
@@ -940,7 +940,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'What are the top 10 cities where the most jazz solos were recorded in Dig That Lick? List the city and the number of solos.',
+        "nl": "What are the top 10 cities where the most jazz solos were recorded in Dig That Lick? List the city and the number of solos.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
 SELECT ?location (COUNT(?solo) AS ?soloCount)
@@ -956,7 +956,7 @@ ORDER BY DESC(?soloCount)
 LIMIT 10""",
     },
     {
-        "nl": 'Find all bands that share at least two members with Radiohead in MusicBrainz.',
+        "nl": "Find all bands that share at least two members with Radiohead in MusicBrainz.",
         "sparql": """PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX mb:  <https://linkedmusic.ca/graphs/musicbrainz/>
@@ -978,7 +978,7 @@ GROUP BY ?band
 HAVING (COUNT(DISTINCT ?sharedMember) >= 2)""",
     },
     {
-        "nl": 'Find all MusicBrainz artists born on January 1st.',
+        "nl": "Find all MusicBrainz artists born on January 1st.",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -995,7 +995,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'How many recordings are there in MusicBrainz for each genre?',
+        "nl": "How many recordings are there in MusicBrainz for each genre?",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -1012,7 +1012,7 @@ ORDER BY DESC(?recordingCount)
 LIMIT 100""",
     },
     {
-        "nl": 'Which RISM composers have more than 50 sources attributed to them?',
+        "nl": "Which RISM composers have more than 50 sources attributed to them?",
         "sparql": """PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-making#>
 PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
 PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
@@ -1031,7 +1031,7 @@ ORDER BY ?composer
 LIMIT 100""",
     },
     {
-        "nl": 'What are the top 10 most common keys used in RISM sources?',
+        "nl": "What are the top 10 most common keys used in RISM sources?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
 
@@ -1062,7 +1062,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Which musical works in SIMSSA DB have at least two associated files?',
+        "nl": "Which musical works in SIMSSA DB have at least two associated files?",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
@@ -1080,7 +1080,7 @@ HAVING (COUNT(?file) >= 2)
 LIMIT 100""",
     },
     {
-        "nl": 'Which composers in SIMSSA DB have composed more than two works?',
+        "nl": "Which composers in SIMSSA DB have composed more than two works?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
@@ -1097,7 +1097,7 @@ HAVING (COUNT(?work) > 2)
 LIMIT 100""",
     },
     {
-        "nl": 'Find all Global Jukebox cultures that have at least one song with flute instrumentation.',
+        "nl": "Find all Global Jukebox cultures that have at least one song with flute instrumentation.",
         "sparql": """PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
@@ -1113,7 +1113,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Which Global Jukebox cultures have more than 10 songs?',
+        "nl": "Which Global Jukebox cultures have more than 10 songs?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX gj: <https://linkedmusic.ca/graphs/theglobaljukebox/>
@@ -1146,7 +1146,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all countries that have had more than 100 sessions in The Session.',
+        "nl": "Find all countries that have had more than 100 sessions in The Session.",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
@@ -1227,7 +1227,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Return all genres in the University of Tennessee Song Index that have over 15000 songs.',
+        "nl": "Return all genres in the University of Tennessee Song Index that have over 15000 songs.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
 
@@ -1242,7 +1242,7 @@ GROUP BY ?genre
 HAVING (COUNT(?song) > 15000)""",
     },
     {
-        "nl": 'Which performers in Weimar Jazz Database have performed at least two solos in the same key?',
+        "nl": "Which performers in Weimar Jazz Database have performed at least two solos in the same key?",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
 SELECT ?performer
@@ -1259,7 +1259,7 @@ ORDER BY DESC(COUNT(DISTINCT ?solo))
 LIMIT 100""",
     },
     {
-        "nl": 'Which jazz compositions in the Weimar Jazz Database have more than 2 solos recorded?',
+        "nl": "Which jazz compositions in the Weimar Jazz Database have more than 2 solos recorded?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-replace#>
 PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
@@ -1276,7 +1276,7 @@ HAVING (COUNT(?solo) > 2)
 LIMIT 100""",
     },
     {
-        "nl": 'How many solos in the Weimar Jazz Database were recorded on each record label? Return the record label and the number of solos.',
+        "nl": "How many solos in the Weimar Jazz Database were recorded on each record label? Return the record label and the number of solos.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
 SELECT ?label (COUNT(?solo) AS ?soloCount)
@@ -1293,7 +1293,7 @@ ORDER BY DESC(?soloCount)
 LIMIT 100""",
     },
     {
-        "nl": 'Retrieve all events associated with G minor chants that are named after women from Cantus DB.',
+        "nl": "Retrieve all events associated with G minor chants that are named after women from Cantus DB.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
@@ -1316,7 +1316,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'What are the 5 feast days with the most chants in Cantus DB, and what event or person are they named after according to Wikidata? Return the feast label in English and the named after label in English.',
+        "nl": "What are the 5 feast days with the most chants in Cantus DB, and what event or person are they named after according to Wikidata? Return the feast label in English and the named after label in English.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
@@ -1346,7 +1346,7 @@ WHERE {
 ORDER BY DESC(?chantCount)""",
     },
     {
-        "nl": 'What are the top 5 feast days with the most chants in Cantus Index?',
+        "nl": "What are the top 5 feast days with the most chants in Cantus Index?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX cantusindex: <https://linkedmusic.ca/graphs/cantusindex/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -1391,7 +1391,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Return the inception dates of all DIAMM archives in France.',
+        "nl": "Return the inception dates of all DIAMM archives in France.",
         "sparql": """PREFIX wd:    <http://www.wikidata.org/entity/>
 PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
@@ -1416,7 +1416,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Count how many solos were done by artists of each gender in Dig That Lick. Return one column for the gender and another for the number of solos.',
+        "nl": "Count how many solos were done by artists of each gender in Dig That Lick. Return one column for the gender and another for the number of solos.",
         "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX dtl:  <https://linkedmusic.ca/graphs/dig-that-lick/>
 SELECT ?gender (SUM(?soloCount) AS ?totalSolos)
@@ -1440,7 +1440,7 @@ WHERE {
 GROUP BY ?gender""",
     },
     {
-        "nl": 'Return the birth places of the 10 most prolific jazz soloists in Dig That Lick.',
+        "nl": "Return the birth places of the 10 most prolific jazz soloists in Dig That Lick.",
         "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX dtl:  <https://linkedmusic.ca/graphs/dig-that-lick/>
 
@@ -1465,7 +1465,7 @@ WHERE {
 }""",
     },
     {
-        "nl": 'Find all MusicBrainz artists born in London. Return both their MusicBrainz ID and their Wikidata QID.',
+        "nl": "Find all MusicBrainz artists born in London. Return both their MusicBrainz ID and their Wikidata QID.",
         "sparql": """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wd:   <http://www.wikidata.org/entity/>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -1485,7 +1485,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'What’s the average number of record labels that female singers in MusicBrainz have signed with?',
+        "nl": "What’s the average number of record labels that female singers in MusicBrainz have signed with?",
         "sparql": """PREFIX wd:   <http://www.wikidata.org/entity/>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
@@ -1509,7 +1509,7 @@ WHERE {
 }""",
     },
     {
-        "nl": 'For each institution in RISM that is also listed as an archive on Wikidata, what is the Wikidata QID of the country is it in?',
+        "nl": "For each institution in RISM that is also listed as an archive on Wikidata, what is the Wikidata QID of the country is it in?",
         "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX wd:   <http://www.wikidata.org/entity/>
 PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
@@ -1531,7 +1531,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'What countries are the 10 most documented composers in RISM associated with according to Wikidata?',
+        "nl": "What countries are the 10 most documented composers in RISM associated with according to Wikidata?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
 
@@ -1555,7 +1555,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all SIMSSA works whose composers appear as humans in Wikidata.',
+        "nl": "Find all SIMSSA works whose composers appear as humans in Wikidata.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
@@ -1578,7 +1578,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find works in the SIMSSA digital scores library whose composers were born in Italy.',
+        "nl": "Find works in the SIMSSA digital scores library whose composers were born in Italy.",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX wd:     <http://www.wikidata.org/entity/>
 PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
@@ -1603,7 +1603,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all Global Jukebox songs from countries in Asia',
+        "nl": "Find all Global Jukebox songs from countries in Asia",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX wd:   <http://www.wikidata.org/entity/>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -1627,7 +1627,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find the capital city of the country with the most sessions in The Session.',
+        "nl": "Find the capital city of the country with the most sessions in The Session.",
         "sparql": """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
@@ -1651,7 +1651,7 @@ WHERE {
 }""",
     },
     {
-        "nl": 'Find the ISO 3166-1 alpha-3 country code of all countries that have events in The Session.',
+        "nl": "Find the ISO 3166-1 alpha-3 country code of all countries that have events in The Session.",
         "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
 
@@ -1673,7 +1673,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'What countries (return Wikidata QIDs) are the 5 most prolific composers (by number of songs) from in the University of Tennessee Song Index?',
+        "nl": "What countries (return Wikidata QIDs) are the 5 most prolific composers (by number of songs) from in the University of Tennessee Song Index?",
         "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
 
@@ -1697,7 +1697,7 @@ WHERE {
 }""",
     },
     {
-        "nl": 'How many songs belong to each music genre in the University of Tennessee Song Index? Only return the number of songs.',
+        "nl": "How many songs belong to each music genre in the University of Tennessee Song Index? Only return the number of songs.",
         "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX utsi: <https://linkedmusic.ca/graphs/utsi/>
 
@@ -1718,7 +1718,7 @@ ORDER BY DESC(?songCount)
 LIMIT 100""",
     },
     {
-        "nl": 'Find all solos in the Weimar Jazz Database whose performer was born in New Orleans.',
+        "nl": "Find all solos in the Weimar Jazz Database whose performer was born in New Orleans.",
         "sparql": """PREFIX wd:     <http://www.wikidata.org/entity/>
 PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
@@ -1736,7 +1736,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all jazz compositions in the Weimar Jazz Database written by musicians with Canadian citizenship, according to Wikidata.',
+        "nl": "Find all jazz compositions in the Weimar Jazz Database written by musicians with Canadian citizenship, according to Wikidata.",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX wd:     <http://www.wikidata.org/entity/>
 PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-format#>
@@ -1760,7 +1760,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all compositions in DIAMM whose composer also appears as a composer in RISM',
+        "nl": "Find all compositions in DIAMM whose composer also appears as a composer in RISM",
         "sparql": """PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
@@ -1781,7 +1781,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all Dig That Lick tracks where the performer also has recordings in MusicBrainz',
+        "nl": "Find all Dig That Lick tracks where the performer also has recordings in MusicBrainz",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -1821,7 +1821,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all music events in The Session or MusicBrainz that happened on a day where at least one South Korean music label dissolved',
+        "nl": "Find all music events in The Session or MusicBrainz that happened on a day where at least one South Korean music label dissolved",
         "sparql": """PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX mb:  <https://linkedmusic.ca/graphs/musicbrainz/>
@@ -1853,7 +1853,7 @@ SELECT DISTINCT ?event WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all musical instruments in the Global Jukebox featured in songs from Madagascar, and find recordings in MusicBrainz featuring these same instruments.',
+        "nl": "Find all musical instruments in the Global Jukebox featured in songs from Madagascar, and find recordings in MusicBrainz featuring these same instruments.",
         "sparql": """PREFIX wd:  <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
@@ -1871,7 +1871,7 @@ SELECT DISTINCT ?wikidataInstrument WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Return the Wikidata QID for institutions that appear in both DIAMM and RISM.',
+        "nl": "Return the Wikidata QID for institutions that appear in both DIAMM and RISM.",
         "sparql": """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-format-ns#>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
@@ -1889,7 +1889,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Which feast day has the largest difference in chant counts between CantusDB and CantusIndex?',
+        "nl": "Which feast day has the largest difference in chant counts between CantusDB and CantusIndex?",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
 PREFIX ci:  <https://linkedmusic.ca/graphs/cantusindex/>
@@ -1917,7 +1917,7 @@ ORDER BY DESC(?difference)
 LIMIT 1""",
     },
     {
-        "nl": 'Find all cultures in the Global Jukebox from countries that have at least one RISM institution',
+        "nl": "Find all cultures in the Global Jukebox from countries that have at least one RISM institution",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -1937,7 +1937,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all songs in The Global Jukebox from countries with more than four sessions in the Session.',
+        "nl": "Find all songs in The Global Jukebox from countries with more than four sessions in the Session.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
 PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
@@ -1960,7 +1960,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all recordings in The Session whose performer also appears as an artist in MusicBrainz.',
+        "nl": "Find all recordings in The Session whose performer also appears as an artist in MusicBrainz.",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -1981,7 +1981,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all tracks in the Weimar Jazz Database whose performer also appears as an artist in MusicBrainz.',
+        "nl": "Find all tracks in the Weimar Jazz Database whose performer also appears as an artist in MusicBrainz.",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -2001,7 +2001,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find songs in the University of Tennessee Song Index whose composer also appears as an artist in MusicBrainz.',
+        "nl": "Find songs in the University of Tennessee Song Index whose composer also appears as an artist in MusicBrainz.",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -2022,7 +2022,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all works in SIMSSA DB whose composer also has compositions in DIAMM.',
+        "nl": "Find all works in SIMSSA DB whose composer also has compositions in DIAMM.",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
@@ -2042,7 +2042,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all feast names that appear in both Cantus DB and Cantus Index.',
+        "nl": "Find all feast names that appear in both Cantus DB and Cantus Index.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
 PREFIX cantusindex: <https://linkedmusic.ca/graphs/cantusindex/>
@@ -2059,7 +2059,7 @@ ORDER BY ?feast
 LIMIT 100""",
     },
     {
-        "nl": 'Find all tracks in Dig That Lick whose performer also has solos in the Weimar Jazz Database.',
+        "nl": "Find all tracks in Dig That Lick whose performer also has solos in the Weimar Jazz Database.",
         "sparql": """PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
@@ -2079,7 +2079,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all works in SIMSSA DB whose composer also has sources in RISM.',
+        "nl": "Find all works in SIMSSA DB whose composer also has sources in RISM.",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
@@ -2099,7 +2099,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all songs in the University of Tennessee Song Index whose composer also has compositions in DIAMM.',
+        "nl": "Find all songs in the University of Tennessee Song Index whose composer also has compositions in DIAMM.",
         "sparql": """PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX utsi:  <https://linkedmusic.ca/graphs/utsi/>
@@ -2119,7 +2119,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all MusicBrainz recordings whose credited artist also has musical sources preserved in RISM.',
+        "nl": "Find all MusicBrainz recordings whose credited artist also has musical sources preserved in RISM.",
         "sparql": """PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
@@ -2140,7 +2140,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all musical keys used in both Irish traditional music settings and jazz solos.',
+        "nl": "Find all musical keys used in both Irish traditional music settings and jazz solos.",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX ts:     <https://linkedmusic.ca/graphs/thesession/>
 PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
@@ -2157,7 +2157,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find composers whose works appear in DIAMM, RISM, and MusicBrainz.',
+        "nl": "Find composers whose works appear in DIAMM, RISM, and MusicBrainz.",
         "sparql": """PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
@@ -2181,7 +2181,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all archives in DIAMM that are also documented as institutions in RISM.',
+        "nl": "Find all archives in DIAMM that are also documented as institutions in RISM.",
         "sparql": """PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
 PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
@@ -2200,7 +2200,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all countries that have both folk music sessions in The Session and documented musical cultures in the Global Jukebox.',
+        "nl": "Find all countries that have both folk music sessions in The Session and documented musical cultures in the Global Jukebox.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
 PREFIX gj:  <https://linkedmusic.ca/graphs/theglobaljukebox/>
@@ -2217,7 +2217,7 @@ ORDER BY ?country
 LIMIT 100""",
     },
     {
-        "nl": 'Find all instruments that appear in both solo recordings in Dig That Lick and songs in the Global Jukebox.',
+        "nl": "Find all instruments that appear in both solo recordings in Dig That Lick and songs in the Global Jukebox.",
         "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX dtl: <https://linkedmusic.ca/graphs/dig-that-lick/>
@@ -2237,7 +2237,7 @@ ORDER BY ?instrument
 LIMIT 100""",
     },
     {
-        "nl": 'Find all songs in UTSI whose composer also has works catalogued in RISM.',
+        "nl": "Find all songs in UTSI whose composer also has works catalogued in RISM.",
         "sparql": """PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
 PREFIX utsi:  <https://linkedmusic.ca/graphs/utsi/>
 PREFIX rism:  <https://linkedmusic.ca/graphs/rism/>
@@ -2256,7 +2256,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all compositions in the Weimar Jazz Database whose composer also has works catalogued in RISM.',
+        "nl": "Find all compositions in the Weimar Jazz Database whose composer also has works catalogued in RISM.",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
 PREFIX rism:   <https://linkedmusic.ca/graphs/rism/>
@@ -2275,7 +2275,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'What compositions in the Weimar Jazz Database share a title with a track in Dig That Lick?',
+        "nl": "What compositions in the Weimar Jazz Database share a title with a track in Dig That Lick?",
         "sparql": """PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wjazzd: <https://linkedmusic.ca/graphs/wjazzd/>
 PREFIX dtl:    <https://linkedmusic.ca/graphs/dig-that-lick/>
@@ -2294,7 +2294,7 @@ ORDER BY ?title
 LIMIT 100""",
     },
     {
-        "nl": 'Find composers whose works are encoded in SIMSSA and who are also catalogued as artists in MusicBrainz.',
+        "nl": "Find composers whose works are encoded in SIMSSA and who are also catalogued as artists in MusicBrainz.",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
@@ -2314,7 +2314,7 @@ ORDER BY ?qid
 LIMIT 100""",
     },
     {
-        "nl": 'Find musical modes that appear in both Cantus DB chants and Weimar Jazz Database solos.',
+        "nl": "Find musical modes that appear in both Cantus DB chants and Weimar Jazz Database solos.",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX cdb:    <https://linkedmusic.ca/graphs/cantusdb/>
@@ -2332,7 +2332,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all compositions in the Weimar Jazz Database whose composer also has songs documented in UTSI.',
+        "nl": "Find all compositions in the Weimar Jazz Database whose composer also has songs documented in UTSI.",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX utsi:   <https://linkedmusic.ca/graphs/utsi/>
@@ -2354,7 +2354,7 @@ ORDER BY ?comp
 LIMIT 100""",
     },
     {
-        "nl": 'Find instruments that appear in solos in both Dig That Lick and the Weimar Jazz Database, and also feature in songs in the Global Jukebox.',
+        "nl": "Find instruments that appear in solos in both Dig That Lick and the Weimar Jazz Database, and also feature in songs in the Global Jukebox.",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX dtl:    <https://linkedmusic.ca/graphs/dig-that-lick/>
@@ -2379,7 +2379,7 @@ ORDER BY ?instrument
 LIMIT 100""",
     },
     {
-        "nl": 'What countries have both traditional music sessions in The Session and popular songs documented in UTSI?',
+        "nl": "What countries have both traditional music sessions in The Session and popular songs documented in UTSI?",
         "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
@@ -2400,7 +2400,7 @@ ORDER BY ?country
 LIMIT 100""",
     },
     {
-        "nl": 'Find all works encoded in SIMSSA whose composer is also documented in both DIAMM and RISM.',
+        "nl": "Find all works encoded in SIMSSA whose composer is also documented in both DIAMM and RISM.",
         "sparql": """PREFIX wdt:    <http://www.wikidata.org/prop/direct/>
 PREFIX simssa: <https://linkedmusic.ca/graphs/simssadb/>
 PREFIX rism:   <https://linkedmusic.ca/graphs/rism/>
@@ -2424,7 +2424,7 @@ WHERE {
 LIMIT 100""",
     },
     {
-        "nl": 'Find all archives in DIAMM that also hold plainchant manuscript sources documented in Cantus DB.',
+        "nl": "Find all archives in DIAMM that also hold plainchant manuscript sources documented in Cantus DB.",
         "sparql": """PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
 PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX cdb:   <https://linkedmusic.ca/graphs/cantusdb/>
@@ -2445,7 +2445,7 @@ ORDER BY ?archive
 LIMIT 100""",
     },
     {
-        "nl": 'Find all countries that have medieval music manuscript archives in DIAMM and traditional music sessions in The Session.',
+        "nl": "Find all countries that have medieval music manuscript archives in DIAMM and traditional music sessions in The Session.",
         "sparql": """PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
 PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
@@ -2468,7 +2468,7 @@ ORDER BY ?countryQID
 LIMIT 100""",
     },
     {
-        "nl": 'Find all tracks in Dig That Lick whose performer is also catalogued as a person in RISM.',
+        "nl": "Find all tracks in Dig That Lick whose performer is also catalogued as a person in RISM.",
         "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
 PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX dtl:  <https://linkedmusic.ca/graphs/dig-that-lick/>

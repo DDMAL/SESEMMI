@@ -20,7 +20,9 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     gemini_api_key: str | None = None
     dashscope_api_key: str | None = None
-    qwen_base_url: str = "https://ws-1vm56exj78uoz68h.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
+    qwen_base_url: str = (
+        "https://ws-1vm56exj78uoz68h.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
+    )
 
     ollama_base_url: str = "http://ollama:11434"
     ollama_num_ctx: int = 8192  # context length
