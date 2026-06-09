@@ -13,15 +13,62 @@ function Bubble({
   message,
   showChips,
   onChip,
+  showActions,
+  onApprove,
+  onAdjust,
 }: {
   message: ChatMessage;
   showChips: boolean;
   onChip: (text: string) => void;
+  showActions?: boolean;
+  onApprove?: () => void;
+  onAdjust?: () => void;
 }) {
   const isUser = message.role === "user";
 
   if (message.kind === "info") {
     return <p className="px-1 text-center text-[11px] italic text-slate-400">{message.text}</p>;
+  }
+
+  if (message.kind === "approval") {
+    return (
+      <div className="flex flex-col gap-1.5 items-start">
+        <div
+          className="max-w-[85%] rounded-2xl px-3.5 py-3 text-sm"
+          style={{
+            background: "rgba(99,102,241,0.06)",
+            border: "1px solid rgba(99,102,241,0.2)",
+            borderBottomLeftRadius: 4,
+          }}
+        >
+          <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-widest text-indigo-400">
+            Refined query
+          </p>
+          <p className="mb-2.5 text-slate-600">&ldquo;{message.text}&rdquo;</p>
+          {showActions && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={onApprove}
+                className="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium text-white transition-all hover:brightness-110"
+                style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)" }}
+              >
+                ✓ Yes, search for this
+              </button>
+              <button
+                onClick={onAdjust}
+                className="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium text-indigo-600 transition-all hover:brightness-105"
+                style={{
+                  background: "rgba(99,102,241,0.08)",
+                  border: "1px solid rgba(99,102,241,0.3)",
+                }}
+              >
+                Needs adjustment
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -68,9 +115,10 @@ function Bubble({
 
 export function ConversationPanel({ flow }: ConversationPanelProps) {
   const [text, setText] = useState("");
-  const { messages, phase, isPending, awaitingAnswer, steps } = flow;
+  const { messages, phase, isPending, awaitingAnswer, awaitingFeedback, steps } = flow;
 
   const isTranslating = phase === "translating";
+  const isAwaitingApproval = phase === "awaiting_approval";
   const hasConversation = messages.length > 0;
 
   const handleSubmit = () => {
@@ -102,15 +150,16 @@ export function ConversationPanel({ flow }: ConversationPanelProps) {
               Generate now
             </button>
           )}
-          {hasConversation && (phase === "done" || phase === "clarifying") && (
-            <button
-              onClick={flow.reset}
-              className="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium text-slate-500 transition-all hover:text-slate-700"
-              style={{ border: "1px solid rgba(99,102,241,0.2)" }}
-            >
-              New
-            </button>
-          )}
+          {hasConversation &&
+            (phase === "done" || phase === "clarifying" || phase === "awaiting_approval") && (
+              <button
+                onClick={flow.reset}
+                className="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium text-slate-500 transition-all hover:text-slate-700"
+                style={{ border: "1px solid rgba(99,102,241,0.2)" }}
+              >
+                New
+              </button>
+            )}
         </div>
       </div>
 
@@ -122,6 +171,14 @@ export function ConversationPanel({ flow }: ConversationPanelProps) {
               message={m}
               showChips={awaitingAnswer && i === messages.length - 1 && m.kind === "question"}
               onChip={flow.answer}
+              showActions={
+                isAwaitingApproval &&
+                !awaitingFeedback &&
+                i === messages.length - 1 &&
+                m.kind === "approval"
+              }
+              onApprove={flow.approve}
+              onAdjust={flow.requestFeedback}
             />
           ))}
         </div>
@@ -150,22 +207,30 @@ export function ConversationPanel({ flow }: ConversationPanelProps) {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
             placeholder={
-              awaitingAnswer
-                ? "Type your answer, or pick an option above…"
-                : "Find the birth place of the composer with the most compositions in RISM"
+              awaitingFeedback
+                ? "What would you like to change?"
+                : awaitingAnswer
+                  ? "Type your answer, or pick an option above…"
+                  : "Find the birth place of the composer with the most compositions in RISM"
             }
             className="w-full rounded-xl py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-50"
             style={{
               background: "rgba(255,255,255,0.7)",
               border: "1px solid rgba(99,102,241,0.2)",
             }}
-            disabled={isTranslating}
+            disabled={isTranslating || (isAwaitingApproval && !awaitingFeedback)}
           />
         </div>
         <button
           onClick={handleSubmit}
           disabled={isPending || !text.trim()}
-          aria-label={awaitingAnswer ? "Send answer" : "Translate to SPARQL"}
+          aria-label={
+            awaitingFeedback
+              ? "Send feedback"
+              : awaitingAnswer
+                ? "Send answer"
+                : "Translate to SPARQL"
+          }
           className="flex cursor-pointer items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
           style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
         >
@@ -175,7 +240,7 @@ export function ConversationPanel({ flow }: ConversationPanelProps) {
               <span>{isTranslating ? "Generating" : "Thinking"}</span>
             </>
           ) : (
-            <span>{awaitingAnswer ? "Send" : "Generate"}</span>
+            <span>{awaitingFeedback ? "Refine" : awaitingAnswer ? "Send" : "Generate"}</span>
           )}
         </button>
       </div>

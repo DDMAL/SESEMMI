@@ -29,7 +29,7 @@ export default function Home() {
 
   return (
     <div
-      className="relative flex min-h-screen flex-col overflow-hidden"
+      className="relative flex h-screen flex-col overflow-hidden"
       style={{
         background: "linear-gradient(135deg, #e8eeff 0%, #eef0ff 35%, #eef4ff 65%, #e8edff 100%)",
       }}
@@ -100,7 +100,7 @@ export default function Home() {
       </header>
 
       {/* Main content */}
-      <main className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
+      <main className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 lg:p-6">
         {/* Conversation glass panel */}
         <section className="rounded-2xl p-5" style={glassPanel}>
           <ConversationPanel flow={flow} />

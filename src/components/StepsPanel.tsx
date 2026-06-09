@@ -158,19 +158,23 @@ interface StepsPanelProps {
 }
 
 function Dot({ state, icon }: { state: StageState; icon: ReactNode }) {
-  const base = "flex h-9 w-9 items-center justify-center rounded-full transition-all";
+  const base =
+    "flex h-9 w-9 items-center justify-center rounded-full transition-all group-hover:scale-110";
   const gradient = "linear-gradient(135deg, #4f46e5, #7c3aed)";
 
   if (state === "error")
     return (
-      <span className={`${base} text-white`} style={{ background: "#ef4444" }}>
+      <span
+        className={`${base} text-white group-hover:shadow-[0_0_0_4px_rgba(239,68,68,0.22)]`}
+        style={{ background: "#ef4444" }}
+      >
         <span className="text-sm leading-none">✕</span>
       </span>
     );
   if (state === "running")
     return (
       <span
-        className={`${base} animate-pulse text-white`}
+        className={`${base} animate-pulse text-white group-hover:shadow-[0_0_0_4px_rgba(99,102,241,0.32)]`}
         style={{ background: gradient, boxShadow: "0 0 0 4px rgba(99,102,241,0.18)" }}
       >
         {icon}
@@ -178,14 +182,17 @@ function Dot({ state, icon }: { state: StageState; icon: ReactNode }) {
     );
   if (state === "done")
     return (
-      <span className={`${base} text-white`} style={{ background: gradient }}>
+      <span
+        className={`${base} text-white group-hover:shadow-[0_0_0_4px_rgba(99,102,241,0.28)]`}
+        style={{ background: gradient }}
+      >
         {icon}
       </span>
     );
   // upcoming
   return (
     <span
-      className={`${base} text-indigo-300`}
+      className={`${base} text-indigo-300 group-hover:shadow-[0_0_0_4px_rgba(99,102,241,0.15)]`}
       style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.22)" }}
     >
       {icon}
@@ -412,12 +419,12 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
   // Live status line: rotate warm phrases + animated ellipsis while running.
   const activeRunning = stageStates[activeIndex] === "running";
   const phrases = ACTIVE_PHRASES[activeStage.key] ?? [activeStage.friendly];
+  const phraseIndex = activeRunning ? Math.floor(tick / 6) % phrases.length : 0;
   const liveText = allDone
     ? "All set!"
     : activeRunning
-      ? phrases[Math.floor(tick / 6) % phrases.length]
+      ? phrases[phraseIndex]
       : activeStage.friendly;
-  const dots = activeRunning ? [".", "..", "...", ""][tick % 4] : "";
 
   // Final confidence arrives as the judge step's detail (e.g. "high").
   const confidenceLevel = (detailByKey.get("judge") ?? "").toLowerCase();
@@ -449,7 +456,7 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
               onClick={() => setSelected((cur) => (cur === st.key ? null : st.key))}
               aria-label={`Show ${st.friendly} detail`}
               aria-pressed={selected === st.key}
-              className={`shrink-0 cursor-pointer rounded-full transition-all focus:outline-none ${
+              className={`group shrink-0 cursor-pointer rounded-full transition-all focus:outline-none ${
                 selected === st.key ? "ring-2 ring-indigo-400 ring-offset-2" : ""
               }`}
             >
@@ -480,6 +487,9 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
           );
         })}
       </div>
+      <p className="mt-1 text-right text-[10px] text-slate-400" aria-hidden="true">
+        Click a node for details
+      </p>
 
       {/* Click-to-reveal node detail (hidden until a node is clicked) */}
       {selStage && (
@@ -497,8 +507,37 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
         <span
           className={`text-xs font-medium ${errorIndex !== -1 ? "text-red-500" : "text-slate-700"}`}
         >
-          {liveText}
-          <span className="inline-block w-3 text-left">{dots}</span>
+          {activeRunning ? (
+            <span
+              key={`${activeStage.key}-${phraseIndex}`}
+              className="phrase-enter inline-block"
+              aria-label={liveText}
+            >
+              {liveText.split("").map((ch, i) => (
+                <span
+                  key={i}
+                  aria-hidden="true"
+                  className="phrase-letter"
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
+                  {ch === " " ? " " : ch}
+                </span>
+              ))}
+            </span>
+          ) : (
+            <span key={`${activeStage.key}-${phraseIndex}`} className="phrase-enter inline-block">
+              {liveText}
+            </span>
+          )}
+          {activeRunning && (
+            <span className="ml-0.5 inline-block" aria-hidden="true">
+              {[0, 160, 320].map((delay) => (
+                <span key={delay} className="phrase-dot" style={{ animationDelay: `${delay}ms` }}>
+                  ·
+                </span>
+              ))}
+            </span>
+          )}
           {isRetry && (
             <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-amber-600 uppercase">
               retrying

@@ -1,6 +1,10 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import type { SparqlResults } from "@/lib/sparql/virtuoso";
+import { EntityDetail } from "@/components/EntityDetail";
+import { extractQid, fetchLabels } from "@/lib/wikidata";
 
 interface ResultsTableProps {
   data: SparqlResults | null;
@@ -8,6 +12,8 @@ interface ResultsTableProps {
   error: Error | null;
   isPending: boolean;
 }
+
+type Binding = { type: string; value: string } | undefined;
 
 function ResultsShell({
   action,
@@ -19,7 +25,7 @@ function ResultsShell({
   return (
     <div className="flex flex-1 flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-widest text-slate-600">
+        <span className="text-xs font-semibold tracking-widest text-slate-600 uppercase">
           Results
         </span>
         {action}
@@ -44,7 +50,110 @@ function SkeletonRow({ cols }: { cols: number }) {
   );
 }
 
+function formatVar(v: string): string {
+  return v
+    .replace(/_/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function shortenUri(uri: string): string {
+  const frag = uri.split("#").pop();
+  if (frag && frag !== uri) return frag;
+  const seg = uri.replace(/\/+$/, "").split("/").pop();
+  return seg || uri;
+}
+
+function Cell({
+  binding,
+  labels,
+  onSelectQid,
+}: {
+  binding: Binding;
+  labels: Record<string, string>;
+  onSelectQid: (qid: string) => void;
+}) {
+  const value = binding?.value ?? "";
+  if (!value) return <span className="text-slate-300">—</span>;
+
+  if (binding?.type === "uri") {
+    const qid = extractQid(value);
+    if (qid) {
+      return (
+        <button
+          onClick={() => onSelectQid(qid)}
+          title={value}
+          className="inline-flex max-w-full cursor-pointer items-center gap-0.5 truncate text-left font-medium text-indigo-600 transition-colors hover:text-indigo-700 hover:underline"
+        >
+          <span className="truncate">{labels[qid] ?? qid}</span>
+          <span aria-hidden="true" className="shrink-0 text-indigo-300">
+            ↗
+          </span>
+        </button>
+      );
+    }
+    return (
+      <a
+        href={value}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={value}
+        className="inline-flex max-w-full items-center gap-0.5 truncate text-indigo-500 transition-colors hover:text-indigo-600 hover:underline"
+      >
+        <span className="truncate">{shortenUri(value)}</span>
+        <span aria-hidden="true" className="shrink-0 text-indigo-300">
+          ↗
+        </span>
+      </a>
+    );
+  }
+
+  return (
+    <span className="text-slate-600" title={value}>
+      {value}
+    </span>
+  );
+}
+
 export function ResultsTable({ data, isError, error, isPending }: ResultsTableProps) {
+  const [labels, setLabels] = useState<Record<string, string>>({});
+  const [selectedQid, setSelectedQid] = useState<string | null>(null);
+  const [prevData, setPrevData] = useState(data);
+
+  // Reset the open detail tab when a new result set arrives (render-time pattern).
+  if (data !== prevData) {
+    setPrevData(data);
+    setSelectedQid(null);
+  }
+
+  // Collect every Wikidata QID across all cells of the current result set.
+  const qids = useMemo(() => {
+    if (!data) return [] as string[];
+    const set = new Set<string>();
+    for (const row of data.results.bindings) {
+      for (const v of Object.values(row)) {
+        if (v?.type === "uri") {
+          const q = extractQid(v.value);
+          if (q) set.add(q);
+        }
+      }
+    }
+    return [...set];
+  }, [data]);
+
+  // Prefetch their labels once per result set (labels are keyed by QID, so
+  // entries left from a prior query are harmless and simply ignored).
+  useEffect(() => {
+    if (qids.length === 0) return;
+    let active = true;
+    fetchLabels(qids)
+      .then((m) => active && setLabels(m))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [qids]);
+
   if (isPending) {
     return (
       <ResultsShell
@@ -179,55 +288,61 @@ export function ResultsTable({ data, isError, error, isPending }: ResultsTablePr
       }
     >
       <div
-        className="flex-1 overflow-auto rounded-xl"
+        className="relative flex-1 overflow-hidden rounded-xl"
         style={{ border: "1px solid rgba(99,102,241,0.12)" }}
       >
-        <table className="w-full text-left text-sm">
-          <thead
-            className="sticky top-0"
-            style={{ background: "rgba(238,240,255,0.9)", backdropFilter: "blur(12px)" }}
-          >
-            <tr>
-              {vars.map((v) => (
-                <th
-                  key={v}
-                  className="whitespace-nowrap px-4 py-2.5 font-mono text-xs font-semibold text-indigo-500"
-                >
-                  ?{v}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {bindings.map((row, i) => (
-              <tr
-                key={i}
-                className="transition-colors"
-                style={{ borderTop: "1px solid rgba(99,102,241,0.07)" }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLTableRowElement).style.background =
-                    "rgba(99,102,241,0.04)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLTableRowElement).style.background = "";
-                }}
-              >
-                {vars.map((v) => {
-                  const val = row[v]?.value ?? "";
-                  return (
-                    <td
-                      key={v}
-                      className="max-w-xs truncate px-4 py-2.5 text-slate-600"
-                      title={val}
-                    >
-                      {val}
-                    </td>
-                  );
-                })}
+        <div className="h-full overflow-auto">
+          <table className="w-full text-left text-sm">
+            <thead
+              className="sticky top-0 z-[1]"
+              style={{ background: "rgba(238,240,255,0.9)", backdropFilter: "blur(12px)" }}
+            >
+              <tr>
+                {vars.map((v) => (
+                  <th
+                    key={v}
+                    className="px-4 py-2.5 text-xs font-semibold whitespace-nowrap text-indigo-500"
+                  >
+                    {formatVar(v)}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {bindings.map((row, i) => {
+                const base = i % 2 === 1 ? "rgba(99,102,241,0.025)" : "transparent";
+                return (
+                  <tr
+                    key={i}
+                    style={{ borderTop: "1px solid rgba(99,102,241,0.07)", background: base }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(99,102,241,0.06)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = base;
+                    }}
+                  >
+                    {vars.map((v) => (
+                      <td key={v} className="max-w-xs truncate px-4 py-2.5">
+                        <Cell binding={row[v]} labels={labels} onSelectQid={setSelectedQid} />
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {selectedQid &&
+          createPortal(
+            <EntityDetail
+              key={selectedQid}
+              qid={selectedQid}
+              onClose={() => setSelectedQid(null)}
+            />,
+            document.body,
+          )}
       </div>
     </ResultsShell>
   );
