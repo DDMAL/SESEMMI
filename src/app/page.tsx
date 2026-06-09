@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { NLInput } from "@/components/NLInput";
+import { ConversationPanel } from "@/components/ConversationPanel";
 import { SparqlEditor } from "@/components/SparqlEditor";
 import { ResultsTable } from "@/components/ResultsTable";
-import { useTranslate } from "@/hooks/useTranslate";
+import { useClarifyFlow } from "@/hooks/useClarifyFlow";
 import { useExecuteSparql } from "@/hooks/useExecuteSparql";
 
 const glassPanel = {
@@ -16,14 +16,8 @@ const glassPanel = {
 
 export default function Home() {
   const [sparql, setSparql] = useState("");
-  const translate = useTranslate();
+  const flow = useClarifyFlow({ onSparql: setSparql });
   const execute = useExecuteSparql();
-
-  const handleTranslate = (query: string) => {
-    translate.mutate(query, {
-      onSuccess: (data) => setSparql(data.sparql),
-    });
-  };
 
   const handleExecute = () => {
     if (sparql.trim()) {
@@ -31,7 +25,7 @@ export default function Home() {
     }
   };
 
-  const isRunning = execute.isPending || translate.isPending;
+  const isRunning = execute.isPending || flow.isPending;
 
   return (
     <div
@@ -107,16 +101,10 @@ export default function Home() {
 
       {/* Main content */}
       <main className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
-        {/* NL Input glass panel */}
+        {/* Conversation glass panel */}
         <section className="rounded-2xl p-5" style={glassPanel}>
-          <NLInput
-            onTranslate={handleTranslate}
-            isPending={translate.isPending}
-            steps={translate.steps}
-          />
-          {translate.isError && (
-            <p className="mt-2 text-xs text-red-500">{translate.error?.message}</p>
-          )}
+          <ConversationPanel flow={flow} />
+          {flow.error && <p className="mt-2 text-xs text-red-500">{flow.error.message}</p>}
         </section>
 
         {/* SPARQL Editor glass panel */}

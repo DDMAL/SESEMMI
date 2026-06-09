@@ -5,7 +5,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
 from app.graph.state import GraphState
-from app.graph.model import get_chat_model
+from app.graph.model import get_structured_model
 from app.graph.schema_corpus import VALID_DB_NAMES
 
 logger = logging.getLogger(__name__)
@@ -157,8 +157,7 @@ def _build_repair_block(state: GraphState) -> str:
 
 
 async def intake_node(state: GraphState) -> dict:
-    model = get_chat_model()
-    structured = model.with_structured_output(IntakeClassification)
+    structured = get_structured_model(IntakeClassification)
     system = _SYSTEM_PROMPT.format(db_list=_DB_LIST)
     user = f"<query>\n{state['user_query']}\n</query>" + _build_repair_block(state)
     try:

@@ -76,10 +76,8 @@ async def test_intake_single_graph():
     )
     mock_chain = AsyncMock()
     mock_chain.ainvoke.return_value = classification
-    mock_model = MagicMock()
-    mock_model.with_structured_output.return_value = mock_chain
 
-    with patch("app.graph.nodes.intake.get_chat_model", return_value=mock_model):
+    with patch("app.graph.nodes.intake.get_structured_model", return_value=mock_chain):
         result = await intake_node({"user_query": "Find DIAMM manuscripts from 1400"})
 
     assert result["intents"] == ["lookup"]
@@ -97,10 +95,8 @@ async def test_intake_cross_graph():
     )
     mock_chain = AsyncMock()
     mock_chain.ainvoke.return_value = classification
-    mock_model = MagicMock()
-    mock_model.with_structured_output.return_value = mock_chain
 
-    with patch("app.graph.nodes.intake.get_chat_model", return_value=mock_model):
+    with patch("app.graph.nodes.intake.get_structured_model", return_value=mock_chain):
         result = await intake_node(
             {"user_query": "Compare DIAMM composers with MusicBrainz artists"}
         )
@@ -550,20 +546,18 @@ _JUDGE_STATE = {
 
 
 def _mock_judge_llm(satisfied: bool, reason: str = "test reason"):
-    """Return (mock_chat_cls_instance, mock_judge_chain) for patching in answer_node."""
+    """Return the mock structured chain (what get_structured_model returns) for answer_node."""
     verdict = MagicMock()
     verdict.satisfied = satisfied
     verdict.reason = reason
     mock_judge_chain = AsyncMock()
     mock_judge_chain.ainvoke.return_value = verdict
-    mock_chat = MagicMock()
-    mock_chat.with_structured_output.return_value = mock_judge_chain
-    return mock_chat, mock_judge_chain
+    return mock_judge_chain
 
 
 async def test_answer_judge_satisfied():
     """Judge satisfied=True → confidence=high, judge_feedback cleared."""
-    mock_chat, _ = _mock_judge_llm(satisfied=True)
+    mock_chain = _mock_judge_llm(satisfied=True)
     state = {**_JUDGE_STATE, "repair_count": 0}
 
     with patch("app.graph.nodes.judge.settings") as mock_settings:
@@ -571,7 +565,9 @@ async def test_answer_judge_satisfied():
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
-        with patch("app.graph.nodes.judge.get_chat_model", return_value=mock_chat):
+        with patch(
+            "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
+        ):
             result = await answer_node(state)
 
     assert result["confidence"] == "high"
@@ -580,7 +576,7 @@ async def test_answer_judge_satisfied():
 
 async def test_answer_judge_unsatisfied_repairs_left():
     """Judge unsatisfied + repairs remaining → judge_feedback set to trigger re-generation."""
-    mock_chat, _ = _mock_judge_llm(satisfied=False, reason="Missing time filter")
+    mock_chain = _mock_judge_llm(satisfied=False, reason="Missing time filter")
     state = {**_JUDGE_STATE, "repair_count": 0, "max_repairs": 3}
 
     with patch("app.graph.nodes.judge.settings") as mock_settings:
@@ -588,7 +584,9 @@ async def test_answer_judge_unsatisfied_repairs_left():
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
-        with patch("app.graph.nodes.judge.get_chat_model", return_value=mock_chat):
+        with patch(
+            "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
+        ):
             result = await answer_node(state)
 
     assert result["judge_feedback"] == "Missing time filter"
@@ -596,7 +594,7 @@ async def test_answer_judge_unsatisfied_repairs_left():
 
 async def test_answer_judge_unsatisfied_exhausted():
     """Judge unsatisfied + repairs exhausted → confidence=low, reason in assumptions."""
-    mock_chat, _ = _mock_judge_llm(satisfied=False, reason="Still wrong")
+    mock_chain = _mock_judge_llm(satisfied=False, reason="Still wrong")
     state = {**_JUDGE_STATE, "repair_count": 3, "max_repairs": 3}
 
     with patch("app.graph.nodes.judge.settings") as mock_settings:
@@ -604,7 +602,9 @@ async def test_answer_judge_unsatisfied_exhausted():
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
-        with patch("app.graph.nodes.judge.get_chat_model", return_value=mock_chat):
+        with patch(
+            "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
+        ):
             result = await answer_node(state)
 
     assert result["confidence"] == "low"

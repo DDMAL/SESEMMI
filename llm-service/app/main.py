@@ -30,6 +30,7 @@ from pydantic import BaseModel, Field
 
 from app.config import settings
 from app.graph.builder import build_graph, run_graph
+from app.graph.clarify import ClarifyResult, clarify_query
 
 
 @asynccontextmanager
@@ -71,6 +72,23 @@ async def translate(req: TranslateRequest):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class ClarifyTurn(BaseModel):
+    question: str
+    answer: str
+
+
+class ClarifyRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=2000)
+    history: list[ClarifyTurn] = Field(default_factory=list)
+
+
+@app.post("/clarify", response_model=ClarifyResult)
+async def clarify(req: ClarifyRequest):
+    if not settings.clarification_enabled:
+        return ClarifyResult(ready=True, questions=[], enriched_query=req.query)
+    return await clarify_query(req.query, [t.model_dump() for t in req.history])
 
 
 _STEP_LABELS = {

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from app.config import settings
 from app.graph.examples import FEW_SHOT_EXAMPLES
-from app.graph.model import get_chat_model
+from app.graph.model import get_structured_model
 from app.graph.schema_corpus import INSTRUCTION_CHUNKS, ONTOLOGY_CHUNKS
 from app.graph.state import GraphState
 from app.graph.tools.graph_traverse import Node, Edge, Graph
@@ -158,7 +158,7 @@ async def _get_needed_ontologies(
         if db in ONTOLOGY_CHUNKS
     }
 
-    model = get_chat_model().with_structured_output(_NeededNodes)
+    model = get_structured_model(_NeededNodes)
 
     async def _query_db(db: str, node_names: list[str]) -> list[str]:
         system = get_sub_nodes_prompt.format(node_names=", ".join(node_names))

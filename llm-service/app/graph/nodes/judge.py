@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from app.config import settings
 from app.graph.state import GraphState
-from app.graph.model import get_chat_model
+from app.graph.model import get_structured_model
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ async def judge_node(state: GraphState) -> dict:
         bindings = state["results"].get("results", {}).get("bindings", [])
         sample = bindings[:5]
 
-        judge_model = get_chat_model().with_structured_output(_JudgeVerdict)
+        judge_model = get_structured_model(_JudgeVerdict)
 
         judge_user = _JUDGE_USER_TEMPLATE.format(
             user_query=state["user_query"],

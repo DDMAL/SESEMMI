@@ -72,12 +72,10 @@ _DIAMM_AGGREGATION = IntakeClassification(
 
 
 def _intake_mock(classification: IntakeClassification):
-    """get_chat_model mock for intake_node (uses with_structured_output)."""
+    """get_structured_model mock for intake_node (returns the structured chain)."""
     chain = AsyncMock()
     chain.ainvoke.return_value = classification
-    model = MagicMock()
-    model.with_structured_output.return_value = chain
-    return model
+    return chain
 
 
 def _generate_mock(*sparql_responses: str):
@@ -109,9 +107,7 @@ def _judge_mock(*verdicts: tuple[bool, str]):
         verdict_objects.append(v)
     chain = AsyncMock()
     chain.ainvoke.side_effect = verdict_objects
-    chat = MagicMock()
-    chat.with_structured_output.return_value = chain
-    return chat
+    return chain
 
 
 def _answer_settings(*, semantic_judge_enabled: bool = False):
@@ -136,7 +132,7 @@ async def test_happy_path():
     """
     with (
         patch(
-            "app.graph.nodes.intake.get_chat_model",
+            "app.graph.nodes.intake.get_structured_model",
             return_value=_intake_mock(_DIAMM_LOOKUP),
         ),
         patch(
@@ -177,7 +173,7 @@ async def test_repair_loop_invalid_then_valid():
     """
     with (
         patch(
-            "app.graph.nodes.intake.get_chat_model",
+            "app.graph.nodes.intake.get_structured_model",
             return_value=_intake_mock(_DIAMM_LOOKUP),
         ),
         patch(
@@ -215,7 +211,7 @@ async def test_max_repairs_exceeded():
     """
     with (
         patch(
-            "app.graph.nodes.intake.get_chat_model",
+            "app.graph.nodes.intake.get_structured_model",
             return_value=_intake_mock(_DIAMM_LOOKUP),
         ),
         patch(
@@ -243,7 +239,7 @@ async def test_execution_error_triggers_repair():
     """
     with (
         patch(
-            "app.graph.nodes.intake.get_chat_model",
+            "app.graph.nodes.intake.get_structured_model",
             return_value=_intake_mock(_DIAMM_LOOKUP),
         ),
         patch(
@@ -281,7 +277,7 @@ async def test_structural_intent_check_triggers_repair():
     """
     with (
         patch(
-            "app.graph.nodes.intake.get_chat_model",
+            "app.graph.nodes.intake.get_structured_model",
             return_value=_intake_mock(_DIAMM_AGGREGATION),
         ),
         patch(
@@ -322,7 +318,7 @@ async def test_semantic_judge_triggers_repair_then_satisfied():
     """
     with (
         patch(
-            "app.graph.nodes.intake.get_chat_model",
+            "app.graph.nodes.intake.get_structured_model",
             return_value=_intake_mock(_DIAMM_LOOKUP),
         ),
         patch(
@@ -330,7 +326,7 @@ async def test_semantic_judge_triggers_repair_then_satisfied():
             return_value=_generate_mock(_VALID_SPARQL, _VALID_SPARQL),
         ),
         patch(
-            "app.graph.nodes.judge.get_chat_model",
+            "app.graph.nodes.judge.get_structured_model",
             return_value=_judge_mock(
                 (False, "Results don't cover the requested date range"),
                 (True, "Results now correctly cover the date range"),

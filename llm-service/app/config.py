@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     wikidata_mcp_url: str = "https://wd-mcp.wmcloud.org/mcp/"
     max_repair_iterations: int = 3
     semantic_judge_enabled: bool = True
+
+    # Conversational clarification (pre-translation disambiguation)
+    clarification_enabled: bool = True
+    clarification_max_questions: int = 3  # max follow-up questions per round
+    clarification_max_rounds: int = 3  # safety cap; enforced by the frontend
+
     langsmith_api_key: str | None = None
     langsmith_project: str = "sesemmi-agent"
     langsmith_tracing: bool = False
