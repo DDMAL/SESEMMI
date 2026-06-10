@@ -29,8 +29,11 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.config import settings
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+
 from app.graph.builder import build_graph, run_graph
 from app.graph.clarify import ClarifyResult, clarify_query
+from app.graph.model import get_chat_model
 
 
 @asynccontextmanager
@@ -89,6 +92,79 @@ async def clarify(req: ClarifyRequest):
     if not settings.clarification_enabled:
         return ClarifyResult(ready=True, questions=[], enriched_query=req.query)
     return await clarify_query(req.query, [t.model_dump() for t in req.history])
+
+
+class ExplainRequest(BaseModel):
+    sparql: str = Field(min_length=1, max_length=5000)
+
+
+class ExplainResponse(BaseModel):
+    explanation: str
+
+
+_EXPLAIN_SYSTEM = (
+    "You are an expert in SPARQL and linked music databases (RISM, MusicBrainz, Cantus, DIAMM, etc.).\n"
+    "Explain the SPARQL query below in 2–4 plain-English sentences for a non-technical musicologist.\n"
+    "Describe what data it retrieves and what conditions or filters it applies.\n"
+    "Do not mention SPARQL keywords, syntax, or variable names — describe the intent only.\n"
+    "Be as brief and concise as possible."
+)
+
+
+@app.post("/explain", response_model=ExplainResponse)
+async def explain(req: ExplainRequest):
+    try:
+        model = get_chat_model()
+        response = await model.ainvoke(
+            [
+                SystemMessage(content=_EXPLAIN_SYSTEM),
+                HumanMessage(content=f"Explain this SPARQL query:\n\n{req.sparql}"),
+            ]
+        )
+        return ExplainResponse(explanation=str(response.content).strip())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class ExplainChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ExplainChatRequest(BaseModel):
+    sparql: str = Field(min_length=1, max_length=5000)
+    messages: list[ExplainChatMessage] = Field(default_factory=list, max_length=40)
+
+
+class ExplainChatResponse(BaseModel):
+    reply: str
+
+
+_EXPLAIN_CHAT_SYSTEM = (
+    "You are an expert in SPARQL and linked music databases (RISM, MusicBrainz, Cantus, DIAMM, etc.).\n"
+    "The user is exploring a SPARQL query. Answer follow-up questions concisely in 1-3 sentences.\n"
+    "Describe intent in plain English — avoid SPARQL syntax in your answers.\n"
+    "If the user requests a change, describe what would be different in the new query.\n"
+    "Be as brief and concise as possible."
+)
+
+
+@app.post("/explain/chat", response_model=ExplainChatResponse)
+async def explain_chat(req: ExplainChatRequest):
+    try:
+        model = get_chat_model()
+        context = HumanMessage(
+            content=f"Here is the SPARQL query we are discussing:\n\n{req.sparql}"
+        )
+        history: list[HumanMessage | AIMessage] = [
+            HumanMessage(content=msg.content) if msg.role == "user" else AIMessage(content=msg.content)
+            for msg in req.messages
+        ]
+        lc_messages = [SystemMessage(content=_EXPLAIN_CHAT_SYSTEM), context, *history]
+        response = await model.ainvoke(lc_messages)
+        return ExplainChatResponse(reply=str(response.content).strip())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 _STEP_LABELS = {

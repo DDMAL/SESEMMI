@@ -59,6 +59,82 @@ export async function clarifyQuery(
   throw lastError!;
 }
 
+export interface ExplainResult {
+  explanation: string;
+}
+
+export async function explainSparql(sparql: string): Promise<ExplainResult> {
+  const maxAttempts = 3;
+  let lastError: Error | undefined;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch(`${env.LLM_SERVICE_URL}/explain`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sparql }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ detail: "LLM service error" }));
+        throw new Error(error.detail || `LLM service returned ${res.status}`);
+      }
+
+      const data = await res.json();
+      return { explanation: data.explanation };
+    } catch (err) {
+      lastError = err as Error;
+      if (attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 500 * attempt));
+      }
+    }
+  }
+
+  throw lastError!;
+}
+
+export interface ExplainChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ExplainChatResult {
+  reply: string;
+}
+
+export async function explainChat(
+  sparql: string,
+  messages: ExplainChatMessage[],
+): Promise<ExplainChatResult> {
+  const maxAttempts = 3;
+  let lastError: Error | undefined;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch(`${env.LLM_SERVICE_URL}/explain/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sparql, messages }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ detail: "LLM service error" }));
+        throw new Error(error.detail || `LLM service returned ${res.status}`);
+      }
+
+      const data = await res.json();
+      return { reply: data.reply };
+    } catch (err) {
+      lastError = err as Error;
+      if (attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 500 * attempt));
+      }
+    }
+  }
+
+  throw lastError!;
+}
+
 export async function translateToSparql(userQuery: string): Promise<TranslateResult> {
   const maxAttempts = 3;
   let lastError: Error | undefined;

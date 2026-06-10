@@ -16,6 +16,7 @@ export interface ChatMessage {
   kind: "query" | "question" | "answer" | "info" | "approval";
   text: string;
   options?: string[];
+  refinements?: string[];
 }
 
 export interface ClarifyFlow {
@@ -42,6 +43,8 @@ export interface ClarifyFlow {
   generateNow: () => void;
   /** Clear the conversation and start over. */
   reset: () => void;
+  /** Clear and immediately start a new query — used by SPARQL refinement from the chat. */
+  restart: (query: string, refinements?: string[]) => void;
 }
 
 export function useClarifyFlow(opts: { onSparql: (sparql: string) => void }): ClarifyFlow {
@@ -210,6 +213,29 @@ export function useClarifyFlow(opts: { onSparql: (sparql: string) => void }): Cl
     questionIndex.current = 0;
   }, []);
 
+  const restart = useCallback(
+    (query: string, refinements?: string[]) => {
+      const enriched =
+        refinements && refinements.length > 0
+          ? `${query}\n\nAdditional requirements:\n${refinements.map((r) => `- ${r}`).join("\n")}`
+          : query;
+      setAwaitingAnswer(false);
+      setAwaitingFeedback(false);
+      originalQuery.current = enriched;
+      fallbackQuery.current = enriched;
+      history.current = [];
+      round.current = 0;
+      pendingQuestions.current = [];
+      questionIndex.current = 0;
+      setMessages([
+        { role: "user", kind: "query", text: query, refinements, id: idCounter.current++ },
+      ]);
+      setPhase("clarifying");
+      void runClarify();
+    },
+    [runClarify],
+  );
+
   return {
     messages,
     phase,
@@ -225,5 +251,6 @@ export function useClarifyFlow(opts: { onSparql: (sparql: string) => void }): Cl
     reject,
     generateNow,
     reset,
+    restart,
   };
 }

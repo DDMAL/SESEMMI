@@ -7,6 +7,7 @@ import type { ChatMessage, ClarifyFlow } from "@/hooks/useClarifyFlow";
 
 interface ConversationPanelProps {
   flow: ClarifyFlow;
+  highlight?: boolean;
 }
 
 function Bubble({
@@ -24,6 +25,7 @@ function Bubble({
   onApprove?: () => void;
   onAdjust?: () => void;
 }) {
+  const [refinementsOpen, setRefinementsOpen] = useState(false);
   const isUser = message.role === "user";
 
   if (message.kind === "info") {
@@ -91,6 +93,30 @@ function Bubble({
         }
       >
         {message.text}
+        {message.kind === "query" && message.refinements && message.refinements.length > 0 && (
+          <div className="mt-2 border-t border-white/20 pt-1.5">
+            <button
+              onClick={() => setRefinementsOpen((v) => !v)}
+              className="flex cursor-pointer items-center gap-1 text-[10px] text-indigo-200 transition-colors hover:text-white"
+            >
+              <span>{refinementsOpen ? "▾" : "▸"}</span>
+              <span>
+                {message.refinements.length} refinement
+                {message.refinements.length !== 1 ? "s" : ""}
+              </span>
+            </button>
+            {refinementsOpen && (
+              <ul className="mt-1.5 space-y-0.5">
+                {message.refinements.map((r, i) => (
+                  <li key={i} className="flex items-start gap-1 text-[10px] text-indigo-100">
+                    <span className="shrink-0 text-indigo-300">•</span>
+                    <span>{r}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
       {showChips && message.options && message.options.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
@@ -113,7 +139,7 @@ function Bubble({
   );
 }
 
-export function ConversationPanel({ flow }: ConversationPanelProps) {
+export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
   const [text, setText] = useState("");
   const { messages, phase, isPending, awaitingAnswer, awaitingFeedback, steps } = flow;
 
@@ -213,7 +239,7 @@ export function ConversationPanel({ flow }: ConversationPanelProps) {
                   ? "Type your answer, or pick an option above…"
                   : "Find the birth place of the composer with the most compositions in RISM"
             }
-            className="w-full rounded-xl py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-50"
+            className={`w-full rounded-xl py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-50${highlight ? " nl-shine" : ""}`}
             style={{
               background: "rgba(255,255,255,0.7)",
               border: "1px solid rgba(99,102,241,0.2)",

@@ -1,33 +1,22 @@
-/**
- * Lightweight SPARQL syntax validator — no external dependencies.
- * Safe to import from both "use client" components and server routes.
- *
- * Catches the most common LLM output mistakes (wrong query form,
- * missing WHERE, unbalanced braces) without a full parser.
- * Virtuoso will catch any remaining syntax errors with its own messages.
- */
+import { Parser } from "sparqljs";
+
 export function validateSparql(sparql: string): { valid: boolean; error?: string } {
-  const trimmed = sparql.trim();
+  if (!sparql.trim()) return { valid: false, error: "Query is empty" };
 
-  if (!trimmed) return { valid: false, error: "Query is empty" };
-
-  if (!/\b(SELECT|CONSTRUCT|ASK|DESCRIBE)\b/i.test(trimmed)) {
-    return { valid: false, error: "Query must contain SELECT, CONSTRUCT, ASK, or DESCRIBE" };
+  try {
+    new Parser().parse(sparql);
+    return { valid: true };
+  } catch (err) {
+    return { valid: false, error: formatSparqlError(err) };
   }
+}
 
-  const isDescribe = /^\s*(PREFIX[\s\S]*?)?\s*DESCRIBE\b/i.test(trimmed);
-  if (!isDescribe && !/\bWHERE\b/i.test(trimmed)) {
-    return { valid: false, error: "Missing WHERE clause" };
-  }
-
-  const opens = (trimmed.match(/{/g) ?? []).length;
-  const closes = (trimmed.match(/}/g) ?? []).length;
-  if (opens !== closes) {
-    return {
-      valid: false,
-      error: `Unbalanced braces (${opens} opening, ${closes} closing)`,
-    };
-  }
-
-  return { valid: true };
+export function formatSparqlError(err: unknown): string {
+  const raw = err instanceof Error ? err.message : "Invalid SPARQL";
+  // peggy (sparqljs's parser generator) formats errors as:
+  //   "Parse error on line N:\n...<context>...\n--^--\nExpected X but Y found."
+  const lineMatch = /Parse error on line (\d+)/.exec(raw);
+  const lines = raw.split("\n");
+  const detail = lines.find((l) => /^Expected|^Unexpected/.test(l.trim())) ?? lines[0];
+  return lineMatch ? `Line ${lineMatch[1]}: ${detail.trim()}` : detail.trim();
 }

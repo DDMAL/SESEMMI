@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ConversationPanel } from "@/components/ConversationPanel";
 import { SparqlEditor } from "@/components/SparqlEditor";
 import { ResultsTable } from "@/components/ResultsTable";
@@ -18,6 +18,14 @@ export default function Home() {
   const [sparql, setSparql] = useState("");
   const flow = useClarifyFlow({ onSparql: setSparql });
   const execute = useExecuteSparql();
+  const conversationRef = useRef<HTMLElement>(null);
+  const [highlightNL, setHighlightNL] = useState(false);
+
+  useEffect(() => {
+    if (!highlightNL) return;
+    const t = setTimeout(() => setHighlightNL(false), 1500);
+    return () => clearTimeout(t);
+  }, [highlightNL]);
 
   const handleExecute = () => {
     if (sparql.trim()) {
@@ -102,8 +110,8 @@ export default function Home() {
       {/* Main content */}
       <main className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 lg:p-6">
         {/* Conversation glass panel */}
-        <section className="rounded-2xl p-5" style={glassPanel}>
-          <ConversationPanel flow={flow} />
+        <section ref={conversationRef} className="rounded-2xl p-5" style={glassPanel}>
+          <ConversationPanel flow={flow} highlight={highlightNL} />
           {flow.error && <p className="mt-2 text-xs text-red-500">{flow.error.message}</p>}
         </section>
 
@@ -114,6 +122,12 @@ export default function Home() {
             onChange={setSparql}
             onExecute={handleExecute}
             isPending={execute.isPending}
+            originalQuery={flow.messages.find((m) => m.kind === "query")?.text}
+            onRefine={(query, refinements) => {
+              conversationRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              setHighlightNL(true);
+              flow.restart(query, refinements);
+            }}
           />
         </section>
 
