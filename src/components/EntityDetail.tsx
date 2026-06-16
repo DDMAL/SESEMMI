@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/Spinner";
 import { fetchEntity, type EntityDetail as Entity } from "@/lib/wikidata";
+import { useI18n } from "@/lib/i18n/context";
 
 interface EntityDetailProps {
   qid: string;
@@ -10,6 +11,7 @@ interface EntityDetailProps {
 }
 
 export function EntityDetail({ qid, onClose }: EntityDetailProps) {
+  const { t } = useI18n();
   const [entity, setEntity] = useState<Entity | null>(null);
   const [error, setError] = useState(false);
 
@@ -54,7 +56,7 @@ export function EntityDetail({ qid, onClose }: EntityDetailProps) {
         <div className="flex justify-end">
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("entity.close")}
             className="cursor-pointer rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
           >
             ✕
@@ -64,14 +66,12 @@ export function EntityDetail({ qid, onClose }: EntityDetailProps) {
         {!entity && !error && (
           <div className="flex items-center justify-center gap-2 py-6 text-sm text-slate-400">
             <Spinner className="h-4 w-4 text-indigo-400" />
-            Looking up…
+            {t("entity.loading")}
           </div>
         )}
 
         {error && (
-          <p className="py-4 text-center text-sm text-red-500">
-            Couldn&apos;t load details for {qid}.
-          </p>
+          <p className="py-4 text-center text-sm text-red-500">{t("entity.loadError", { qid })}</p>
         )}
 
         {entity && (
@@ -105,7 +105,7 @@ export function EntityDetail({ qid, onClose }: EntityDetailProps) {
               className="inline-flex items-center gap-1.5 self-start rounded-lg px-3 py-2 text-sm font-medium text-indigo-600 transition-colors hover:bg-indigo-50 hover:text-indigo-700"
               style={{ border: "1px solid rgba(99,102,241,0.2)" }}
             >
-              Open in Wikidata
+              {t("entity.openWikidata")}
               <span aria-hidden="true">↗</span>
             </a>
           </>

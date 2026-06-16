@@ -47,7 +47,10 @@ export interface ClarifyFlow {
   restart: (query: string, refinements?: string[]) => void;
 }
 
-export function useClarifyFlow(opts: { onSparql: (sparql: string) => void }): ClarifyFlow {
+export function useClarifyFlow(opts: {
+  onSparql: (sparql: string) => void;
+  onStart?: () => void;
+}): ClarifyFlow {
   const clarify = useClarify();
   const translate = useTranslate();
 
@@ -68,6 +71,10 @@ export function useClarifyFlow(opts: { onSparql: (sparql: string) => void }): Cl
   useEffect(() => {
     onSparql.current = opts.onSparql;
   }, [opts.onSparql]);
+  const onStart = useRef(opts.onStart);
+  useEffect(() => {
+    onStart.current = opts.onStart;
+  }, [opts.onStart]);
 
   const push = useCallback((msg: Omit<ChatMessage, "id">) => {
     setMessages((prev) => [...prev, { ...msg, id: idCounter.current++ }]);
@@ -124,6 +131,7 @@ export function useClarifyFlow(opts: { onSparql: (sparql: string) => void }): Cl
 
   const start = useCallback(
     (query: string) => {
+      onStart.current?.();
       originalQuery.current = query;
       fallbackQuery.current = query;
       history.current = [];

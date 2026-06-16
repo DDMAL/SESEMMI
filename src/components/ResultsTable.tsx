@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import type { SparqlResults } from "@/lib/sparql/virtuoso";
 import { EntityDetail } from "@/components/EntityDetail";
 import { extractQid, fetchLabels } from "@/lib/wikidata";
+import { useI18n } from "@/lib/i18n/context";
 
 interface ResultsTableProps {
   data: SparqlResults | null;
@@ -22,11 +23,12 @@ function ResultsShell({
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-1 flex-col gap-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold tracking-widest text-slate-600 uppercase">
-          Results
+          {t("results.title")}
         </span>
         {action}
       </div>
@@ -116,6 +118,7 @@ function Cell({
 }
 
 export function ResultsTable({ data, isError, error, isPending }: ResultsTableProps) {
+  const { t } = useI18n();
   const [labels, setLabels] = useState<Record<string, string>>({});
   const [selectedQid, setSelectedQid] = useState<string | null>(null);
   const [prevData, setPrevData] = useState(data);
@@ -214,7 +217,7 @@ export function ResultsTable({ data, isError, error, isPending }: ResultsTablePr
             />
           </svg>
           <div>
-            <p className="font-medium text-red-700">Query failed</p>
+            <p className="font-medium text-red-700">{t("results.queryFailed")}</p>
             <p className="mt-0.5 text-red-500">{error.message}</p>
           </div>
         </div>
@@ -240,7 +243,7 @@ export function ResultsTable({ data, isError, error, isPending }: ResultsTablePr
               d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z"
             />
           </svg>
-          <p className="text-sm text-slate-400">Run a query to explore music metadata</p>
+          <p className="text-sm text-slate-400">{t("results.emptyState")}</p>
         </div>
       </ResultsShell>
     );
@@ -270,7 +273,7 @@ export function ResultsTable({ data, isError, error, isPending }: ResultsTablePr
               d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
             />
           </svg>
-          Query returned 0 results
+          {t("results.noResults")}
         </div>
       </ResultsShell>
     );
@@ -283,7 +286,9 @@ export function ResultsTable({ data, isError, error, isPending }: ResultsTablePr
           className="rounded-full px-2.5 py-0.5 text-xs font-medium text-indigo-600"
           style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)" }}
         >
-          {bindings.length} {bindings.length === 1 ? "row" : "rows"}
+          {t(bindings.length === 1 ? "results.rows_one" : "results.rows_other", {
+            count: bindings.length,
+          })}
         </span>
       }
     >

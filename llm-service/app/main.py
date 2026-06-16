@@ -138,6 +138,7 @@ class ExplainChatRequest(BaseModel):
 
 class ExplainChatResponse(BaseModel):
     reply: str
+    intent: str = ""
 
 
 _EXPLAIN_CHAT_SYSTEM = (
@@ -145,7 +146,10 @@ _EXPLAIN_CHAT_SYSTEM = (
     "The user is exploring a SPARQL query. Answer follow-up questions concisely in 1-3 sentences.\n"
     "Describe intent in plain English — avoid SPARQL syntax in your answers.\n"
     "If the user requests a change, describe what would be different in the new query.\n"
-    "Be as brief and concise as possible."
+    "Be as brief and concise as possible.\n"
+    "End your response with a line 'INTENT: <phrase>' where <phrase> is a 2-5 word imperative "
+    "summary of what the user asked for (e.g. 'search all databases', 'include death dates', "
+    "'limit to baroque period')."
 )
 
 
@@ -162,7 +166,13 @@ async def explain_chat(req: ExplainChatRequest):
         ]
         lc_messages = [SystemMessage(content=_EXPLAIN_CHAT_SYSTEM), context, *history]
         response = await model.ainvoke(lc_messages)
-        return ExplainChatResponse(reply=str(response.content).strip())
+        raw = str(response.content).strip()
+        intent = ""
+        if "\nINTENT:" in raw:
+            parts = raw.rsplit("\nINTENT:", 1)
+            raw = parts[0].strip()
+            intent = parts[1].strip()
+        return ExplainChatResponse(reply=raw, intent=intent)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

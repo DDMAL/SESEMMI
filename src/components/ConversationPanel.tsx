@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Spinner } from "@/components/Spinner";
 import { StepsPanel } from "@/components/StepsPanel";
+import { useI18n } from "@/lib/i18n/context";
 import type { ChatMessage, ClarifyFlow } from "@/hooks/useClarifyFlow";
 
 interface ConversationPanelProps {
@@ -25,6 +26,7 @@ function Bubble({
   onApprove?: () => void;
   onAdjust?: () => void;
 }) {
+  const { t } = useI18n();
   const [refinementsOpen, setRefinementsOpen] = useState(false);
   const isUser = message.role === "user";
 
@@ -44,7 +46,7 @@ function Bubble({
           }}
         >
           <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-widest text-indigo-400">
-            Refined query
+            {t("conversation.refinedQuery")}
           </p>
           <p className="mb-2.5 text-slate-600">&ldquo;{message.text}&rdquo;</p>
           {showActions && (
@@ -54,7 +56,7 @@ function Bubble({
                 className="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium text-white transition-all hover:brightness-110"
                 style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)" }}
               >
-                ✓ Yes, search for this
+                {t("conversation.approveYes")}
               </button>
               <button
                 onClick={onAdjust}
@@ -64,7 +66,7 @@ function Bubble({
                   border: "1px solid rgba(99,102,241,0.3)",
                 }}
               >
-                Needs adjustment
+                {t("conversation.needsAdjustment")}
               </button>
             </div>
           )}
@@ -101,8 +103,12 @@ function Bubble({
             >
               <span>{refinementsOpen ? "▾" : "▸"}</span>
               <span>
-                {message.refinements.length} refinement
-                {message.refinements.length !== 1 ? "s" : ""}
+                {t(
+                  message.refinements.length === 1
+                    ? "conversation.refinements_one"
+                    : "conversation.refinements_other",
+                  { count: message.refinements.length },
+                )}
               </span>
             </button>
             {refinementsOpen && (
@@ -140,6 +146,7 @@ function Bubble({
 }
 
 export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
+  const { t } = useI18n();
   const [text, setText] = useState("");
   const { messages, phase, isPending, awaitingAnswer, awaitingFeedback, steps } = flow;
 
@@ -160,7 +167,7 @@ export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
           htmlFor="nl-input"
           className="text-xs font-semibold uppercase tracking-widest text-slate-600"
         >
-          Natural Language
+          {t("conversation.label")}
         </label>
         <div className="flex items-center gap-2">
           {phase === "clarifying" && (
@@ -173,7 +180,7 @@ export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
                 border: "1px solid rgba(99,102,241,0.3)",
               }}
             >
-              Generate now
+              {t("conversation.generateNow")}
             </button>
           )}
           {hasConversation &&
@@ -183,7 +190,7 @@ export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
                 className="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium text-slate-500 transition-all hover:text-slate-700"
                 style={{ border: "1px solid rgba(99,102,241,0.2)" }}
               >
-                New
+                {t("conversation.reset")}
               </button>
             )}
         </div>
@@ -234,10 +241,10 @@ export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
             placeholder={
               awaitingFeedback
-                ? "What would you like to change?"
+                ? t("conversation.placeholderChange")
                 : awaitingAnswer
-                  ? "Type your answer, or pick an option above…"
-                  : "Find the birth place of the composer with the most compositions in RISM"
+                  ? t("conversation.placeholderAnswer")
+                  : t("conversation.placeholderDefault")
             }
             className={`w-full rounded-xl py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-50${highlight ? " nl-shine" : ""}`}
             style={{
@@ -252,10 +259,10 @@ export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
           disabled={isPending || !text.trim()}
           aria-label={
             awaitingFeedback
-              ? "Send feedback"
+              ? t("conversation.sendFeedback")
               : awaitingAnswer
-                ? "Send answer"
-                : "Translate to SPARQL"
+                ? t("conversation.sendAnswer")
+                : t("conversation.translate")
           }
           className="flex cursor-pointer items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
           style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
@@ -263,10 +270,18 @@ export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
           {isPending ? (
             <>
               <Spinner />
-              <span>{isTranslating ? "Generating" : "Thinking"}</span>
+              <span>
+                {isTranslating ? t("conversation.generating") : t("conversation.thinking")}
+              </span>
             </>
           ) : (
-            <span>{awaitingFeedback ? "Refine" : awaitingAnswer ? "Send" : "Generate"}</span>
+            <span>
+              {awaitingFeedback
+                ? t("conversation.refine")
+                : awaitingAnswer
+                  ? t("conversation.send")
+                  : t("conversation.generate")}
+            </span>
           )}
         </button>
       </div>

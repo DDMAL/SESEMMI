@@ -10,6 +10,15 @@ import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { linter, type Diagnostic } from "@codemirror/lint";
 import { Parser } from "sparqljs";
 import { sparqlLanguageSupport, sparqlSyntaxHighlighting } from "@/lib/sparql/codemirror-sparql";
+import {
+  sparqlHoverTooltip,
+  sparqlKeywordHighlight,
+  wikidataLabelsField,
+  setWikidataLabels,
+  extractWikidataIds,
+} from "@/lib/sparql/sparql-hover";
+import { useWikidataLabels } from "@/hooks/useWikidataLabels";
+import { useI18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/Spinner";
 import { validateSparql, formatSparqlError } from "@/lib/sparql/validate";
 
@@ -72,6 +81,40 @@ const EDITOR_THEME = EditorView.theme({
     padding: "0.375rem 0.625rem",
     backdropFilter: "blur(8px)",
   },
+  ".cm-tooltip .cm-sparql-keyword-tooltip": {
+    background: "rgba(238,240,255,0.97)",
+    border: "1px solid rgba(99,102,241,0.25)",
+    borderRadius: "0.6rem",
+    padding: "0.4rem 0.65rem",
+    boxShadow: "0 4px 12px rgba(99,102,241,0.12)",
+    backdropFilter: "blur(8px)",
+    maxWidth: "280px",
+    lineHeight: "1.5",
+    pointerEvents: "none",
+  },
+  ".cm-tooltip .cm-sparql-keyword-tooltip .cm-sparql-kw-label": {
+    fontWeight: "600",
+    color: "#4f46e5",
+    fontSize: "0.7rem",
+    letterSpacing: "0.05em",
+    textTransform: "uppercase",
+    marginBottom: "0.15rem",
+  },
+  ".cm-tooltip .cm-sparql-keyword-tooltip .cm-sparql-kw-desc": {
+    color: "#334155",
+    fontSize: "0.75rem",
+  },
+  ".cm-tooltip .cm-sparql-keyword-tooltip .cm-sparql-kw-hint": {
+    color: "#6366f1",
+    fontSize: "0.7rem",
+    marginTop: "0.2rem",
+    fontStyle: "italic",
+  },
+  ".cm-sparql-kw-shine": {
+    background: "rgba(99,102,241,0.13)",
+    borderRadius: "3px",
+    textShadow: "0 0 8px rgba(99,102,241,0.55)",
+  },
 });
 
 function sparqlLinterSource(view: EditorView): Diagnostic[] {
@@ -111,7 +154,7 @@ function sparqlLinterSource(view: EditorView): Diagnostic[] {
   }
 }
 
-type ChatEntry = ExplainChatMessage & { id: number };
+type ChatEntry = ExplainChatMessage & { id: number; intent?: string };
 
 export function SparqlEditor({
   value,
@@ -121,10 +164,12 @@ export function SparqlEditor({
   originalQuery,
   onRefine,
 }: SparqlEditorProps) {
+  const { t } = useI18n();
   const [lastValidated, setLastValidated] = useState<LastValidated | null>(null);
   const [isErrorExpanded, setIsErrorExpanded] = useState(true);
   const explain = useExplain();
   const explainChat = useExplainChat();
+  const wikidata = useWikidataLabels();
 
   const [chatMessages, setChatMessages] = useState<ChatEntry[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -149,6 +194,14 @@ export function SparqlEditor({
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
+  // Clear explanation chat when the editor is emptied (new query or regenerate)
+  useEffect(() => {
+    if (value.trim()) return;
+    setChatMessages([]);
+    explain.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
   const validation =
     !value.trim() || lastValidated?.value !== value
       ? ("idle" as const)
@@ -156,7 +209,8 @@ export function SparqlEditor({
         ? ("valid" as const)
         : ("invalid" as const);
 
-  const error = validation === "invalid" ? (lastValidated?.result.error ?? "Invalid SPARQL") : "";
+  const error =
+    validation === "invalid" ? (lastValidated?.result.error ?? t("editor.invalidSparql")) : "";
   const isInvalid = validation === "invalid";
 
   const onChangeRef = useRef(onChange);
@@ -210,6 +264,9 @@ export function SparqlEditor({
           placeholder(
             "SELECT ?subject ?predicate ?object\nWHERE {\n  ?subject ?predicate ?object\n}\nLIMIT 25",
           ),
+          sparqlHoverTooltip(),
+          ...sparqlKeywordHighlight(),
+          wikidataLabelsField,
           EDITOR_THEME,
           EditorView.lineWrapping,
         ],
@@ -243,6 +300,22 @@ export function SparqlEditor({
     });
   }, [isPending, readOnlyComp]);
 
+  // Preload Wikidata labels for prefixed names so hover tooltips are instant.
+  useEffect(() => {
+    if (!value.trim()) return;
+    const ids = extractWikidataIds(value);
+    if (ids.length === 0) return;
+    const t = setTimeout(() => {
+      wikidata.mutate(ids, {
+        onSuccess: (labels) => {
+          viewRef.current?.dispatch({ effects: setWikidataLabels.of(labels) });
+        },
+      });
+    }, 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
   const handleExplain = () => {
     setChatMessages([]);
     explain.mutate(value, {
@@ -266,7 +339,9 @@ export function SparqlEditor({
       {
         onSuccess: (data) => {
           setChatMessages((prev) => [
-            ...prev,
+            ...prev.map((m) =>
+              m.id === userMsg.id ? { ...m, intent: data.intent || undefined } : m,
+            ),
             { id: chatIdRef.current++, role: "assistant", content: data.reply },
           ]);
         },
@@ -275,7 +350,9 @@ export function SparqlEditor({
   };
 
   const handleRefine = () => {
-    const userMessages = chatMessages.filter((m) => m.role === "user").map((m) => m.content);
+    const userMessages = chatMessages
+      .filter((m) => m.role === "user")
+      .map((m) => m.intent ?? m.content);
     onRefine?.(originalQuery ?? "", userMessages);
   };
 
@@ -284,19 +361,19 @@ export function SparqlEditor({
       {/* Header row */}
       <div className="flex items-center justify-between">
         <label className="text-xs font-semibold uppercase tracking-widest text-slate-600">
-          SPARQL Editor
+          {t("editor.title")}
         </label>
         <button
           onClick={onExecute}
           disabled={isPending || !value.trim()}
-          aria-label="Run query"
+          aria-label={t("editor.runQueryAria")}
           className="flex cursor-pointer items-center gap-1.5 rounded-xl px-4 py-1.5 text-sm font-medium text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
           style={{ background: "linear-gradient(135deg, #059669, #0d9488)" }}
         >
           {isPending ? (
             <>
               <Spinner />
-              Running
+              {t("editor.running")}
             </>
           ) : (
             <>
@@ -308,7 +385,7 @@ export function SparqlEditor({
               >
                 <path d="M8 5.14v14l11-7-11-7z" />
               </svg>
-              <span>Run Query</span>
+              <span>{t("editor.runQuery")}</span>
               <span className="ml-0.5 text-xs text-indigo-200">{isMac ? "⌘" : "Ctrl"} ↵</span>
             </>
           )}
@@ -348,7 +425,7 @@ export function SparqlEditor({
                 type="button"
                 onClick={() => setIsErrorExpanded((v) => !v)}
                 aria-expanded={isErrorExpanded}
-                aria-label={isErrorExpanded ? "Hide error" : "Show error"}
+                aria-label={isErrorExpanded ? t("editor.hideError") : t("editor.showError")}
                 className="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full text-white shadow-md ring-2 ring-red-500/20 transition-all hover:ring-red-500/40"
                 style={{ background: "linear-gradient(135deg, #f87171, #ef4444)" }}
               >
@@ -413,7 +490,7 @@ export function SparqlEditor({
           {/* Panel header */}
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-indigo-400">
-              Explanation
+              {t("editor.explanation")}
             </p>
             <button
               onClick={handleExplain}
@@ -421,31 +498,29 @@ export function SparqlEditor({
               className="cursor-pointer text-xs text-indigo-400 underline transition-colors hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {explain.isPending
-                ? "Explaining…"
+                ? t("editor.explaining")
                 : chatMessages.length > 0
-                  ? "Re-explain"
-                  : "Explain"}
+                  ? t("editor.reExplain")
+                  : t("editor.explain")}
             </button>
           </div>
 
           {/* Empty state */}
           {!value.trim() && chatMessages.length === 0 && !explain.isPending && (
-            <p className="mt-6 text-center text-xs text-slate-400">
-              Write or generate a SPARQL query to see an explanation here.
-            </p>
+            <p className="mt-6 text-center text-xs text-slate-400">{t("editor.emptyState")}</p>
           )}
 
           {/* Prompt to explain */}
           {value.trim() && chatMessages.length === 0 && !explain.isPending && !explain.isError && (
             <p className="mt-6 text-center text-xs text-slate-400">
-              Click{" "}
+              {t("editor.clickPrefix")}{" "}
               <button
                 onClick={handleExplain}
                 className="cursor-pointer text-indigo-400 underline hover:text-indigo-600"
               >
-                Explain
+                {t("editor.explain")}
               </button>{" "}
-              to understand this query.
+              {t("editor.clickSuffix")}
             </p>
           )}
 
@@ -453,14 +528,14 @@ export function SparqlEditor({
           {explain.isPending && chatMessages.length === 0 && (
             <div className="mt-6 flex items-center gap-2 text-slate-400">
               <Spinner />
-              <span>Explaining…</span>
+              <span>{t("editor.explaining")}</span>
             </div>
           )}
 
           {/* Explain error (no messages yet) */}
           {explain.isError && !explain.isPending && chatMessages.length === 0 && (
             <p className="mt-2 text-xs text-red-600">
-              {explain.error?.message ?? "Explanation failed"}
+              {explain.error?.message ?? t("editor.explanationFailed")}
             </p>
           )}
 
@@ -482,7 +557,7 @@ export function SparqlEditor({
               {explainChat.isPending && (
                 <div className="flex items-center gap-2 text-xs text-slate-400">
                   <Spinner />
-                  <span>Thinking…</span>
+                  <span>{t("editor.thinking")}</span>
                 </div>
               )}
               <div ref={chatBottomRef} />
@@ -502,7 +577,7 @@ export function SparqlEditor({
                       handleChatSend();
                     }
                   }}
-                  placeholder="Ask about this query…"
+                  placeholder={t("editor.askPlaceholder")}
                   disabled={explainChat.isPending}
                   className="flex-1 rounded-lg border border-indigo-100 bg-white/60 px-2.5 py-1.5 text-xs outline-none placeholder:text-slate-300 focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200/50 disabled:opacity-50"
                 />
@@ -512,7 +587,7 @@ export function SparqlEditor({
                   className="cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-medium text-white transition-all hover:brightness-110 disabled:opacity-40"
                   style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}
                 >
-                  Send
+                  {t("editor.send")}
                 </button>
               </div>
               {onRefine && chatMessages.some((m) => m.role === "user") && (
@@ -521,7 +596,7 @@ export function SparqlEditor({
                   disabled={explainChat.isPending}
                   className="cursor-pointer rounded-lg border border-indigo-200 px-3 py-1.5 text-xs font-medium text-indigo-600 transition-all hover:bg-indigo-50 disabled:opacity-40"
                 >
-                  Regenerate SPARQL with these refinements ↑
+                  {t("editor.regenerate")}
                 </button>
               )}
             </div>

@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { ConversationPanel } from "@/components/ConversationPanel";
 import { SparqlEditor } from "@/components/SparqlEditor";
 import { ResultsTable } from "@/components/ResultsTable";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useClarifyFlow } from "@/hooks/useClarifyFlow";
 import { useExecuteSparql } from "@/hooks/useExecuteSparql";
+import { useI18n } from "@/lib/i18n/context";
 
 const glassPanel = {
   background: "rgba(255,255,255,0.65)",
@@ -15,8 +17,9 @@ const glassPanel = {
 } as const;
 
 export default function Home() {
+  const { t } = useI18n();
   const [sparql, setSparql] = useState("");
-  const flow = useClarifyFlow({ onSparql: setSparql });
+  const flow = useClarifyFlow({ onSparql: setSparql, onStart: () => setSparql("") });
   const execute = useExecuteSparql();
   const conversationRef = useRef<HTMLElement>(null);
   const [highlightNL, setHighlightNL] = useState(false);
@@ -93,17 +96,22 @@ export default function Home() {
             />
           </svg>
           <span className="text-sm font-semibold tracking-wide text-slate-700">
-            Search Engine System for Enhancing Music Metadata Interoperability
+            {t("app.title")}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span
-            className={`h-2 w-2 rounded-full ${
-              isRunning ? "bg-amber-400 animate-pulse" : "bg-emerald-500"
-            }`}
-          />
-          <span className="text-xs text-slate-400">{isRunning ? "running" : "ready"}</span>
+        <div className="flex items-center gap-3">
+          <LanguageSwitcher />
+          <div className="flex items-center gap-2">
+            <span
+              className={`h-2 w-2 rounded-full ${
+                isRunning ? "bg-amber-400 animate-pulse" : "bg-emerald-500"
+              }`}
+            />
+            <span className="text-xs text-slate-400">
+              {isRunning ? t("app.status.running") : t("app.status.ready")}
+            </span>
+          </div>
         </div>
       </header>
 
@@ -124,6 +132,7 @@ export default function Home() {
             isPending={execute.isPending}
             originalQuery={flow.messages.find((m) => m.kind === "query")?.text}
             onRefine={(query, refinements) => {
+              setSparql("");
               conversationRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
               setHighlightNL(true);
               flow.restart(query, refinements);

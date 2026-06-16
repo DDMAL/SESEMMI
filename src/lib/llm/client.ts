@@ -100,6 +100,7 @@ export interface ExplainChatMessage {
 
 export interface ExplainChatResult {
   reply: string;
+  intent?: string;
 }
 
 export async function explainChat(
@@ -123,7 +124,7 @@ export async function explainChat(
       }
 
       const data = await res.json();
-      return { reply: data.reply };
+      return { reply: data.reply, intent: data.intent ?? "" };
     } catch (err) {
       lastError = err as Error;
       if (attempt < maxAttempts) {

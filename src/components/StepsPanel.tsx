@@ -2,83 +2,11 @@
 
 import { Fragment, useEffect, useState, type ReactNode } from "react";
 import type { Step, StepStatus } from "@/hooks/useTranslate";
+import { useI18n } from "@/lib/i18n/context";
+import type { Dictionary } from "@/lib/i18n";
 
-// Warm, present-tense phrases shown (and rotated) while a stage is actively running,
-// so the status line feels alive rather than static.
-const ACTIVE_PHRASES: Record<string, string[]> = {
-  intake: [
-    "Getting to know your question",
-    "Figuring out what you mean",
-    "Reading between the lines",
-    "Unpacking your request",
-    "Making sense of the wording",
-    "Pinpointing what you're after",
-    "Sorting out the intent",
-    "Mapping out your ask",
-    "Catching the details",
-    "Listening closely",
-  ],
-  retrieve: [
-    "Digging through the music databases",
-    "Gathering the right schema",
-    "Finding the relevant pieces",
-    "Pulling up the ontology",
-    "Tracing the connections",
-    "Lining up the entities",
-    "Collecting the context",
-    "Browsing the catalogues",
-    "Matching names to records",
-    "Assembling the background",
-  ],
-  generate: [
-    "Composing your SPARQL",
-    "Putting the query together",
-    "Translating your intent",
-    "Shaping the SPARQL",
-    "Wiring up the triples",
-    "Drafting the query",
-    "Crafting the graph patterns",
-    "Turning words into SPARQL",
-    "Sketching the query",
-    "Building the query",
-  ],
-  validate: [
-    "Double-checking the query",
-    "Making sure it holds up",
-    "Proofreading the SPARQL",
-    "Checking the syntax",
-    "Looking for typos",
-    "Verifying the structure",
-    "Testing it against the rules",
-    "Tidying up the query",
-    "Confirming it parses",
-    "Giving it a once-over",
-  ],
-  execute: [
-    "Searching the databases",
-    "Fetching your results",
-    "Querying the triplestore",
-    "Running the search",
-    "Combing the records",
-    "Gathering the matches",
-    "Talking to the triplestore",
-    "Pulling the data",
-    "Scanning the graphs",
-    "Retrieving the rows",
-  ],
-  judge: [
-    "Reviewing the results",
-    "Sizing up the answer",
-    "Gauging confidence",
-    "Weighing the matches",
-    "Sanity-checking the output",
-    "Judging the quality",
-    "Inspecting the rows",
-    "Rating the answer",
-    "Making sure it fits",
-    "Scoring the results",
-  ],
-};
+type StageKey = keyof Dictionary["steps"]["stages"];
+type ConfidenceLevel = keyof Dictionary["steps"]["confidence"];
 
 function Icon({ d, className = "h-4 w-4" }: { d: string; className?: string }) {
   return (
@@ -97,59 +25,43 @@ function Icon({ d, className = "h-4 w-4" }: { d: string; className?: string }) {
   );
 }
 
-// The canonical pipeline stages, in order. Keys match the backend step keys
-// emitted over SSE (see llm-service/app/main.py _STEP_LABELS).
-const STAGES: { key: string; short: string; friendly: string; icon: ReactNode }[] = [
-  {
-    key: "intake",
-    short: "Route",
-    friendly: "Understanding your question",
-    // magnifying glass
-    icon: <Icon d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />,
-  },
+// Canonical pipeline stages, in order. Keys match the backend step keys emitted over SSE
+// (see llm-service/app/main.py _STEP_LABELS). Only the icon lives here — all text comes
+// from the active dictionary (`dict.steps.stages[key]`).
+const STAGE_META: { key: StageKey; icon: ReactNode }[] = [
+  // magnifying glass
+  { key: "intake", icon: <Icon d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /> },
+  // book-open
   {
     key: "retrieve",
-    short: "Context",
-    friendly: "Gathering schema",
-    // book-open
     icon: (
       <Icon d="M12 6.5A6.5 6.5 0 005.5 4 2 2 0 003.5 6v11a2 2 0 002 2 6.5 6.5 0 016.5 2 6.5 6.5 0 016.5-2 2 2 0 002-2V6a2 2 0 00-2-2A6.5 6.5 0 0012 6.5zm0 0V20" />
     ),
   },
-  {
-    key: "generate",
-    short: "Generate",
-    friendly: "Writing the SPARQL query",
-    // code-bracket
-    icon: <Icon d="M17 7l4 5-4 5M7 7l-4 5 4 5m7-13l-4 16" />,
-  },
+  // code-bracket
+  { key: "generate", icon: <Icon d="M17 7l4 5-4 5M7 7l-4 5 4 5m7-13l-4 16" /> },
+  // shield-check
   {
     key: "validate",
-    short: "Validate",
-    friendly: "Checking it's valid",
-    // shield-check
     icon: <Icon d="M9 12.5l2 2 4-4.5M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />,
   },
+  // play
   {
     key: "execute",
-    short: "Run",
-    friendly: "Running on the database",
-    // play
     icon: (
       <Icon d="M6 4.75c0-.7.76-1.13 1.36-.77l11 7.25a.9.9 0 010 1.54l-11 7.25A.9.9 0 016 19.5V4.75z" />
     ),
   },
+  // sparkles
   {
     key: "judge",
-    short: "Score",
-    friendly: "Scoring confidence",
-    // sparkles
     icon: (
       <Icon d="M9 4l1.2 3.4L13.5 8.6 10.2 9.8 9 13.2 7.8 9.8 4.5 8.6 7.8 7.4 9 4zm9 9l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z" />
     ),
   },
 ];
 
+type Stage = { key: StageKey; icon: ReactNode; short: string; friendly: string };
 type StageState = StepStatus | "upcoming";
 
 interface StepsPanelProps {
@@ -215,22 +127,12 @@ function Connector({ state }: { state: StageState }) {
   );
 }
 
-// Friendly presentation of the final judge confidence.
-const CONFIDENCE: Record<
-  string,
-  {
-    label: string;
-    hint: string;
-    bars: number;
-    fill: string;
-    text: string;
-    bg: string;
-    icon: ReactNode;
-  }
+// Visual styling for the confidence card; the label/hint text comes from the dictionary.
+const CONFIDENCE_STYLE: Record<
+  ConfidenceLevel,
+  { bars: number; fill: string; text: string; bg: string; icon: ReactNode }
 > = {
   high: {
-    label: "High confidence",
-    hint: "Looks accurate.",
     bars: 3,
     fill: "#10b981",
     text: "#047857",
@@ -239,8 +141,6 @@ const CONFIDENCE: Record<
     icon: <Icon d="M9 12.5l2 2 4-4.5M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />,
   },
   medium: {
-    label: "Medium confidence",
-    hint: "Likely correct — worth a review.",
     bars: 2,
     fill: "#f59e0b",
     text: "#b45309",
@@ -249,8 +149,6 @@ const CONFIDENCE: Record<
     icon: <Icon d="M12 9v4m0 4h.01M12 21a9 9 0 100-18 9 9 0 000 18z" />,
   },
   low: {
-    label: "Low confidence",
-    hint: "May be off — review before trusting.",
     bars: 1,
     fill: "#f43f5e",
     text: "#be123c",
@@ -262,12 +160,14 @@ const CONFIDENCE: Record<
   },
 };
 
-function ConfidenceCard({ level }: { level: keyof typeof CONFIDENCE }) {
-  const c = CONFIDENCE[level];
+function ConfidenceCard({ level }: { level: ConfidenceLevel }) {
+  const { t, dict } = useI18n();
+  const c = CONFIDENCE_STYLE[level];
+  const text = dict.steps.confidence[level];
   return (
     <div className="mt-3">
       <div className="mb-1 text-[10px] font-semibold tracking-widest text-slate-400 uppercase">
-        Result
+        {t("steps.result")}
       </div>
       <div
         className="flex items-center gap-3 rounded-xl px-3 py-2.5"
@@ -276,9 +176,9 @@ function ConfidenceCard({ level }: { level: keyof typeof CONFIDENCE }) {
         <span style={{ color: c.fill }}>{c.icon}</span>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold" style={{ color: c.text }}>
-            {c.label}
+            {text.label}
           </div>
-          <div className="text-[11px] text-slate-500">{c.hint}</div>
+          <div className="text-[11px] text-slate-500">{text.hint}</div>
         </div>
         <div className="flex items-end gap-0.5" aria-hidden="true">
           {[0, 1, 2].map((i) => (
@@ -297,13 +197,19 @@ function ConfidenceCard({ level }: { level: keyof typeof CONFIDENCE }) {
   );
 }
 
-const STATUS_PILL: Record<StageState, { label: string; color: string; bg: string }> = {
-  running: { label: "Running", color: "#4f46e5", bg: "rgba(99,102,241,0.12)" },
-  done: { label: "Done", color: "#047857", bg: "rgba(16,185,129,0.12)" },
-  error: { label: "Error", color: "#be123c", bg: "rgba(244,63,94,0.12)" },
-  waiting: { label: "Pending", color: "#64748b", bg: "rgba(100,116,139,0.12)" },
-  upcoming: { label: "Pending", color: "#64748b", bg: "rgba(100,116,139,0.12)" },
+// Colours for the status pill; the label text comes from the dictionary.
+const STATUS_STYLE: Record<StageState, { color: string; bg: string }> = {
+  running: { color: "#4f46e5", bg: "rgba(99,102,241,0.12)" },
+  done: { color: "#047857", bg: "rgba(16,185,129,0.12)" },
+  error: { color: "#be123c", bg: "rgba(244,63,94,0.12)" },
+  waiting: { color: "#64748b", bg: "rgba(100,116,139,0.12)" },
+  upcoming: { color: "#64748b", bg: "rgba(100,116,139,0.12)" },
 };
+
+function statusLabelKey(status: StageState): keyof Dictionary["steps"]["status"] {
+  if (status === "waiting" || status === "upcoming") return "pending";
+  return status;
+}
 
 function NodeDetail({
   stage,
@@ -312,13 +218,14 @@ function NodeDetail({
   tokens,
   onClose,
 }: {
-  stage: (typeof STAGES)[number];
+  stage: Stage;
   status: StageState;
   detail: string;
   tokens: string;
   onClose: () => void;
 }) {
-  const pill = STATUS_PILL[status];
+  const { t, dict } = useI18n();
+  const style = STATUS_STYLE[status];
   const ran = status !== "upcoming";
   return (
     <div
@@ -330,13 +237,13 @@ function NodeDetail({
         <span className="text-sm font-semibold text-slate-700">{stage.friendly}</span>
         <span
           className="rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wide uppercase"
-          style={{ color: pill.color, background: pill.bg }}
+          style={{ color: style.color, background: style.bg }}
         >
-          {pill.label}
+          {dict.steps.status[statusLabelKey(status)]}
         </span>
         <button
           onClick={onClose}
-          aria-label="Close detail"
+          aria-label={t("steps.closeDetail")}
           className="ml-auto cursor-pointer text-slate-400 transition-colors hover:text-slate-600"
         >
           ✕
@@ -344,7 +251,7 @@ function NodeDetail({
       </div>
       <div className="mt-1.5">
         {!ran ? (
-          <p className="text-[11px] text-slate-400">Hasn’t run yet.</p>
+          <p className="text-[11px] text-slate-400">{t("steps.notRun")}</p>
         ) : stage.key === "generate" && tokens ? (
           <pre
             className="max-h-40 overflow-y-auto rounded-lg p-2.5 font-mono text-[10px] leading-relaxed break-all whitespace-pre-wrap text-slate-600"
@@ -355,7 +262,7 @@ function NodeDetail({
         ) : detail ? (
           <p className="text-xs text-slate-500">{detail}</p>
         ) : (
-          <p className="text-[11px] text-slate-400">No additional detail.</p>
+          <p className="text-[11px] text-slate-400">{t("steps.noDetail")}</p>
         )}
       </div>
     </div>
@@ -363,6 +270,7 @@ function NodeDetail({
 }
 
 export function StepsPanel({ steps, isPending }: StepsPanelProps) {
+  const { t, dict } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   // Drives the rotating phrase + animated ellipsis on the live status line.
@@ -376,6 +284,9 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
 
   if (steps.length === 0) return null;
 
+  // Merge per-locale text onto each stage's icon.
+  const stages: Stage[] = STAGE_META.map((m) => ({ ...m, ...dict.steps.stages[m.key] }));
+
   // Latest status wins per stage key (repair loop can re-run earlier stages).
   const statusByKey = new Map<string, StepStatus>();
   const detailByKey = new Map<string, string>();
@@ -384,11 +295,11 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
     if (s.detail) detailByKey.set(s.step, s.detail);
   }
 
-  const stageStates: StageState[] = STAGES.map((st) => statusByKey.get(st.key) ?? "upcoming");
+  const stageStates: StageState[] = stages.map((st) => statusByKey.get(st.key) ?? "upcoming");
   const doneCount = stageStates.filter((s) => s === "done").length;
   const runningIndex = stageStates.findIndex((s) => s === "running");
   const errorIndex = stageStates.findIndex((s) => s === "error");
-  const allDone = doneCount === STAGES.length;
+  const allDone = doneCount === stages.length;
 
   const activeIndex =
     errorIndex !== -1
@@ -396,39 +307,42 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
       : runningIndex !== -1
         ? runningIndex
         : Math.max(0, doneCount - 1);
-  const activeStage = STAGES[activeIndex];
+  const activeStage = stages[activeIndex];
   const activeDetail = detailByKey.get(activeStage.key) ?? "";
   const isRetry =
-    runningIndex !== -1 && runningIndex < doneCount && activeStage.key !== STAGES[doneCount]?.key;
+    runningIndex !== -1 && runningIndex < doneCount && activeStage.key !== stages[doneCount]?.key;
 
   const counter = allDone
-    ? "Done"
+    ? t("steps.complete")
     : errorIndex !== -1
-      ? "Failed"
-      : `Step ${Math.min(runningIndex === -1 ? doneCount + 1 : runningIndex + 1, STAGES.length)} of ${STAGES.length}`;
+      ? t("steps.failed")
+      : t("steps.counter", {
+          current: Math.min(runningIndex === -1 ? doneCount + 1 : runningIndex + 1, stages.length),
+          total: stages.length,
+        });
 
   const generateTokens = steps.find((s) => s.step === "generate")?.tokens ?? "";
   const generateRunning = statusByKey.get("generate") === "running";
 
   // Click-to-reveal: the currently selected node's data (null = nothing open).
-  const selStage = selected ? (STAGES.find((s) => s.key === selected) ?? null) : null;
+  const selStage = selected ? (stages.find((s) => s.key === selected) ?? null) : null;
   const selTokens = selStage
     ? ([...steps].reverse().find((s) => s.step === selStage.key)?.tokens ?? "")
     : "";
 
   // Live status line: rotate warm phrases + animated ellipsis while running.
   const activeRunning = stageStates[activeIndex] === "running";
-  const phrases = ACTIVE_PHRASES[activeStage.key] ?? [activeStage.friendly];
+  const phrases = dict.steps.phrases[activeStage.key] ?? [activeStage.friendly];
   const phraseIndex = activeRunning ? Math.floor(tick / 6) % phrases.length : 0;
   const liveText = allDone
-    ? "All set!"
+    ? t("steps.complete")
     : activeRunning
       ? phrases[phraseIndex]
       : activeStage.friendly;
 
   // Final confidence arrives as the judge step's detail (e.g. "high").
   const confidenceLevel = (detailByKey.get("judge") ?? "").toLowerCase();
-  const hasConfidence = confidenceLevel in CONFIDENCE;
+  const hasConfidence = confidenceLevel in dict.steps.confidence;
   // Don't repeat the raw "high/medium/low" on the judge line — the card shows it.
   const showActiveDetail = !(activeStage.key === "judge" && hasConfidence) && Boolean(activeDetail);
 
@@ -440,21 +354,21 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
       {/* Header: status word + counter */}
       <div className="mb-3 flex items-center justify-between">
         <span className="text-[10px] font-semibold tracking-widest text-indigo-400 uppercase">
-          {isPending ? "Translating…" : allDone ? "Complete" : counter}
+          {isPending ? t("steps.translating") : allDone ? t("steps.complete") : counter}
         </span>
         <span className="text-[10px] font-medium text-slate-400">{counter}</span>
       </div>
 
       {/* Horizontal stepper — single connector per gap, leading INTO each node */}
       <div className="flex items-center">
-        {STAGES.map((st, i) => (
+        {stages.map((st, i) => (
           <Fragment key={st.key}>
             {i > 0 && <Connector state={stageStates[i]} />}
             <button
               type="button"
               title={st.friendly}
               onClick={() => setSelected((cur) => (cur === st.key ? null : st.key))}
-              aria-label={`Show ${st.friendly} detail`}
+              aria-label={t("steps.showDetail", { stage: st.friendly })}
               aria-pressed={selected === st.key}
               className={`group shrink-0 cursor-pointer rounded-full transition-all focus:outline-none ${
                 selected === st.key ? "ring-2 ring-indigo-400 ring-offset-2" : ""
@@ -467,28 +381,30 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
       </div>
       {/* Labels — same flex rhythm so each sits centred under its node */}
       <div className="mt-1.5 flex items-start">
-        {STAGES.map((st, i) => {
+        {stages.map((st, i) => {
           const state = stageStates[i];
           return (
             <Fragment key={st.key}>
               {i > 0 && <div className="flex-1" />}
-              <span
-                className={`w-9 shrink-0 text-center text-xs font-semibold whitespace-nowrap ${
-                  state === "upcoming"
-                    ? "text-slate-500"
-                    : state === "error"
-                      ? "text-red-600"
-                      : "text-slate-800"
-                }`}
-              >
-                {st.short}
-              </span>
+              <div className="relative h-4 w-9 shrink-0">
+                <span
+                  className={`absolute left-1/2 -translate-x-1/2 text-xs font-semibold whitespace-nowrap ${
+                    state === "upcoming"
+                      ? "text-slate-500"
+                      : state === "error"
+                        ? "text-red-600"
+                        : "text-slate-800"
+                  }`}
+                >
+                  {st.short}
+                </span>
+              </div>
             </Fragment>
           );
         })}
       </div>
       <p className="mt-1 text-right text-[10px] text-slate-400" aria-hidden="true">
-        Click a node for details
+        {t("steps.clickNode")}
       </p>
 
       {/* Click-to-reveal node detail (hidden until a node is clicked) */}
@@ -520,7 +436,7 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
                   className="phrase-letter"
                   style={{ animationDelay: `${i * 0.05}s` }}
                 >
-                  {ch === " " ? " " : ch}
+                  {ch === " " ? " " : ch}
                 </span>
               ))}
             </span>
@@ -540,7 +456,7 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
           )}
           {isRetry && (
             <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-amber-600 uppercase">
-              retrying
+              {t("steps.retrying")}
             </span>
           )}
         </span>
@@ -548,7 +464,7 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
       </div>
 
       {/* Final confidence — friendly result card */}
-      {hasConfidence && <ConfidenceCard level={confidenceLevel as keyof typeof CONFIDENCE} />}
+      {hasConfidence && <ConfidenceCard level={confidenceLevel as ConfidenceLevel} />}
 
       {/* Collapsible peek at the SPARQL being written */}
       {generateTokens && (
@@ -559,9 +475,9 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
             aria-expanded={expanded}
           >
             <span className="text-[9px]">{expanded ? "▾" : "▸"}</span>
-            {expanded ? "Hide query" : "View query"}
+            {expanded ? t("steps.hideQuery") : t("steps.viewQuery")}
             {generateRunning && !expanded && (
-              <span className="animate-pulse text-indigo-300">writing…</span>
+              <span className="animate-pulse text-indigo-300">{t("steps.writing")}</span>
             )}
           </button>
           {expanded && (

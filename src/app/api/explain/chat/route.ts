@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const result = await explainChat(body.sparql, body.messages);
     const durationMs = Math.round(performance.now() - start);
     logger.info({ event: "api_response", route: "/api/explain/chat", durationMs, status: 200 });
-    return NextResponse.json({ reply: result.reply });
+    return NextResponse.json({ reply: result.reply, intent: result.intent });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Chat failed";
     logger.error({ event: "api_error", route: "/api/explain/chat", error: message });

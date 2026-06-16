@@ -8,7 +8,7 @@ export function useExplainChat() {
     mutationFn: async (args: {
       sparql: string;
       messages: ExplainChatMessage[];
-    }): Promise<{ reply: string }> => {
+    }): Promise<{ reply: string; intent?: string }> => {
       const res = await fetch("/api/explain/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
