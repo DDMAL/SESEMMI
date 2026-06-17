@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sesemmi-config
+  namespace: sesemmi
+data:
+  # ── Shared ──────────────────────────────────────────────────────────────
+  # Virtuoso is an external, managed triplestore (not run in-cluster).
+  VIRTUOSO_ENDPOINT: "https://virtuoso.simssa.ca/sparql"
+
+  # ── Next.js app ─────────────────────────────────────────────────────────
+  # In-namespace DNS: the `llm` Service resolves to the FastAPI service.
+  LLM_SERVICE_URL: "http://llm:8000"
+  LOG_LEVEL: "info"
+  NODE_ENV: "production"
+
+  # ── llm-service (FastAPI) ─────────────────────────────────────────────────
+  LLM_PROVIDER: "qwen"
+  LLM_MODEL: "qwen3.6-27b"
+  WIKIDATA_MCP_URL: "https://wd-mcp.wmcloud.org/mcp/"
+
+  RAG_ENABLED: "false"
+  RAG_TOP_K: "5"
+  EMBEDDING_MODEL: "nomic-embed-text"
+  OLLAMA_BASE_URL: "http://ollama:11434"
+  OLLAMA_NUM_CTX: "8192"
+  OLLAMA_NUM_THREAD: "4"
+  OLLAMA_THINK: "false"
+
+  FEW_SHOT_ENABLED: "false"
+  SEMANTIC_JUDGE_ENABLED: "true"
+  MAX_REPAIR_ITERATIONS: "3"
+  SPARQL_TIMEOUT: "120"
+  CLARIFICATION_ENABLED: "true"
+  CLARIFICATION_MAX_QUESTIONS: "4"
+  CLARIFICATION_MAX_ROUNDS: "4"
+  LANGSMITH_TRACING: "true"
+  LANGSMITH_PROJECT: "sesemmi-prod"
