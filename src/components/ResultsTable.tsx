@@ -300,7 +300,7 @@ export function ResultsTable({ data, isError, error, isPending }: ResultsTablePr
           <table className="w-full text-left text-sm">
             <thead
               className="sticky top-0 z-[1]"
-              style={{ background: "rgba(238,240,255,0.9)", backdropFilter: "blur(12px)" }}
+              style={{ background: "var(--surface-thead)", backdropFilter: "blur(12px)" }}
             >
               <tr>
                 {vars.map((v) => (

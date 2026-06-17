@@ -18,6 +18,7 @@ import {
   extractWikidataIds,
 } from "@/lib/sparql/sparql-hover";
 import { useWikidataLabels } from "@/hooks/useWikidataLabels";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useI18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/Spinner";
 import { validateSparql, formatSparqlError } from "@/lib/sparql/validate";
@@ -40,7 +41,8 @@ interface SparqlEditorProps {
 
 const EDITOR_THEME = EditorView.theme({
   "&": {
-    background: "rgba(248,250,255,0.8)",
+    background: "var(--surface-editor)",
+    color: "var(--foreground)",
     border: "1px solid rgba(99,102,241,0.15)",
     borderRadius: "0.75rem",
     fontSize: "0.875rem",
@@ -165,6 +167,7 @@ export function SparqlEditor({
   onRefine,
 }: SparqlEditorProps) {
   const { t } = useI18n();
+  const reducedMotion = usePrefersReducedMotion();
   const [lastValidated, setLastValidated] = useState<LastValidated | null>(null);
   const [isErrorExpanded, setIsErrorExpanded] = useState(true);
   const explain = useExplain();
@@ -191,8 +194,8 @@ export function SparqlEditor({
 
   // Auto-scroll chat to bottom on new messages
   useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages]);
+    chatBottomRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
+  }, [chatMessages, reducedMotion]);
 
   // Clear explanation chat when the editor is emptied (new query or regenerate)
   useEffect(() => {
@@ -392,8 +395,8 @@ export function SparqlEditor({
         </button>
       </div>
 
-      {/* Side-by-side: editor (60%) + chat panel (40%) */}
-      <div className="flex items-stretch gap-3">
+      {/* Side-by-side on desktop, stacked on mobile: editor (60%) + chat panel (40%) */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-stretch">
         {/* Editor */}
         <div
           className={`relative min-w-0 flex-[3] transition-opacity ${isPending ? "opacity-50" : ""} ${isInvalid ? "editor-invalid" : ""}`}
@@ -483,7 +486,7 @@ export function SparqlEditor({
         <div
           className="flex min-h-[22rem] min-w-0 flex-[2] flex-col rounded-xl p-4 text-sm"
           style={{
-            background: "rgba(248,250,255,0.8)",
+            background: "var(--surface-editor)",
             border: "1px solid rgba(99,102,241,0.15)",
           }}
         >
@@ -548,7 +551,7 @@ export function SparqlEditor({
                   className={`rounded-lg px-3 py-2 text-xs leading-relaxed ${
                     msg.role === "assistant"
                       ? "bg-indigo-50/70 text-slate-700"
-                      : "ml-6 bg-white/70 text-slate-600"
+                      : "ml-6 bg-white/70 text-slate-600 dark:bg-white/5"
                   }`}
                 >
                   {msg.content}
@@ -579,7 +582,7 @@ export function SparqlEditor({
                   }}
                   placeholder={t("editor.askPlaceholder")}
                   disabled={explainChat.isPending}
-                  className="flex-1 rounded-lg border border-indigo-100 bg-white/60 px-2.5 py-1.5 text-xs outline-none placeholder:text-slate-300 focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200/50 disabled:opacity-50"
+                  className="flex-1 rounded-lg border border-indigo-100 bg-white/60 px-2.5 py-1.5 text-xs text-slate-700 outline-none placeholder:text-slate-300 focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200/50 disabled:opacity-50 dark:bg-white/5"
                 />
                 <button
                   onClick={handleChatSend}

@@ -87,8 +87,8 @@ function Bubble({
                 borderBottomRightRadius: 4,
               }
             : {
-                background: "rgba(255,255,255,0.85)",
-                color: "#334155",
+                background: "var(--surface-panel)",
+                color: "var(--text-secondary)",
                 border: "1px solid rgba(99,102,241,0.15)",
                 borderBottomLeftRadius: 4,
               }
@@ -248,7 +248,7 @@ export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
             }
             className={`w-full rounded-xl py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-50${highlight ? " nl-shine" : ""}`}
             style={{
-              background: "rgba(255,255,255,0.7)",
+              background: "var(--surface-input)",
               border: "1px solid rgba(99,102,241,0.2)",
             }}
             disabled={isTranslating || (isAwaitingApproval && !awaitingFeedback)}

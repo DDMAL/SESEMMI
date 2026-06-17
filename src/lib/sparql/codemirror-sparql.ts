@@ -196,14 +196,16 @@ const sparqlStreamLang = StreamLanguage.define<object>({
   },
 });
 
+// Colours are CSS variables (defined in globals.css) so the editor re-themes with
+// the rest of the app — the dark palette brightens these for legibility on a dark bg.
 export const sparqlHighlightStyle = HighlightStyle.define([
-  { tag: tags.keyword, color: "#4f46e5", fontWeight: "600" },
-  { tag: tags.variableName, color: "#b45309" },
-  { tag: tags.url, color: "#059669" },
-  { tag: tags.typeName, color: "#0891b2" },
-  { tag: tags.string, color: "#be185d" },
-  { tag: tags.number, color: "#1d4ed8" },
-  { tag: tags.comment, color: "#94a3b8", fontStyle: "italic" },
+  { tag: tags.keyword, color: "var(--cm-keyword)", fontWeight: "600" },
+  { tag: tags.variableName, color: "var(--cm-var)" },
+  { tag: tags.url, color: "var(--cm-url)" },
+  { tag: tags.typeName, color: "var(--cm-type)" },
+  { tag: tags.string, color: "var(--cm-string)" },
+  { tag: tags.number, color: "var(--cm-number)" },
+  { tag: tags.comment, color: "var(--cm-comment)", fontStyle: "italic" },
 ]);
 
 export const sparqlSyntaxHighlighting = syntaxHighlighting(sparqlHighlightStyle);

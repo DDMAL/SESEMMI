@@ -1,8 +1,106 @@
 @import "tailwindcss";
 
+/* Tailwind v4 dark variant: any element under `[data-theme="dark"]` (set on <html>
+   by the theme provider) activates `dark:` utilities. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ─── Semantic theme tokens ─────────────────────────────────────────────────
+   Light values live in :root; the [data-theme="dark"] block overrides them.
+   Inline component styles read these via var(--token) so a single switch
+   re-themes the whole app. */
 :root {
   --background: #f0f4ff;
   --foreground: #1e1b4b;
+
+  /* Surfaces */
+  --bg-gradient: linear-gradient(135deg, #e8eeff 0%, #eef0ff 35%, #eef4ff 65%, #e8edff 100%);
+  --surface-glass: rgba(255, 255, 255, 0.65);
+  --surface-panel: rgba(255, 255, 255, 0.85);
+  --surface-input: rgba(255, 255, 255, 0.7);
+  --surface-solid: rgba(255, 255, 255, 0.97);
+  --surface-editor: rgba(248, 250, 255, 0.8);
+  --surface-thead: rgba(238, 240, 255, 0.9);
+
+  /* Borders / shadows */
+  --border-glass: rgba(255, 255, 255, 0.85);
+  --shadow-glass: 0 4px 24px rgba(99, 102, 241, 0.08);
+
+  /* Header */
+  --header-bg: rgba(255, 255, 255, 0.6);
+  --header-border: rgba(99, 102, 241, 0.12);
+
+  /* Ambient orbs */
+  --orb-1: rgba(139, 92, 246, 0.25);
+  --orb-2: rgba(99, 102, 241, 0.2);
+  --orb-3: rgba(59, 130, 246, 0.2);
+
+  /* Misc text used inline */
+  --text-secondary: #334155;
+
+  /* CodeMirror SPARQL syntax colours */
+  --cm-keyword: #4f46e5;
+  --cm-var: #b45309;
+  --cm-url: #059669;
+  --cm-type: #0891b2;
+  --cm-string: #be185d;
+  --cm-number: #1d4ed8;
+  --cm-comment: #94a3b8;
+}
+
+[data-theme="dark"] {
+  --background: #0d0e1f;
+  --foreground: #e2e8f0;
+
+  --bg-gradient: linear-gradient(135deg, #0f1020 0%, #121327 35%, #10142b 65%, #0e0f23 100%);
+  --surface-glass: rgba(30, 27, 75, 0.45);
+  --surface-panel: rgba(30, 27, 75, 0.6);
+  --surface-input: rgba(30, 27, 75, 0.5);
+  --surface-solid: rgba(23, 23, 46, 0.97);
+  --surface-editor: rgba(20, 20, 40, 0.7);
+  --surface-thead: rgba(20, 20, 45, 0.92);
+
+  --border-glass: rgba(129, 140, 248, 0.18);
+  --shadow-glass: 0 4px 24px rgba(0, 0, 0, 0.45);
+
+  --header-bg: rgba(17, 18, 40, 0.6);
+  --header-border: rgba(129, 140, 248, 0.16);
+
+  --orb-1: rgba(139, 92, 246, 0.14);
+  --orb-2: rgba(99, 102, 241, 0.12);
+  --orb-3: rgba(59, 130, 246, 0.12);
+
+  --text-secondary: #cbd5e1;
+
+  --cm-keyword: #a5b4fc;
+  --cm-var: #fbbf24;
+  --cm-url: #34d399;
+  --cm-type: #22d3ee;
+  --cm-string: #f472b6;
+  --cm-number: #93c5fd;
+  --cm-comment: #64748b;
+
+  /* Re-map Tailwind's default slate scale (inverted lightness) so the many
+     slate text, background and border utilities flip automatically. */
+  --color-slate-50: #0f172a;
+  --color-slate-100: #1e293b;
+  --color-slate-200: #334155;
+  --color-slate-300: #475569;
+  --color-slate-400: #64748b;
+  --color-slate-500: #94a3b8;
+  --color-slate-600: #cbd5e1;
+  --color-slate-700: #e2e8f0;
+  --color-slate-800: #f1f5f9;
+  --color-slate-900: #f8fafc;
+
+  /* Indigo: light surfaces (50–200) go dark; accents/text (300–700) brighten. */
+  --color-indigo-50: #1e1b4b;
+  --color-indigo-100: #312e81;
+  --color-indigo-200: #3730a3;
+  --color-indigo-300: #818cf8;
+  --color-indigo-400: #a5b4fc;
+  --color-indigo-500: #a5b4fc;
+  --color-indigo-600: #818cf8;
+  --color-indigo-700: #a5b4fc;
 }
 
 @theme inline {
@@ -22,6 +120,12 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Consistent keyboard focus ring across all custom controls. */
+:focus-visible {
+  outline: 2px solid var(--cm-keyword);
+  outline-offset: 2px;
 }
 
 /* Light scrollbar */
@@ -166,4 +270,19 @@ body {
 
 .nl-shine {
   animation: nl-shine 1.4s ease-out forwards;
+}
+
+/* Respect users who prefer reduced motion: neutralize every animation/transition,
+   including the keyframe classes above and Tailwind's animate-pulse/animate-spin.
+   JS-driven motion (StepsPanel phrase rotation, smooth scrolls) is gated separately
+   via the usePrefersReducedMotion hook. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

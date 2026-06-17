@@ -16,8 +16,15 @@ export function LanguageSwitcher() {
     const onClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   return (
@@ -59,7 +66,7 @@ export function LanguageSwitcher() {
           role="listbox"
           className="absolute end-0 z-20 mt-1.5 min-w-[9rem] overflow-hidden rounded-xl py-1"
           style={{
-            background: "rgba(255,255,255,0.97)",
+            background: "var(--surface-solid)",
             backdropFilter: "blur(20px)",
             border: "1px solid rgba(99,102,241,0.18)",
             boxShadow: "0 12px 32px rgba(99,102,241,0.16)",

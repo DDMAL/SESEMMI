@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/Spinner";
 import { fetchEntity, type EntityDetail as Entity } from "@/lib/wikidata";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useI18n } from "@/lib/i18n/context";
 
 interface EntityDetailProps {
@@ -12,6 +13,8 @@ interface EntityDetailProps {
 
 export function EntityDetail({ qid, onClose }: EntityDetailProps) {
   const { t } = useI18n();
+  const dialogRef = useFocusTrap<HTMLDivElement>();
+  const titleId = `entity-title-${qid}`;
   const [entity, setEntity] = useState<Entity | null>(null);
   const [error, setError] = useState(false);
 
@@ -41,11 +44,14 @@ export function EntityDetail({ qid, onClose }: EntityDetailProps) {
       />
 
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={entity ? titleId : undefined}
+        aria-label={entity ? undefined : t("entity.loading")}
         className="modal-enter fixed top-1/2 left-1/2 z-50 flex w-[min(384px,calc(100vw-2rem))] flex-col gap-3 overflow-y-auto rounded-2xl p-5"
         style={{
-          background: "rgba(255,255,255,0.97)",
+          background: "var(--surface-solid)",
           backdropFilter: "blur(20px)",
           border: "1px solid rgba(99,102,241,0.15)",
           boxShadow: "0 24px 64px rgba(15,23,42,0.18), 0 4px 16px rgba(99,102,241,0.1)",
@@ -77,7 +83,9 @@ export function EntityDetail({ qid, onClose }: EntityDetailProps) {
         {entity && (
           <>
             <div>
-              <h3 className="text-base font-semibold text-slate-800">{entity.label}</h3>
+              <h3 id={titleId} className="text-base font-semibold text-slate-800">
+                {entity.label}
+              </h3>
               {entity.description && (
                 <p className="mt-0.5 text-sm text-slate-500">
                   {entity.description.length > 120

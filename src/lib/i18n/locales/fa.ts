@@ -5,6 +5,7 @@ export const fa: Dictionary = {
     title: "سامانهٔ جستجو برای ارتقای هم‌کنش‌پذیری فراداده‌های موسیقی",
     language: "زبان",
     status: { running: "در حال اجرا", ready: "آماده" },
+    theme: { toLight: "تغییر به حالت روشن", toDark: "تغییر به حالت تیره" },
   },
   conversation: {
     label: "زبان طبیعی",

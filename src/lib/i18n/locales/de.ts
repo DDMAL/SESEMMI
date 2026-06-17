@@ -5,6 +5,7 @@ export const de: Dictionary = {
     title: "Suchsystem für die Interoperabilität von Musikmetadaten",
     language: "Sprache",
     status: { running: "läuft", ready: "bereit" },
+    theme: { toLight: "Zu hellem Modus wechseln", toDark: "Zu dunklem Modus wechseln" },
   },
   conversation: {
     label: "Natürliche Sprache",

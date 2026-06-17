@@ -5,6 +5,7 @@ export const es: Dictionary = {
     title: "Motor de búsqueda para la interoperabilidad de metadatos musicales",
     language: "Idioma",
     status: { running: "en curso", ready: "listo" },
+    theme: { toLight: "Cambiar a modo claro", toDark: "Cambiar a modo oscuro" },
   },
   conversation: {
     label: "Lenguaje natural",

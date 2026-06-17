@@ -7,6 +7,7 @@ export const en = {
     title: "Search Engine System for Enhancing Music Metadata Interoperability",
     language: "Language",
     status: { running: "running", ready: "ready" },
+    theme: { toLight: "Switch to light mode", toDark: "Switch to dark mode" },
   },
   conversation: {
     label: "Natural Language",

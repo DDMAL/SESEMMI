@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState, type ReactNode } from "react";
 import type { Step, StepStatus } from "@/hooks/useTranslate";
 import { useI18n } from "@/lib/i18n/context";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { Dictionary } from "@/lib/i18n";
 
 type StageKey = keyof Dictionary["steps"]["stages"];
@@ -271,16 +272,19 @@ function NodeDetail({
 
 export function StepsPanel({ steps, isPending }: StepsPanelProps) {
   const { t, dict } = useI18n();
+  const reducedMotion = usePrefersReducedMotion();
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   // Drives the rotating phrase + animated ellipsis on the live status line.
   const [tick, setTick] = useState(0);
   const running = isPending && steps.some((s) => s.status === "running");
   useEffect(() => {
-    if (!running) return;
+    // Skip the phrase rotation entirely when reduced motion is requested — a single
+    // static phrase is shown instead.
+    if (!running || reducedMotion) return;
     const id = setInterval(() => setTick((t) => t + 1), 450);
     return () => clearInterval(id);
-  }, [running]);
+  }, [running, reducedMotion]);
 
   if (steps.length === 0) return null;
 
@@ -423,7 +427,7 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
         <span
           className={`text-xs font-medium ${errorIndex !== -1 ? "text-red-500" : "text-slate-700"}`}
         >
-          {activeRunning ? (
+          {activeRunning && !reducedMotion ? (
             <span
               key={`${activeStage.key}-${phraseIndex}`}
               className="phrase-enter inline-block"
@@ -445,7 +449,7 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
               {liveText}
             </span>
           )}
-          {activeRunning && (
+          {activeRunning && !reducedMotion && (
             <span className="ml-0.5 inline-block" aria-hidden="true">
               {[0, 160, 320].map((delay) => (
                 <span key={delay} className="phrase-dot" style={{ animationDelay: `${delay}ms` }}>
