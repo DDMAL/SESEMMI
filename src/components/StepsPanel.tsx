@@ -440,7 +440,7 @@ export function StepsPanel({ steps, isPending }: StepsPanelProps) {
                   className="phrase-letter"
                   style={{ animationDelay: `${i * 0.05}s` }}
                 >
-                  {ch === " " ? " " : ch}
+                  {ch === " " ? " " : ch}
                 </span>
               ))}
             </span>
