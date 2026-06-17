@@ -161,7 +161,11 @@ async def explain_chat(req: ExplainChatRequest):
             content=f"Here is the SPARQL query we are discussing:\n\n{req.sparql}"
         )
         history: list[HumanMessage | AIMessage] = [
-            HumanMessage(content=msg.content) if msg.role == "user" else AIMessage(content=msg.content)
+            (
+                HumanMessage(content=msg.content)
+                if msg.role == "user"
+                else AIMessage(content=msg.content)
+            )
             for msg in req.messages
         ]
         lc_messages = [SystemMessage(content=_EXPLAIN_CHAT_SYSTEM), context, *history]
