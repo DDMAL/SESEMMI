@@ -1,7 +1,10 @@
 import hashlib
 import re
 import uuid
+from contextlib import contextmanager
+from collections.abc import Iterator
 
+from sqlalchemy import create_engine, text
 from langchain_postgres import PGVector
 from langchain_core.documents import Document
 from app.rag.embeddings import get_embeddings
@@ -9,6 +12,34 @@ from app.rag.corpus import RAG_CORPUS
 from app.config import settings
 
 _store: PGVector | None = None
+
+# Arbitrary fixed key for the Postgres advisory lock that serializes seeding.
+_SEED_LOCK_KEY = 5253553105  # "SESEMMI" → digits, fits in bigint
+
+
+@contextmanager
+def _seed_lock() -> Iterator[None]:
+    """Hold a session-level Postgres advisory lock for the duration of seeding.
+
+    Concurrent PGVector table creation (multiple uvicorn workers / replicas all
+    running the startup lifespan) otherwise races on the internal pg_type index
+    — ``UniqueViolation: "langchain_pg_collection" already exists``. Serializing
+    the create+seed behind one cluster-wide lock removes the race.
+    """
+    engine = create_engine(settings.database_url)
+    conn = engine.connect()
+    try:
+        conn.execute(text("SELECT pg_advisory_lock(:k)"), {"k": _SEED_LOCK_KEY})
+        conn.commit()
+        yield
+    finally:
+        try:
+            conn.execute(text("SELECT pg_advisory_unlock(:k)"), {"k": _SEED_LOCK_KEY})
+            conn.commit()
+        finally:
+            conn.close()
+            engine.dispose()
+
 
 _IRI_TO_DB = {
     "graphs/diamm/": "diamm",
@@ -82,19 +113,20 @@ async def seed_store() -> None:
     # Drop and recreate the collection on every startup to handle embedding
     # model changes (e.g., dimension shifts between Gemini and Ollama).
     # Safe because the corpus is static (24 hardcoded examples).
-    _store = PGVector(
-        embeddings=get_embeddings(),
-        collection_name="sparql_examples",
-        connection=settings.database_url,
-        use_jsonb=True,
-        pre_delete_collection=True,
-    )
-    docs = [
-        Document(
-            page_content=ex["nl"],
-            metadata={"sparql": ex["sparql"], **enrich_example(ex)},
+    with _seed_lock():
+        _store = PGVector(
+            embeddings=get_embeddings(),
+            collection_name="sparql_examples",
+            connection=settings.database_url,
+            use_jsonb=True,
+            pre_delete_collection=True,
         )
-        for ex in RAG_CORPUS
-    ]
-    ids = [_example_id(ex) for ex in RAG_CORPUS]
-    _store.add_documents(docs, ids=ids)
+        docs = [
+            Document(
+                page_content=ex["nl"],
+                metadata={"sparql": ex["sparql"], **enrich_example(ex)},
+            )
+            for ex in RAG_CORPUS
+        ]
+        ids = [_example_id(ex) for ex in RAG_CORPUS]
+        _store.add_documents(docs, ids=ids)

@@ -1,8 +1,15 @@
 """Tests for app/rag/store.py — seeding and ID generation."""
 
+from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
 from app.rag.store import _example_id, seed_store
+
+
+@contextmanager
+def _noop_lock():
+    """Bypass the Postgres advisory lock so seed_store needs no real DB."""
+    yield
 
 
 def test_example_id_is_deterministic():
@@ -22,7 +29,10 @@ async def test_seed_store_passes_deterministic_ids():
     """seed_store calls add_documents with stable IDs so re-seeding is idempotent."""
     mock_store = MagicMock()
 
-    with patch("app.rag.store.PGVector", return_value=mock_store):
+    with (
+        patch("app.rag.store.PGVector", return_value=mock_store),
+        patch("app.rag.store._seed_lock", _noop_lock),
+    ):
         await seed_store()
         first_ids = mock_store.add_documents.call_args[1]["ids"]
 
@@ -38,7 +48,10 @@ async def test_seed_store_id_count_matches_corpus():
 
     mock_store = MagicMock()
 
-    with patch("app.rag.store.PGVector", return_value=mock_store):
+    with (
+        patch("app.rag.store.PGVector", return_value=mock_store),
+        patch("app.rag.store._seed_lock", _noop_lock),
+    ):
         await seed_store()
 
     ids = mock_store.add_documents.call_args[1]["ids"]
