@@ -20,7 +20,7 @@ spec:
       containers:
         - name: app
           image: ghcr.io/ddmal/sesemmi-app:k8s-migration
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 3000
