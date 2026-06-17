@@ -25,6 +25,7 @@ Ingress (nginx class, TLS) ──▶ Service app:80 ──▶ Deployment app (Ne
 | `configmap.yaml` | `ConfigMap` sesemmi-config (non-secret env) |
 | `secret.yaml` | `Secret` sesemmi-secrets (**placeholders — fill before applying**) |
 | `postgres.yaml` | `Deployment` + `Service` postgres (ephemeral `emptyDir`) |
+| `ollama.yaml` | `Deployment` + `Service` ollama (CPU, ephemeral; auto-pulls the embedding model for RAG) |
 | `llm.yaml` | `Deployment` + `Service` llm (waits for postgres) |
 | `app.yaml` | `Deployment` + `Service` app (2 replicas) |
 | `ingress.yaml` | `Ingress` sesemmi (nginx class, TLS stub) |
@@ -32,8 +33,8 @@ Ingress (nginx class, TLS) ──▶ Service app:80 ──▶ Deployment app (Ne
 > The `sesemmi` namespace is created via `kubectl create namespace sesemmi` (step 1 below),
 > not a manifest file.
 
-> Service names `llm` and `postgres` are fixed — they match the hostnames already baked
-> into `LLM_SERVICE_URL` and `DATABASE_URL`, so no app config changes are needed.
+> Service names `llm`, `postgres`, and `ollama` are fixed — they match the hostnames already baked
+> into `LLM_SERVICE_URL`, `DATABASE_URL`, and `OLLAMA_BASE_URL`, so no app config changes are needed.
 
 ## Deploy
 
@@ -63,15 +64,18 @@ Ingress (nginx class, TLS) ──▶ Service app:80 ──▶ Deployment app (Ne
 
 ## RAG / embeddings note
 
-`RAG_ENABLED=true` (matches the repo `.env`). On every llm startup the lifespan re-seeds
-pgvector — which is *why Postgres uses ephemeral `emptyDir`* (no persistence needed). The
-seeder embeds via **Ollama** (`app/rag/embeddings.py`, `OllamaEmbeddings` at `OLLAMA_BASE_URL`),
-regardless of `LLM_PROVIDER`. Since Ollama is not deployed in-cluster:
+`RAG_ENABLED=true`. On every llm startup the lifespan re-seeds pgvector — which is *why Postgres
+uses ephemeral `emptyDir`* (no persistence needed). The seeder embeds via **Ollama**
+(`app/rag/embeddings.py`, `OllamaEmbeddings` at `OLLAMA_BASE_URL`), regardless of `LLM_PROVIDER`.
 
-- Point **`OLLAMA_BASE_URL`** (in `configmap.yaml`) at a reachable **external** Ollama, **or**
-- set **`RAG_ENABLED=false`** to start the llm service without seeding.
+Ollama runs **in-cluster** (`ollama.yaml`) at `http://ollama:11434`, CPU-only, with ephemeral
+storage. Its Deployment auto-pulls `EMBEDDING_MODEL` (`nomic-embed-text`) via a `postStart` hook
+and only becomes **Ready** once the model is present — so the model is re-pulled (~275MB) on every
+Ollama pod restart.
 
-If neither is done, the llm pod will crash-loop on startup (cannot reach Ollama to embed).
+Startup ordering: `llm` does not wait for Ollama, so if it starts first its RAG seeding fails and
+the pod restarts until Ollama is Ready — k8s self-heals. To disable RAG entirely instead, set
+`RAG_ENABLED=false` (then Ollama is unused).
 
 ## Verify
 

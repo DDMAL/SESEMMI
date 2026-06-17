@@ -19,7 +19,9 @@ data:
   LLM_MODEL: "qwen3.6-27b"
   WIKIDATA_MCP_URL: "https://wd-mcp.wmcloud.org/mcp/"
 
-  RAG_ENABLED: "false"
+  # RAG seeding embeds via the in-cluster Ollama (ollama.yaml) at OLLAMA_BASE_URL; the
+  # EMBEDDING_MODEL is auto-pulled by that Deployment, so startup seeding works.
+  RAG_ENABLED: "true"
   RAG_TOP_K: "5"
   EMBEDDING_MODEL: "nomic-embed-text"
   OLLAMA_BASE_URL: "http://ollama:11434"
