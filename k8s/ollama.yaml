@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: sesemmi
+  labels:
+    app.kubernetes.io/name: ollama
+spec:
+  replicas: 1
+  # Single instance over a node-local ephemeral volume — recreate, never two at once.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ollama
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports:
+            - name: http
+              containerPort: 11434
+          env:
+            # Kept in sync with the ConfigMap so the pull below matches what llm embeds with.
+            - name: EMBEDDING_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: sesemmi-config
+                  key: EMBEDDING_MODEL
+          volumeMounts:
+            - name: models
+              mountPath: /root/.ollama
+          lifecycle:
+            # Storage is ephemeral, so re-pull on every pod start. `ollama pull` is a
+            # no-op when the model is already cached. Waits for the server first.
+            postStart:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - 'until ollama list >/dev/null 2>&1; do sleep 1; done; ollama pull "$EMBEDDING_MODEL"'
+          # Liveness only checks the server is up — a slow model pull must not kill the pod.
+          livenessProbe:
+            tcpSocket:
+              port: 11434
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+          # Ready only once the embedding model is actually present (gives ~5 min for the pull).
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'ollama list | grep -q "$EMBEDDING_MODEL"'
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+      volumes:
+        - name: models
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  namespace: sesemmi
+  labels:
+    app.kubernetes.io/name: ollama
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ollama
+  ports:
+    - name: http
+      port: 11434
+      targetPort: 11434
