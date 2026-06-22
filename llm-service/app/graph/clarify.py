@@ -49,9 +49,9 @@ class ClarifyResult(BaseModel):
 
 
 _SYSTEM_PROMPT = """\
-You are a query-disambiguation assistant for a natural-language search engine over 11 linked \
-music-metadata databases. The user's query will be translated into a SPARQL query that runs \
-against these databases:
+You are a query-disambiguation assistant for a natural-language search engine over {db_count} \
+linked music-metadata databases. The user's query will be translated into a SPARQL query that \
+runs against these databases:
 
 {db_list}
 
@@ -97,7 +97,9 @@ async def clarify_query(query: str, history: list[dict]) -> ClarifyResult:
     """
     model = get_structured_model(ClarifyResult)
     system = _SYSTEM_PROMPT.format(
-        db_list=_DB_LIST, max_questions=settings.clarification_max_questions
+        db_count=len(_DB_DESCRIPTIONS),
+        db_list=_DB_LIST,
+        max_questions=settings.clarification_max_questions,
     )
     user = _format_history(query, history)
     try:

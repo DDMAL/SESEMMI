@@ -2487,4 +2487,263 @@ WHERE {
 ORDER BY ?track
 LIMIT 100""",
     },
+    # CKG feeds (NFDI4Culture): apsearch, detmold, musiconn — Tier 1 lookups
+    {
+        "nl": "Find all works in CKG APSearch",
+        "sparql": """PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+SELECT ?work
+WHERE {
+  GRAPH apsearch: {
+    ?work a apsearch:Work .
+  }
+}
+LIMIT 100""",
+    },
+    {
+        "nl": "Find all works in the CKG Detmolder Hoftheater feed",
+        "sparql": """PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+SELECT ?work
+WHERE {
+  GRAPH detmold: {
+    ?work a detmold:Work .
+  }
+}
+LIMIT 100""",
+    },
+    {
+        "nl": "Find all events in CKG musiconn.performance",
+        "sparql": """PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+SELECT ?event
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event .
+  }
+}
+LIMIT 100""",
+    },
+    # CKG — Tier 2: single-graph aggregation / structural
+    {
+        "nl": "Count how many works each publisher has issued in CKG APSearch",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+SELECT ?publisher (COUNT(?work) AS ?workCount)
+WHERE {
+  GRAPH apsearch: {
+    ?work a apsearch:Work ;
+          wdt:P123 ?publisher .
+  }
+}
+GROUP BY ?publisher
+ORDER BY DESC(?workCount)""",
+    },
+    {
+        "nl": "For each place in CKG Detmold, count how many works reference it as a related place",
+        "sparql": """PREFIX cto:     <https://nfdi4culture.de/ontology/>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+SELECT ?place (COUNT(?work) AS ?workCount)
+WHERE {
+  GRAPH detmold: {
+    ?work a detmold:Work ;
+          cto:CTO_0001011 ?place .
+  }
+}
+GROUP BY ?place
+ORDER BY DESC(?workCount)""",
+    },
+    {
+        "nl": "Find all musiconn events that took place in Vienna",
+        "sparql": """PREFIX wd:       <http://www.wikidata.org/entity/>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+SELECT DISTINCT ?event
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event ;
+           cto:CTO_0001011 ?place .
+    ?place wdt:P2888 wd:Q1741 .
+  }
+}
+LIMIT 100""",
+    },
+    {
+        "nl": "List CKG musiconn events associated with Baldassarre Galuppi, either directly or via one of his works",
+        "sparql": """PREFIX wd:       <http://www.wikidata.org/entity/>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+SELECT DISTINCT ?event
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event .
+    {
+      ?event cto:CTO_0001009 ?person .
+      ?person wdt:P2888 wd:Q208338 .
+    }
+    UNION
+    {
+      ?event cto:CTO_0001019 ?work .
+      ?work cto:CTO_0001009 ?person .
+      ?person wdt:P2888 wd:Q208338 .
+    }
+  }
+}
+LIMIT 100""",
+    },
+    {
+        "nl": "For each person in CKG musiconn, count how many events reference them as a related person",
+        "sparql": """PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+SELECT ?person (COUNT(?event) AS ?eventCount)
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event ;
+           cto:CTO_0001009 ?person .
+  }
+}
+GROUP BY ?person
+ORDER BY DESC(?eventCount)""",
+    },
+    {
+        "nl": "Find Arabic field recordings in CKG APSearch published by the Berlin-Brandenburg Academy of Sciences and Humanities, with their recording dates",
+        "sparql": """PREFIX wd:       <http://www.wikidata.org/entity/>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+SELECT DISTINCT ?work ?date
+WHERE {
+  GRAPH apsearch: {
+    ?work a apsearch:Work ;
+          wdt:P123 ?publisher ;
+          wdt:P571 ?date .
+    ?publisher wdt:P2888 wd:Q219989 .
+  }
+  FILTER(STR(?date) >= "1900" && STR(?date) < "2025")
+}
+ORDER BY ?date
+LIMIT 100""",
+    },
+    # CKG — Tier 3: Wikidata federation
+    {
+        "nl": "Look up the birth country of Eugène Scribe — the most-credited person in the CKG Detmolder Hoftheater catalogue — on Wikidata",
+        "sparql": """PREFIX wd:      <http://www.wikidata.org/entity/>
+PREFIX wdt:     <http://www.wikidata.org/prop/direct/>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+SELECT DISTINCT ?country
+WHERE {
+  GRAPH detmold: {
+    ?person a detmold:Person ;
+            wdt:P2888 wd:Q319261 .
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    wd:Q319261 wdt:P19 ?birthPlace .
+    ?birthPlace wdt:P17 ?country .
+  }
+}""",
+    },
+    {
+        "nl": "Confirm via Wikidata that Niccolò Piccinni — referenced in the CKG musiconn.performance archive — worked as a conductor as well as a composer",
+        "sparql": """PREFIX wd:       <http://www.wikidata.org/entity/>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+SELECT DISTINCT ?person
+WHERE {
+  GRAPH musiconn: {
+    ?person a musiconn:Person ;
+            wdt:P2888 wd:Q310687 .
+  }
+  SERVICE <https://query.wikidata.org/sparql> {
+    wd:Q310687 wdt:P106 wd:Q158852 .
+  }
+}""",
+    },
+    # CKG — Tier 4: cross-graph joins
+    {
+        "nl": "Find pairs of works (one from CKG APSearch and one from CKG musiconn) that share the same publisher",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+SELECT DISTINCT ?publisher ?apsearchWork ?musiconnWork
+WHERE {
+  GRAPH apsearch: {
+    ?apsearchWork a apsearch:Work ;
+                  wdt:P123 ?publisher .
+  }
+  GRAPH musiconn: {
+    ?musiconnWork a musiconn:Work ;
+                  wdt:P123 ?publisher .
+  }
+}
+LIMIT 100""",
+    },
+    {
+        "nl": "Find CKG Detmold persons who are also catalogued in DIAMM and credited as the composer on at least one DIAMM composition",
+        "sparql": """PREFIX wdt:     <http://www.wikidata.org/prop/direct/>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+PREFIX diamm:   <https://linkedmusic.ca/graphs/diamm/>
+SELECT DISTINCT ?detmoldPerson ?diammPerson
+WHERE {
+  GRAPH detmold: {
+    ?detmoldPerson a detmold:Person ;
+                   wdt:P2888 ?personQID .
+  }
+  GRAPH diamm: {
+    ?diammPerson a diamm:Person ;
+                 wdt:P2888 ?personQID .
+    ?composition wdt:P86 ?diammPerson .
+  }
+}""",
+    },
+    {
+        "nl": "Find musiconn persons who are also catalogued as MusicBrainz artists",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+PREFIX mb:       <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT DISTINCT ?musiconnPerson ?mbArtist
+WHERE {
+  GRAPH musiconn: {
+    ?musiconnPerson a musiconn:Person ;
+                    wdt:P2888 ?personQID .
+  }
+  GRAPH mb: {
+    ?mbArtist a mb:Artist ;
+              wdt:P2888 ?personQID .
+  }
+}
+LIMIT 100""",
+    },
+    {
+        "nl": "Across the nineteenth century, how did musical life shift from court-patronage stage works to public concert culture? For each decade between 1800 and 1900, count newly composed stage works and concerts or performance events held.",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX detmold:  <https://linkedmusic.ca/graphs/ckg-detmold/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+PREFIX mb:       <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT ?decade
+       (SUM(?stage)   AS ?stageWorks)
+       (SUM(?concert) AS ?concertEvents)
+WHERE {
+  {
+    GRAPH detmold: { ?work a detmold:Work ; wdt:P571 ?date }
+    BIND(xsd:integer(CONCAT(SUBSTR(STR(?date), 1, 3), "0")) AS ?decade)
+    BIND(1 AS ?stage) BIND(0 AS ?concert)
+  }
+  UNION
+  {
+    GRAPH musiconn: { ?event a musiconn:Event ; wdt:P585 ?date }
+    BIND(xsd:integer(CONCAT(SUBSTR(STR(?date), 1, 3), "0")) AS ?decade)
+    BIND(0 AS ?stage) BIND(1 AS ?concert)
+  }
+  UNION
+  {
+    GRAPH mb: {
+      ?event a mb:Event ; wdt:P580 ?date
+      FILTER(STR(?date) >= "1800" && STR(?date) < "1900")
+    }
+    BIND(xsd:integer(CONCAT(SUBSTR(STR(?date), 1, 3), "0")) AS ?decade)
+    BIND(0 AS ?stage) BIND(1 AS ?concert)
+  }
+  FILTER(?decade >= 1800 && ?decade < 1900)
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
 ]
