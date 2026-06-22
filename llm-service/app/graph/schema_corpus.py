@@ -804,7 +804,7 @@ liturgical, genre, and textual metadata. Entity types use the `cantusindex:` pre
 Cantus Index entities do not carry wdt:P2888 in the current ontology.
 </qid-linking>
 <cross-database>
-cantusindex:Chant has wdt:P629 "version of" and wdt:P1899 "related chant",
+cantusindex:Chant has wdt:P629 "version of" and cantusindex:relatedChant,
 which may reference chants across Cantus DB or other chant databases.
 </cross-database>
 <ontology>
@@ -819,8 +819,8 @@ cantusindex:Chant
 \twdt:P217\t"inventory number" ;
 \twdt:P144\tcantusindex:Chant ;
 \twdt:P629\tcantusindex:Chant ;
-\twdt:P6349\t"Lace Bugs Database ID" ;
-\twdt:P1899\tcantusindex:Chant .
+\twdt:P6439\t"has lyrics" ;
+\tcantusindex:relatedChant\tcantusindex:Chant .
 </ontology>
 </database>\
 """,
