@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**SESEMMI** (Search Engine System for Enhancing Music Metadata Interoperability) is a Next.js full-stack app that translates natural language queries into SPARQL, executes them against a Virtuoso RDF triplestore containing 7 linked music databases (Cantus DB, DIAMM, MusicBrainz, RISM, etc.), and displays results in a table.
+**SESEMMI** (Search Engine System for Enhancing Music Metadata Interoperability) is a Next.js full-stack app that translates natural language queries into SPARQL, executes them against a Virtuoso RDF triplestore containing 14 linked music databases (Cantus DB, DIAMM, MusicBrainz, RISM, three NFDI4Culture CKG feeds, etc.), and displays results in a table.
 
 ## Commands
 

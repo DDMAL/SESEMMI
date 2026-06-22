@@ -11,6 +11,7 @@ KNOWN_PREFIXES = {
     "skos": "http://www.w3.org/2004/02/skos/core#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "owl": "http://www.w3.org/2002/07/owl#",
+    "cto": "https://nfdi4culture.de/ontology/",
     "diamm": "https://linkedmusic.ca/graphs/diamm/",
     "ts": "https://linkedmusic.ca/graphs/thesession/",
     "mb": "https://linkedmusic.ca/graphs/musicbrainz/",
@@ -18,6 +19,13 @@ KNOWN_PREFIXES = {
     "dtl": "https://linkedmusic.ca/graphs/dig-that-lick/",
     "cdb": "https://linkedmusic.ca/graphs/cantusdb/",
     "rism": "https://linkedmusic.ca/graphs/rism/",
+    "wjazzd": "https://linkedmusic.ca/graphs/wjazzd/",
+    "simssa": "https://linkedmusic.ca/graphs/simssadb/",
+    "utsi": "https://linkedmusic.ca/graphs/utsi/",
+    "cantusindex": "https://linkedmusic.ca/graphs/cantusindex/",
+    "apsearch": "https://linkedmusic.ca/graphs/ckg-apsearch/",
+    "detmold": "https://linkedmusic.ca/graphs/ckg-detmold/",
+    "musiconn": "https://linkedmusic.ca/graphs/ckg-musiconn/",
 }
 
 _FORBIDDEN = re.compile(r"\b(INSERT|DELETE|DROP|CREATE|LOAD|CLEAR)\b", re.IGNORECASE)
