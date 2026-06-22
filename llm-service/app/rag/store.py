@@ -53,6 +53,9 @@ _IRI_TO_DB = {
     "graphs/simssadb/": "simssadb",
     "graphs/utsi/": "utsi",
     "graphs/cantusindex/": "cantusindex",
+    "graphs/ckg-apsearch/": "ckg-apsearch",
+    "graphs/ckg-detmold/": "ckg-detmold",
+    "graphs/ckg-musiconn/": "ckg-musiconn",
 }
 
 

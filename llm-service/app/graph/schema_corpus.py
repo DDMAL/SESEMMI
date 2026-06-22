@@ -732,6 +732,7 @@ simssa:GenreAsInType
 \trdfs:label\t"label" .
 simssa:Person
 \trdfs:label\t"label" ;
+\twdt:P214\t"VIAF ID" ;
 \twdt:P2888\t"exact match" ;
 \twdt:P569\t"date of birth" ;
 \twdt:P570\t"date of death" .
@@ -818,8 +819,151 @@ cantusindex:Chant
 \twdt:P217\t"inventory number" ;
 \twdt:P144\tcantusindex:Chant ;
 \twdt:P629\tcantusindex:Chant ;
-\twdt:P6439\t"has lyrics" ;
+\twdt:P6349\t"Lace Bugs Database ID" ;
 \twdt:P1899\tcantusindex:Chant .
+</ontology>
+</database>\
+""",
+    "ckg-apsearch": """\
+<database name="CKG: APSearch" graph-iri="https://linkedmusic.ca/graphs/ckg-apsearch/" prefix="apsearch:">
+<description>
+All triples for the APSearch (Arab Phonogram Search) feed of the NFDI4Culture
+Culture Knowledge Graph are stored in the &lt;https://linkedmusic.ca/graphs/ckg-apsearch/&gt;
+graph. Aggregator and search portal for Arabic phonogram recordings, published by the
+Berlin-Brandenburgische Akademie der Wissenschaften. Contains works only. Entity types
+use the `apsearch:` prefix; CTO ontology terms (NFDI4Culture) use the `cto:` prefix.
+</description>
+<qid-linking>
+APSearch entities do not carry wdt:P2888 in the current ontology.
+</qid-linking>
+<cross-database>
+APSearch has no cross-database join properties. cto:CTO_0001026 stores Getty AAT
+URIs and cto:CTO_0001006 stores NFDI4Culture feed IDs — neither overlaps with the
+Wikidata QIDs used by other LinkedMusic graphs.
+</cross-database>
+<ontology>
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix wdt:      <http://www.wikidata.org/prop/direct/> .
+@prefix wd:       <http://www.wikidata.org/entity/> .
+@prefix cto:      <https://nfdi4culture.de/ontology/> .
+@prefix apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/> .
+
+apsearch:Work
+\trdfs:label\t"label" ;
+\twdt:P31\t"instance of" ;
+\twdt:P123\t"publisher" ;
+\twdt:P275\t"copyright license" ;
+\twdt:P571\t"inception" ;
+\twdt:P953\t"full work URL" ;
+\tcto:CTO_0001006\t"is referenced in" ;
+\tcto:CTO_0001026\t"has external classifier" .
+</ontology>
+</database>\
+""",
+    "ckg-detmold": """\
+<database name="CKG: Detmolder Hoftheater" graph-iri="https://linkedmusic.ca/graphs/ckg-detmold/" prefix="detmold:">
+<description>
+All triples for the Detmolder Hoftheater (Detmold Court Theatre) feed of the
+NFDI4Culture Culture Knowledge Graph are stored in the
+&lt;https://linkedmusic.ca/graphs/ckg-detmold/&gt; graph. Contains persons, places, and
+theatrical works from the court theatre's history. Entity types use the `detmold:`
+prefix; CTO ontology terms (NFDI4Culture) use the `cto:` prefix.
+</description>
+<qid-linking>
+detmold:Person and detmold:Place have wdt:P2888 "exact match" for Wikidata reconciliation.
+</qid-linking>
+<cross-database>
+detmold:Person and detmold:Place carry wdt:P2888 "exact match", enabling
+correlation with other LinkedMusic databases through shared Wikidata QIDs.
+</cross-database>
+<ontology>
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix wdt:     <http://www.wikidata.org/prop/direct/> .
+@prefix wd:      <http://www.wikidata.org/entity/> .
+@prefix cto:     <https://nfdi4culture.de/ontology/> .
+@prefix detmold: <https://linkedmusic.ca/graphs/ckg-detmold/> .
+
+detmold:Person
+\trdfs:label\t"label" ;
+\twdt:P2888\t"exact match" .
+detmold:Place
+\trdfs:label\t"label" ;
+\twdt:P2888\t"exact match" .
+detmold:Work
+\trdfs:label\t"label" ;
+\twdt:P31\t"instance of" ;
+\twdt:P123\t"publisher" ;
+\twdt:P571\t"inception" ;
+\tcto:CTO_0001006\t"is referenced in" ;
+\tcto:CTO_0001009\tdetmold:Person ;
+\tcto:CTO_0001011\tdetmold:Place .
+</ontology>
+</database>\
+""",
+    "ckg-musiconn": """\
+<database name="CKG: musiconn.performance" graph-iri="https://linkedmusic.ca/graphs/ckg-musiconn/" prefix="musiconn:">
+<description>
+All triples for the musiconn.performance feed of the NFDI4Culture Culture
+Knowledge Graph are stored in the &lt;https://linkedmusic.ca/graphs/ckg-musiconn/&gt; graph.
+Research database for music performance history; the largest of the three CKG feeds
+(~1.6M triples). Contains collections, events, organizations, persons, places, and works.
+Entity types use the `musiconn:` prefix; CTO ontology terms (NFDI4Culture) use the
+`cto:` prefix.
+</description>
+<qid-linking>
+musiconn:Collection, musiconn:Organization, musiconn:Person, and musiconn:Place
+carry wdt:P2888 "exact match" for Wikidata reconciliation. musiconn:Event and
+musiconn:Work do not carry wdt:P2888 directly; reach them via their cto:CTO_0001009/0010/0011
+links to reconciled persons, organizations, and places.
+</qid-linking>
+<cross-database>
+musiconn:Person, musiconn:Organization, musiconn:Place, and musiconn:Collection
+carry wdt:P2888 "exact match", enabling correlation with other LinkedMusic databases
+through shared Wikidata QIDs.
+</cross-database>
+<ontology>
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix wdt:      <http://www.wikidata.org/prop/direct/> .
+@prefix wd:       <http://www.wikidata.org/entity/> .
+@prefix cto:      <https://nfdi4culture.de/ontology/> .
+@prefix musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/> .
+
+musiconn:Collection
+\trdfs:label\t"label" ;
+\twdt:P2888\t"exact match" .
+musiconn:Event
+\trdfs:label\t"label" ;
+\twdt:P31\t"instance of" ;
+\twdt:P123\t"publisher" ;
+\twdt:P275\t"copyright license" ;
+\twdt:P361\tmusiconn:Collection ;
+\twdt:P585\t"point in time" ;
+\tcto:CTO_0001006\t"is referenced in" ;
+\tcto:CTO_0001009\tmusiconn:Person ;
+\tcto:CTO_0001010\tmusiconn:Organization ;
+\tcto:CTO_0001011\tmusiconn:Place ;
+\tcto:CTO_0001019\tmusiconn:Work , "has related item" ;
+\tcto:CTO_0001026\t"has external classifier" .
+musiconn:Organization
+\trdfs:label\t"label" ;
+\twdt:P2888\t"exact match" .
+musiconn:Person
+\trdfs:label\t"label" ;
+\twdt:P2888\t"exact match" .
+musiconn:Place
+\trdfs:label\t"label" ;
+\twdt:P2888\t"exact match" .
+musiconn:Work
+\trdfs:label\t"label" ;
+\twdt:P31\t"instance of" ;
+\twdt:P123\t"publisher" ;
+\twdt:P275\t"copyright license" ;
+\twdt:P361\tmusiconn:Collection ;
+\tcto:CTO_0001006\t"is referenced in" ;
+\tcto:CTO_0001009\tmusiconn:Person ;
+\tcto:CTO_0001010\tmusiconn:Organization ;
+\tcto:CTO_0001019\tmusiconn:Event , musiconn:Work , "has related item" ;
+\tcto:CTO_0001026\t"has external classifier" .
 </ontology>
 </database>\
 """,

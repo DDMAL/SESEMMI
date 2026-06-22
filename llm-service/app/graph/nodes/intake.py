@@ -22,6 +22,9 @@ _DB_DESCRIPTIONS = {
     "simssadb": "SIMSSA DB — symbolic music scores, works, sections, sources, persons",
     "utsi": "University of Tennessee Song Index — American folk and popular songs, anthologies",
     "cantusindex": "Cantus Index — medieval Latin chant index linking chant traditions across sources",
+    "ckg-apsearch": "CKG APSearch — NFDI4Culture feed of Arab phonogram recordings (works only)",
+    "ckg-detmold": "CKG Detmolder Hoftheater — NFDI4Culture feed of Detmold Court Theatre works, persons, and places",
+    "ckg-musiconn": "CKG musiconn.performance — NFDI4Culture feed for music performance history (events, persons, organizations, works, places, collections)",
 }
 
 _DB_LIST = "\n".join(f'  <db name="{k}">{v}</db>' for k, v in _DB_DESCRIPTIONS.items())
@@ -49,6 +52,9 @@ class IntakeClassification(BaseModel):
             "simssadb",
             "utsi",
             "cantusindex",
+            "ckg-apsearch",
+            "ckg-detmold",
+            "ckg-musiconn",
         ]
     ]
     needs_federation: bool
