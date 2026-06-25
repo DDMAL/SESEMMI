@@ -2658,22 +2658,44 @@ WHERE {
     },
     # CKG — Tier 4: cross-graph joins
     {
-        "nl": "Find pairs of works (one from CKG APSearch and one from CKG musiconn) that share the same publisher",
-        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
-PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+        "nl": "For each canonical Western art-music composer, compare the number of European concert events documenting their work with the number of surviving manuscript sources attributed to them.",
+        "sparql": """PREFIX wd:       <http://www.wikidata.org/entity/>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
 PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
-SELECT DISTINCT ?publisher ?apsearchWork ?musiconnWork
+PREFIX rism:     <https://linkedmusic.ca/graphs/rism/>
+PREFIX mb:       <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT ?composer ?name ?concertEvents ?manuscriptSources
 WHERE {
-  GRAPH apsearch: {
-    ?apsearchWork a apsearch:Work ;
-                  wdt:P123 ?publisher .
+  {
+    SELECT ?composer (SAMPLE(?lbl) AS ?name) WHERE {
+      VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+      GRAPH mb: { ?a wdt:P2888 ?composer ; rdfs:label ?lbl }
+    } GROUP BY ?composer
   }
-  GRAPH musiconn: {
-    ?musiconnWork a musiconn:Work ;
-                  wdt:P123 ?publisher .
+  {
+    SELECT ?composer (COUNT(DISTINCT ?event) AS ?concertEvents) WHERE {
+      VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+      GRAPH musiconn: {
+        ?event a musiconn:Event ;
+               cto:CTO_0001019 ?work .
+        ?work cto:CTO_0001009 ?p .
+        ?p wdt:P2888 ?composer .
+      }
+    } GROUP BY ?composer
+  }
+  {
+    SELECT ?composer (COUNT(DISTINCT ?source) AS ?manuscriptSources) WHERE {
+      VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+      GRAPH rism: {
+        ?source wdt:P86 ?person .
+        ?person wdt:P2888 ?composer .
+      }
+    } GROUP BY ?composer
   }
 }
-LIMIT 100""",
+ORDER BY DESC(?concertEvents)""",
     },
     {
         "nl": "Find CKG Detmold persons who are also catalogued in DIAMM and credited as the composer on at least one DIAMM composition",
