@@ -2746,4 +2746,178 @@ WHERE {
 GROUP BY ?decade
 ORDER BY ?decade""",
     },
+    {
+        "nl": "For the canonical Western art-music composers (Bach, Mozart, Beethoven, Haydn, Schubert, Mendelssohn, Schumann, Brahms, and Wagner), count the total number of items attributable to each one across every archive in our holdings — including their compositions, recordings of those works, releases and release-groups credited to them, public concerts featuring their music, court-theatre productions, manuscript sources, and song-anthology entries — and rank the composers by overall footprint.",
+        "sparql": """PREFIX wd:       <http://www.wikidata.org/entity/>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+PREFIX detmold:  <https://linkedmusic.ca/graphs/ckg-detmold/>
+PREFIX mb:       <https://linkedmusic.ca/graphs/musicbrainz/>
+PREFIX rism:     <https://linkedmusic.ca/graphs/rism/>
+PREFIX utsi:     <https://linkedmusic.ca/graphs/utsi/>
+SELECT ?composer ?name (SUM(?n) AS ?totalItems)
+WHERE {
+  {
+    SELECT ?composer (SAMPLE(?lbl) AS ?name) WHERE {
+      VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+      GRAPH mb: { ?a wdt:P2888 ?composer ; rdfs:label ?lbl . }
+    }
+    GROUP BY ?composer
+  }
+  {
+    {
+      SELECT ?composer (COUNT(DISTINCT ?event) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH musiconn: {
+          ?event a musiconn:Event ;
+                 cto:CTO_0001019 ?work .
+          ?work cto:CTO_0001009 ?person .
+          ?person wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?work) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH detmold: {
+          ?work a detmold:Work ;
+                cto:CTO_0001009 ?person .
+          ?person wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?work) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH mb: {
+          ?work a mb:Work ;
+                wdt:P86 ?artist .
+          ?artist wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?recording) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH mb: {
+          ?recording a mb:Recording ;
+                     wdt:P2550 ?work .
+          ?work wdt:P86 ?artist .
+          ?artist wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?release) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH mb: {
+          ?release a mb:Release ;
+                   wdt:P175 ?artist .
+          ?artist wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?rg) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH mb: {
+          ?rg a mb:ReleaseGroup ;
+              wdt:P175 ?artist .
+          ?artist wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?source) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH rism: {
+          ?source wdt:P86 ?person .
+          ?person wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?song) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH utsi: {
+          ?song a utsi:Song ;
+                wdt:P86 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+  }
+}
+GROUP BY ?composer ?name
+ORDER BY DESC(?totalItems)""",
+    },
+    # CKG — Tier 6: apsearch-dedicated ethnographic / folk-music breadth
+    {
+        "nl": "How has the documented output of ethnographic and folk-music recording shifted across the 20th and early 21st centuries? For each decade from 1900 onward, sum the total dated entries our datalake holds across Arabic field recordings, world-music ethnomusicological surveys, and online Irish traditional-session logs.",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+PREFIX gj:       <https://linkedmusic.ca/graphs/theglobaljukebox/>
+PREFIX ts:       <https://linkedmusic.ca/graphs/thesession/>
+SELECT ?decade (SUM(?n) AS ?ethnographicEntries)
+WHERE {
+  {
+    SELECT ?decade (COUNT(DISTINCT ?w) AS ?n) WHERE {
+      GRAPH apsearch: { ?w a apsearch:Work ; wdt:P571 ?d }
+      BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+      FILTER(?decade >= 1900 && ?decade < 2030)
+    } GROUP BY ?decade
+  }
+  UNION
+  {
+    SELECT ?decade (COUNT(DISTINCT ?s) AS ?n) WHERE {
+      GRAPH gj: { ?s a gj:Song ; wdt:P585 ?d }
+      BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+      FILTER(?decade >= 1900 && ?decade < 2030)
+    } GROUP BY ?decade
+  }
+  UNION
+  {
+    SELECT ?decade (COUNT(DISTINCT ?e) AS ?n) WHERE {
+      GRAPH ts: { ?e a ts:Events ; wdt:P580 ?d }
+      BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+      FILTER(?decade >= 1900 && ?decade < 2030)
+    } GROUP BY ?decade
+  }
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
+    {
+        "nl": "In the 21st century, how does community-driven documentation of living folk traditions compare across regions? Decade by decade since 2000, how many entries does our datalake hold for Arabic ethnographic field-recording activity versus community-logged Irish traditional sessions?",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+PREFIX ts:       <https://linkedmusic.ca/graphs/thesession/>
+SELECT ?decade
+       (SUM(?ap) AS ?arabicFieldRecordings)
+       (SUM(?ir) AS ?irishSessions)
+WHERE {
+  {
+    GRAPH apsearch: { ?w a apsearch:Work ; wdt:P571 ?d }
+    BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+    BIND(1 AS ?ap) BIND(0 AS ?ir)
+  }
+  UNION
+  {
+    GRAPH ts: { ?e a ts:Events ; wdt:P580 ?d }
+    BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+    BIND(0 AS ?ap) BIND(1 AS ?ir)
+  }
+  FILTER(?decade >= 2000 && ?decade < 2030)
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
 ]
