@@ -3353,4 +3353,194 @@ WHERE {
 GROUP BY ?year
 ORDER BY ?year""",
     },
+    # ── Single-database expansion — CKG Detmold ──
+    {
+        "nl": "Across the 18th and 19th centuries, decade by decade, how many newly composed stage works does the Detmolder Hoftheater catalogue document?",
+        "sparql": """PREFIX wdt:     <http://www.wikidata.org/prop/direct/>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+
+SELECT ?decade (COUNT(DISTINCT ?work) AS ?workCount)
+WHERE {
+  GRAPH detmold: {
+    ?work a detmold:Work ;
+          wdt:P571 ?d .
+  }
+  BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+  FILTER(?decade >= 1700 && ?decade < 1910)
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
+    {
+        "nl": "Year by year through the Detmolder Hoftheater's peak repertoire decades (1820–1849), how many newly composed stage works does the catalogue document?",
+        "sparql": """PREFIX wdt:     <http://www.wikidata.org/prop/direct/>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+
+SELECT ?year (COUNT(DISTINCT ?work) AS ?workCount)
+WHERE {
+  GRAPH detmold: {
+    ?work a detmold:Work ;
+          wdt:P571 ?d .
+  }
+  BIND(xsd:integer(SUBSTR(STR(?d), 1, 4)) AS ?year)
+  FILTER(?year >= 1820 && ?year <= 1849)
+}
+GROUP BY ?year
+ORDER BY ?year""",
+    },
+    {
+        "nl": "Which stage works in the Detmolder Hoftheater catalogue survive without any credited contributor — productions whose librettist, composer, or translator remains unknown in the archive?",
+        "sparql": """PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cto:     <https://nfdi4culture.de/ontology/>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+
+SELECT ?work (SAMPLE(?lbl) AS ?label)
+WHERE {
+  GRAPH detmold: {
+    ?work a detmold:Work ;
+          rdfs:label ?lbl .
+    FILTER NOT EXISTS { ?work cto:CTO_0001009 ?person }
+  }
+}
+GROUP BY ?work
+LIMIT 100""",
+    },
+    {
+        "nl": "Which works in the Detmolder Hoftheater catalogue circulate under the most title variants — productions known under multiple German, French, and Italian titles?",
+        "sparql": """PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+
+SELECT ?work
+       (COUNT(DISTINCT ?lbl) AS ?numTitles)
+       (GROUP_CONCAT(DISTINCT ?lbl; SEPARATOR=" / ") AS ?titles)
+WHERE {
+  GRAPH detmold: {
+    ?work a detmold:Work ;
+          rdfs:label ?lbl .
+  }
+}
+GROUP BY ?work
+HAVING(COUNT(DISTINCT ?lbl) >= 4)
+ORDER BY DESC(?numTitles)
+LIMIT 30""",
+    },
+    {
+        "nl": "How collaborative were productions at the Detmolder Hoftheater? — across the stage-work catalogue, how is the corpus distributed by number of credited contributors per work?",
+        "sparql": """PREFIX cto:     <https://nfdi4culture.de/ontology/>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+
+SELECT ?numContributors (COUNT(DISTINCT ?work) AS ?workCount)
+WHERE {
+  {
+    SELECT ?work (COUNT(DISTINCT ?person) AS ?numContributors)
+    WHERE {
+      GRAPH detmold: {
+        ?work a detmold:Work ;
+              cto:CTO_0001009 ?person .
+      }
+    }
+    GROUP BY ?work
+  }
+}
+GROUP BY ?numContributors
+ORDER BY ?numContributors""",
+    },
+    # ── Single-database expansion — CKG musiconn ──
+    {
+        "nl": "Across more than three centuries of concert culture documented by musiconn.performance — from the early 1700s into the present — how many performance events does the archive record decade by decade?",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+
+SELECT ?decade (COUNT(DISTINCT ?event) AS ?eventCount)
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event ;
+           wdt:P585 ?d .
+  }
+  BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+  FILTER(?decade >= 1700 && ?decade < 2030)
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
+    {
+        "nl": "Which concert venues host the most performance events in the musiconn.performance archive — the leading opera houses, concert halls, and theatres of German-language musical life?",
+        "sparql": """PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+
+SELECT (STR(?lbl) AS ?venue) (COUNT(DISTINCT ?event) AS ?eventCount)
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event ;
+           cto:CTO_0001011 ?place .
+    ?place a musiconn:Place ;
+           rdfs:label ?lbl .
+  }
+}
+GROUP BY STR(?lbl)
+ORDER BY DESC(?eventCount)
+LIMIT 15""",
+    },
+    {
+        "nl": "Which musical works are most frequently programmed across the musiconn.performance concert archive — the most-performed pieces of the canonical repertoire?",
+        "sparql": """PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+
+SELECT ?work (SAMPLE(?lbl) AS ?title) (COUNT(DISTINCT ?event) AS ?performanceCount)
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event ;
+           cto:CTO_0001019 ?work .
+    ?work a musiconn:Work ;
+          rdfs:label ?lbl .
+  }
+}
+GROUP BY ?work
+ORDER BY DESC(?performanceCount)
+LIMIT 15""",
+    },
+    {
+        "nl": "Whose music dominates the musiconn.performance archive? Rank composers — identified by their Wikidata reference — by the number of performance events featuring at least one of their works.",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+
+SELECT ?composerQID (COUNT(DISTINCT ?event) AS ?eventCount)
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event ;
+           cto:CTO_0001019 ?work .
+    ?work cto:CTO_0001009 ?person .
+    ?person a musiconn:Person ;
+            wdt:P2888 ?composerQID .
+  }
+  FILTER(STRSTARTS(STR(?composerQID), "http://www.wikidata.org/entity/"))
+}
+GROUP BY ?composerQID
+ORDER BY DESC(?eventCount)
+LIMIT 15""",
+    },
+    {
+        "nl": "How varied are concert programmes across the musiconn.performance archive — across all documented performance events, how is the catalogue distributed by number of works programmed per event?",
+        "sparql": """PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+
+SELECT ?programmeSize (COUNT(DISTINCT ?event) AS ?eventCount)
+WHERE {
+  {
+    SELECT ?event (COUNT(DISTINCT ?work) AS ?programmeSize)
+    WHERE {
+      GRAPH musiconn: {
+        ?event a musiconn:Event ;
+               cto:CTO_0001019 ?work .
+      }
+    }
+    GROUP BY ?event
+  }
+}
+GROUP BY ?programmeSize
+ORDER BY ?programmeSize""",
+    },
 ]
