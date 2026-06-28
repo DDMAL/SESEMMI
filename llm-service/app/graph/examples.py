@@ -2658,22 +2658,105 @@ WHERE {
     },
     # CKG — Tier 4: cross-graph joins
     {
-        "nl": "Find pairs of works (one from CKG APSearch and one from CKG musiconn) that share the same publisher",
-        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
-PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+        "nl": "For each canonical Western art-music composer, compare the number of European concert events documenting their work with the number of surviving manuscript sources attributed to them.",
+        "sparql": """PREFIX wd:       <http://www.wikidata.org/entity/>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
 PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
-SELECT DISTINCT ?publisher ?apsearchWork ?musiconnWork
+PREFIX rism:     <https://linkedmusic.ca/graphs/rism/>
+PREFIX mb:       <https://linkedmusic.ca/graphs/musicbrainz/>
+SELECT ?composer ?name ?concertEvents ?manuscriptSources
 WHERE {
-  GRAPH apsearch: {
-    ?apsearchWork a apsearch:Work ;
-                  wdt:P123 ?publisher .
+  {
+    SELECT ?composer (SAMPLE(?lbl) AS ?name) WHERE {
+      VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+      GRAPH mb: { ?a wdt:P2888 ?composer ; rdfs:label ?lbl }
+    } GROUP BY ?composer
   }
-  GRAPH musiconn: {
-    ?musiconnWork a musiconn:Work ;
-                  wdt:P123 ?publisher .
+  {
+    SELECT ?composer (COUNT(DISTINCT ?event) AS ?concertEvents) WHERE {
+      VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+      GRAPH musiconn: {
+        ?event a musiconn:Event ;
+               cto:CTO_0001019 ?work .
+        ?work cto:CTO_0001009 ?p .
+        ?p wdt:P2888 ?composer .
+      }
+    } GROUP BY ?composer
+  }
+  {
+    SELECT ?composer (COUNT(DISTINCT ?source) AS ?manuscriptSources) WHERE {
+      VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+      GRAPH rism: {
+        ?source wdt:P86 ?person .
+        ?person wdt:P2888 ?composer .
+      }
+    } GROUP BY ?composer
   }
 }
-LIMIT 100""",
+ORDER BY DESC(?concertEvents)""",
+    },
+    {
+        "nl": "How is the legacy of the major 19th-century opera composers distributed across our archives? For the Italian (Rossini, Donizetti, Bellini, Verdi, Puccini), French (Berlioz, Bizet, Gounod, Meyerbeer), and German (Wagner) operatic traditions, count for each composer the European public-concert events that featured their works, the catalogued compositions and recordings attributed to them, and the surviving manuscript sources.",
+        "sparql": """PREFIX wd:       <http://www.wikidata.org/entity/>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+PREFIX mb:       <https://linkedmusic.ca/graphs/musicbrainz/>
+PREFIX rism:     <https://linkedmusic.ca/graphs/rism/>
+SELECT ?composer ?name ?concertEvents ?mbWorks ?mbRecordings ?rismSources
+WHERE {
+  {
+    SELECT ?composer (SAMPLE(?lbl) AS ?name) WHERE {
+      VALUES ?composer { wd:Q9726 wd:Q101698 wd:Q170209 wd:Q7317 wd:Q7311 wd:Q1511 wd:Q1151 wd:Q56158 wd:Q180278 wd:Q105237 }
+      GRAPH mb: { ?a wdt:P2888 ?composer ; rdfs:label ?lbl }
+    } GROUP BY ?composer
+  }
+  {
+    SELECT ?composer (COUNT(DISTINCT ?event) AS ?concertEvents) WHERE {
+      VALUES ?composer { wd:Q9726 wd:Q101698 wd:Q170209 wd:Q7317 wd:Q7311 wd:Q1511 wd:Q1151 wd:Q56158 wd:Q180278 wd:Q105237 }
+      GRAPH musiconn: {
+        ?event a musiconn:Event ;
+               cto:CTO_0001019 ?work .
+        ?work cto:CTO_0001009 ?p .
+        ?p wdt:P2888 ?composer .
+      }
+    } GROUP BY ?composer
+  }
+  {
+    SELECT ?composer (COUNT(DISTINCT ?w) AS ?mbWorks) WHERE {
+      VALUES ?composer { wd:Q9726 wd:Q101698 wd:Q170209 wd:Q7317 wd:Q7311 wd:Q1511 wd:Q1151 wd:Q56158 wd:Q180278 wd:Q105237 }
+      GRAPH mb: {
+        ?w a mb:Work ;
+           wdt:P86 ?a .
+        ?a wdt:P2888 ?composer .
+      }
+    } GROUP BY ?composer
+  }
+  {
+    SELECT ?composer (COUNT(DISTINCT ?r) AS ?mbRecordings) WHERE {
+      VALUES ?composer { wd:Q9726 wd:Q101698 wd:Q170209 wd:Q7317 wd:Q7311 wd:Q1511 wd:Q1151 wd:Q56158 wd:Q180278 wd:Q105237 }
+      GRAPH mb: {
+        ?r a mb:Recording ;
+           wdt:P2550 ?w .
+        ?w wdt:P86 ?a .
+        ?a wdt:P2888 ?composer .
+      }
+    } GROUP BY ?composer
+  }
+  {
+    SELECT ?composer (COUNT(DISTINCT ?s) AS ?rismSources) WHERE {
+      VALUES ?composer { wd:Q9726 wd:Q101698 wd:Q170209 wd:Q7317 wd:Q7311 wd:Q1511 wd:Q1151 wd:Q56158 wd:Q180278 wd:Q105237 }
+      GRAPH rism: {
+        ?s wdt:P86 ?p .
+        ?p wdt:P2888 ?composer .
+      }
+    } GROUP BY ?composer
+  }
+}
+ORDER BY DESC(?mbRecordings)""",
     },
     {
         "nl": "Find CKG Detmold persons who are also catalogued in DIAMM and credited as the composer on at least one DIAMM composition",
@@ -2745,5 +2828,719 @@ WHERE {
 }
 GROUP BY ?decade
 ORDER BY ?decade""",
+    },
+    {
+        "nl": "For the canonical Western art-music composers (Bach, Mozart, Beethoven, Haydn, Schubert, Mendelssohn, Schumann, Brahms, and Wagner), count the total number of items attributable to each one across every archive in our holdings — including their compositions, recordings of those works, releases and release-groups credited to them, public concerts featuring their music, court-theatre productions, manuscript sources, and song-anthology entries — and rank the composers by overall footprint.",
+        "sparql": """PREFIX wd:       <http://www.wikidata.org/entity/>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+PREFIX detmold:  <https://linkedmusic.ca/graphs/ckg-detmold/>
+PREFIX mb:       <https://linkedmusic.ca/graphs/musicbrainz/>
+PREFIX rism:     <https://linkedmusic.ca/graphs/rism/>
+PREFIX utsi:     <https://linkedmusic.ca/graphs/utsi/>
+SELECT ?composer ?name (SUM(?n) AS ?totalItems)
+WHERE {
+  {
+    SELECT ?composer (SAMPLE(?lbl) AS ?name) WHERE {
+      VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+      GRAPH mb: { ?a wdt:P2888 ?composer ; rdfs:label ?lbl . }
+    }
+    GROUP BY ?composer
+  }
+  {
+    {
+      SELECT ?composer (COUNT(DISTINCT ?event) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH musiconn: {
+          ?event a musiconn:Event ;
+                 cto:CTO_0001019 ?work .
+          ?work cto:CTO_0001009 ?person .
+          ?person wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?work) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH detmold: {
+          ?work a detmold:Work ;
+                cto:CTO_0001009 ?person .
+          ?person wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?work) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH mb: {
+          ?work a mb:Work ;
+                wdt:P86 ?artist .
+          ?artist wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?recording) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH mb: {
+          ?recording a mb:Recording ;
+                     wdt:P2550 ?work .
+          ?work wdt:P86 ?artist .
+          ?artist wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?release) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH mb: {
+          ?release a mb:Release ;
+                   wdt:P175 ?artist .
+          ?artist wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?rg) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH mb: {
+          ?rg a mb:ReleaseGroup ;
+              wdt:P175 ?artist .
+          ?artist wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?source) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH rism: {
+          ?source wdt:P86 ?person .
+          ?person wdt:P2888 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+    UNION
+    {
+      SELECT ?composer (COUNT(DISTINCT ?song) AS ?n) WHERE {
+        VALUES ?composer { wd:Q1339 wd:Q255 wd:Q254 wd:Q7294 wd:Q46096 wd:Q7351 wd:Q7312 wd:Q1511 wd:Q7349 }
+        GRAPH utsi: {
+          ?song a utsi:Song ;
+                wdt:P86 ?composer .
+        }
+      } GROUP BY ?composer
+    }
+  }
+}
+GROUP BY ?composer ?name
+ORDER BY DESC(?totalItems)""",
+    },
+    # CKG — Tier 6: apsearch-dedicated ethnographic / folk-music breadth
+    {
+        "nl": "How has the documented output of ethnographic and folk-music recording shifted across the 20th and early 21st centuries? For each decade from 1900 onward, sum the total dated entries our datalake holds across Arabic field recordings, world-music ethnomusicological surveys, and online Irish traditional-session logs.",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+PREFIX gj:       <https://linkedmusic.ca/graphs/theglobaljukebox/>
+PREFIX ts:       <https://linkedmusic.ca/graphs/thesession/>
+SELECT ?decade (SUM(?n) AS ?ethnographicEntries)
+WHERE {
+  {
+    SELECT ?decade (COUNT(DISTINCT ?w) AS ?n) WHERE {
+      GRAPH apsearch: { ?w a apsearch:Work ; wdt:P571 ?d }
+      BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+      FILTER(?decade >= 1900 && ?decade < 2030)
+    } GROUP BY ?decade
+  }
+  UNION
+  {
+    SELECT ?decade (COUNT(DISTINCT ?s) AS ?n) WHERE {
+      GRAPH gj: { ?s a gj:Song ; wdt:P585 ?d }
+      BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+      FILTER(?decade >= 1900 && ?decade < 2030)
+    } GROUP BY ?decade
+  }
+  UNION
+  {
+    SELECT ?decade (COUNT(DISTINCT ?e) AS ?n) WHERE {
+      GRAPH ts: { ?e a ts:Events ; wdt:P580 ?d }
+      BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+      FILTER(?decade >= 1900 && ?decade < 2030)
+    } GROUP BY ?decade
+  }
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
+    {
+        "nl": "In the 21st century, how does community-driven documentation of living folk traditions compare across regions? Decade by decade since 2000, how many entries does our datalake hold for Arabic ethnographic field-recording activity versus community-logged Irish traditional sessions?",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+PREFIX ts:       <https://linkedmusic.ca/graphs/thesession/>
+SELECT ?decade
+       (SUM(?ap) AS ?arabicFieldRecordings)
+       (SUM(?ir) AS ?irishSessions)
+WHERE {
+  {
+    GRAPH apsearch: { ?w a apsearch:Work ; wdt:P571 ?d }
+    BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+    BIND(1 AS ?ap) BIND(0 AS ?ir)
+  }
+  UNION
+  {
+    GRAPH ts: { ?e a ts:Events ; wdt:P580 ?d }
+    BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+    BIND(0 AS ?ap) BIND(1 AS ?ir)
+  }
+  FILTER(?decade >= 2000 && ?decade < 2030)
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
+    # ── Single-database expansion — MusicBrainz ──
+    {
+        "nl": "Across the twentieth and early twenty-first centuries, how did the number of MusicBrainz-documented recordings published in each decade change?",
+        "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX mb:  <https://linkedmusic.ca/graphs/musicbrainz/>
+
+SELECT ?decade (COUNT(?rec) AS ?recordingCount)
+WHERE {
+  GRAPH mb: {
+    ?rec a mb:Recording ;
+         wdt:P577 ?d .
+    FILTER(STR(?d) >= "1900" && STR(?d) < "2030")
+    BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+  }
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
+    {
+        "nl": "Which record labels are most prolific in MusicBrainz, measured by the number of releases catalogued under them?",
+        "sparql": """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+
+SELECT ?labelQid (SAMPLE(?lbl) AS ?label) (COUNT(?rel) AS ?releases)
+WHERE {
+  GRAPH mb: {
+    ?rel a mb:Release ;
+         wdt:P264 ?labelEntity .
+    ?labelEntity wdt:P2888 ?labelQid ;
+                 rdfs:label ?lbl .
+    FILTER(STRSTARTS(STR(?labelQid), "http://www.wikidata.org/entity/"))
+    FILTER(STR(?lbl) != "[no label]")
+  }
+}
+GROUP BY ?labelQid
+ORDER BY DESC(?releases)
+LIMIT 25""",
+    },
+    {
+        "nl": "How is MusicBrainz's coverage of music events distributed across decades since 1900?",
+        "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX mb:  <https://linkedmusic.ca/graphs/musicbrainz/>
+
+SELECT ?decade (COUNT(?event) AS ?eventCount)
+WHERE {
+  GRAPH mb: {
+    ?event a mb:Event ;
+           wdt:P580 ?d .
+    FILTER(STR(?d) >= "1900" && STR(?d) < "2030")
+    BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+  }
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
+    {
+        "nl": "Which musical instruments are most heavily represented across the MusicBrainz recording catalogue?",
+        "sparql": """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+
+SELECT ?instrumentQid (SAMPLE(?lbl) AS ?instrument) (COUNT(?rec) AS ?recordings)
+WHERE {
+  GRAPH mb: {
+    ?inst a mb:Instrument ;
+          wdt:P2888 ?instrumentQid ;
+          rdfs:label ?lbl .
+    ?rec wdt:P870 ?inst .
+    FILTER(STRSTARTS(STR(?instrumentQid), "http://www.wikidata.org/entity/"))
+  }
+}
+GROUP BY ?instrumentQid
+ORDER BY DESC(?recordings)
+LIMIT 25""",
+    },
+    {
+        "nl": "Which recording studios or other recording locations host the most MusicBrainz-documented recordings?",
+        "sparql": """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX mb:   <https://linkedmusic.ca/graphs/musicbrainz/>
+
+SELECT ?locationQid (SAMPLE(?lbl) AS ?location) (COUNT(?rec) AS ?recordings)
+WHERE {
+  GRAPH mb: {
+    ?rec a mb:Recording ;
+         wdt:P1071 ?place .
+    ?place wdt:P2888 ?locationQid ;
+           rdfs:label ?lbl .
+    FILTER(STRSTARTS(STR(?locationQid), "http://www.wikidata.org/entity/"))
+  }
+}
+GROUP BY ?locationQid
+ORDER BY DESC(?recordings)
+LIMIT 25""",
+    },
+    # ── Single-database expansion — RISM ──
+    {
+        "nl": "Which institutions hold the most musical sources in RISM?",
+        "sparql": """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
+
+SELECT ?institution (SAMPLE(?lbl) AS ?name) (COUNT(DISTINCT ?source) AS ?sourceCount)
+WHERE {
+  GRAPH rism: {
+    ?institution a rism:Institution ;
+                 rdfs:label ?lbl .
+    ?source a rism:Source ;
+            wdt:P276 ?institution .
+  }
+}
+GROUP BY ?institution
+ORDER BY DESC(?sourceCount)
+LIMIT 25""",
+    },
+    {
+        "nl": "Which RISM sources survive without an attributed composer?",
+        "sparql": """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
+
+SELECT ?source ?label
+WHERE {
+  GRAPH rism: {
+    ?source a rism:Source ;
+            rdfs:label ?label .
+    FILTER NOT EXISTS { ?source wdt:P86 ?composer }
+  }
+}
+LIMIT 100""",
+    },
+    {
+        "nl": "Which musical genres are most heavily represented across the RISM catalogue?",
+        "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
+
+SELECT ?genre (COUNT(?source) AS ?sourceCount)
+WHERE {
+  GRAPH rism: {
+    ?source a rism:Source ;
+            wdt:P136 ?genre .
+  }
+}
+GROUP BY ?genre
+ORDER BY DESC(?sourceCount)
+LIMIT 25""",
+    },
+    {
+        "nl": "Which RISM sources are credited to two or more composers — collaborations, pasticci, and mixed-attribution manuscripts?",
+        "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
+
+SELECT ?source (COUNT(DISTINCT ?composer) AS ?composerCount)
+WHERE {
+  GRAPH rism: {
+    ?source a rism:Source ;
+            wdt:P86 ?composer .
+  }
+}
+GROUP BY ?source
+HAVING (COUNT(DISTINCT ?composer) >= 2)
+LIMIT 100""",
+    },
+    {
+        "nl": "Which time signatures are most common across the incipits transcribed in RISM?",
+        "sparql": """PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX rism: <https://linkedmusic.ca/graphs/rism/>
+
+SELECT ?timeSignature (COUNT(?incipit) AS ?incipitCount)
+WHERE {
+  GRAPH rism: {
+    ?incipit wdt:P3440 ?timeSignature .
+  }
+}
+GROUP BY ?timeSignature
+ORDER BY DESC(?incipitCount)
+LIMIT 25""",
+    },
+    # ── Single-database expansion — The Session ──
+    {
+        "nl": "How does the Irish traditional repertoire in The Session break down by tune type — how many tunes are catalogued as reels, jigs, hornpipes, polkas, and so on?",
+        "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
+
+SELECT ?tuneType (COUNT(DISTINCT ?tune) AS ?tuneCount)
+WHERE {
+  GRAPH ts: {
+    ?tune a ts:Tune ;
+          wdt:P747 ?setting .
+    ?setting wdt:P136 ?tuneType .
+  }
+}
+GROUP BY ?tuneType
+ORDER BY DESC(?tuneCount)""",
+    },
+    {
+        "nl": "Which tonalities are most common across the tune settings logged in The Session?",
+        "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
+
+SELECT ?tonality (COUNT(DISTINCT ?setting) AS ?settingCount)
+WHERE {
+  GRAPH ts: {
+    ?tune a ts:Tune ;
+          wdt:P747 ?setting .
+    ?setting wdt:P826 ?tonality .
+  }
+}
+GROUP BY ?tonality
+ORDER BY DESC(?settingCount)""",
+    },
+    {
+        "nl": "Which Irish traditional tunes have attracted the most community-submitted settings in The Session — the repertoire's most-arranged melodies?",
+        "sparql": """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
+
+SELECT ?tune (SAMPLE(?lbl) AS ?title) (COUNT(DISTINCT ?setting) AS ?settingCount)
+WHERE {
+  GRAPH ts: {
+    ?tune a ts:Tune ;
+          rdfs:label ?lbl ;
+          wdt:P747 ?setting .
+  }
+}
+GROUP BY ?tune
+ORDER BY DESC(?settingCount)
+LIMIT 25""",
+    },
+    {
+        "nl": "Which tunes in The Session turn up on the largest number of recordings — the core repertoire of the Irish traditional canon?",
+        "sparql": """PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:  <http://www.wikidata.org/prop/direct/>
+PREFIX ts:   <https://linkedmusic.ca/graphs/thesession/>
+
+SELECT ?tune (SAMPLE(?lbl) AS ?title) (COUNT(DISTINCT ?rec) AS ?recordingCount)
+WHERE {
+  GRAPH ts: {
+    ?tune a ts:Tune ;
+          rdfs:label ?lbl .
+    ?rec a ts:Recording ;
+         wdt:P658 ?tune .
+  }
+}
+GROUP BY ?tune
+ORDER BY DESC(?recordingCount)
+LIMIT 25""",
+    },
+    {
+        "nl": "Year by year across the twenty-first century, how many Irish traditional sessions has the community logged in The Session?",
+        "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
+
+SELECT ?year (COUNT(DISTINCT ?event) AS ?eventCount)
+WHERE {
+  GRAPH ts: {
+    ?event a ts:Events ;
+           wdt:P580 ?d .
+    BIND(xsd:integer(SUBSTR(STR(?d), 1, 4)) AS ?year)
+    FILTER(?year >= 2000 && ?year < 2030)
+  }
+}
+GROUP BY ?year
+ORDER BY ?year""",
+    },
+    # ── Single-database expansion — CKG APSearch ──
+    {
+        "nl": "Across the twentieth and early twenty-first centuries, decade by decade, how many Arabic ethnographic field recordings does APSearch catalogue?",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+
+SELECT ?decade (COUNT(DISTINCT ?work) AS ?recordingCount)
+WHERE {
+  GRAPH apsearch: {
+    ?work a apsearch:Work ;
+          wdt:P571 ?d .
+  }
+  BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+  FILTER(?decade >= 1900 && ?decade < 2030)
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
+    {
+        "nl": "Which entries in APSearch document the wax-cylinder era of Arabic phonogram field recording, dated before 1925?",
+        "sparql": """PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+
+SELECT ?work (SAMPLE(?lbl) AS ?label) ?date
+WHERE {
+  GRAPH apsearch: {
+    ?work a apsearch:Work ;
+          rdfs:label ?lbl ;
+          wdt:P571 ?date .
+  }
+  FILTER(STR(?date) >= "1900" && STR(?date) < "1925")
+}
+GROUP BY ?work ?date
+ORDER BY ?date
+LIMIT 100""",
+    },
+    {
+        "nl": "What categories of material does APSearch's archive of Arabic phonogram field recordings document — how is its catalog distributed across content types?",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+
+SELECT ?materialType (COUNT(DISTINCT ?work) AS ?workCount)
+WHERE {
+  GRAPH apsearch: {
+    ?work a apsearch:Work ;
+          wdt:P31 ?materialType .
+  }
+}
+GROUP BY ?materialType
+ORDER BY DESC(?workCount)""",
+    },
+    {
+        "nl": "Under which rights regimes are the Arabic field recordings in APSearch released — which licenses or rights-holders cover the largest share of the archive?",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+
+SELECT ?license (COUNT(DISTINCT ?work) AS ?workCount)
+WHERE {
+  GRAPH apsearch: {
+    ?work a apsearch:Work ;
+          wdt:P275 ?license .
+  }
+}
+GROUP BY ?license
+ORDER BY DESC(?workCount)""",
+    },
+    {
+        "nl": "Year by year through the 2010s, how many Arabic field recordings does APSearch document for each recording year?",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
+
+SELECT ?year (COUNT(DISTINCT ?work) AS ?recordingCount)
+WHERE {
+  GRAPH apsearch: {
+    ?work a apsearch:Work ;
+          wdt:P571 ?d .
+  }
+  BIND(xsd:integer(SUBSTR(STR(?d), 1, 4)) AS ?year)
+  FILTER(?year >= 2010 && ?year < 2020)
+}
+GROUP BY ?year
+ORDER BY ?year""",
+    },
+    # ── Single-database expansion — CKG Detmold ──
+    {
+        "nl": "Across the 18th and 19th centuries, decade by decade, how many newly composed stage works does the Detmolder Hoftheater catalogue document?",
+        "sparql": """PREFIX wdt:     <http://www.wikidata.org/prop/direct/>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+
+SELECT ?decade (COUNT(DISTINCT ?work) AS ?workCount)
+WHERE {
+  GRAPH detmold: {
+    ?work a detmold:Work ;
+          wdt:P571 ?d .
+  }
+  BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+  FILTER(?decade >= 1700 && ?decade < 1910)
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
+    {
+        "nl": "Year by year through the Detmolder Hoftheater's peak repertoire decades (1820–1849), how many newly composed stage works does the catalogue document?",
+        "sparql": """PREFIX wdt:     <http://www.wikidata.org/prop/direct/>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+
+SELECT ?year (COUNT(DISTINCT ?work) AS ?workCount)
+WHERE {
+  GRAPH detmold: {
+    ?work a detmold:Work ;
+          wdt:P571 ?d .
+  }
+  BIND(xsd:integer(SUBSTR(STR(?d), 1, 4)) AS ?year)
+  FILTER(?year >= 1820 && ?year <= 1849)
+}
+GROUP BY ?year
+ORDER BY ?year""",
+    },
+    {
+        "nl": "Which stage works in the Detmolder Hoftheater catalogue survive without any credited contributor — productions whose librettist, composer, or translator remains unknown in the archive?",
+        "sparql": """PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cto:     <https://nfdi4culture.de/ontology/>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+
+SELECT ?work (SAMPLE(?lbl) AS ?label)
+WHERE {
+  GRAPH detmold: {
+    ?work a detmold:Work ;
+          rdfs:label ?lbl .
+    FILTER NOT EXISTS { ?work cto:CTO_0001009 ?person }
+  }
+}
+GROUP BY ?work
+LIMIT 100""",
+    },
+    {
+        "nl": "Which works in the Detmolder Hoftheater catalogue circulate under the most title variants — productions known under multiple German, French, and Italian titles?",
+        "sparql": """PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+
+SELECT ?work
+       (COUNT(DISTINCT ?lbl) AS ?numTitles)
+       (GROUP_CONCAT(DISTINCT ?lbl; SEPARATOR=" / ") AS ?titles)
+WHERE {
+  GRAPH detmold: {
+    ?work a detmold:Work ;
+          rdfs:label ?lbl .
+  }
+}
+GROUP BY ?work
+HAVING(COUNT(DISTINCT ?lbl) >= 4)
+ORDER BY DESC(?numTitles)
+LIMIT 30""",
+    },
+    {
+        "nl": "How collaborative were productions at the Detmolder Hoftheater? — across the stage-work catalogue, how is the corpus distributed by number of credited contributors per work?",
+        "sparql": """PREFIX cto:     <https://nfdi4culture.de/ontology/>
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+
+SELECT ?numContributors (COUNT(DISTINCT ?work) AS ?workCount)
+WHERE {
+  {
+    SELECT ?work (COUNT(DISTINCT ?person) AS ?numContributors)
+    WHERE {
+      GRAPH detmold: {
+        ?work a detmold:Work ;
+              cto:CTO_0001009 ?person .
+      }
+    }
+    GROUP BY ?work
+  }
+}
+GROUP BY ?numContributors
+ORDER BY ?numContributors""",
+    },
+    # ── Single-database expansion — CKG musiconn ──
+    {
+        "nl": "Across more than three centuries of concert culture documented by musiconn.performance — from the early 1700s into the present — how many performance events does the archive record decade by decade?",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+
+SELECT ?decade (COUNT(DISTINCT ?event) AS ?eventCount)
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event ;
+           wdt:P585 ?d .
+  }
+  BIND(xsd:integer(CONCAT(SUBSTR(STR(?d), 1, 3), "0")) AS ?decade)
+  FILTER(?decade >= 1700 && ?decade < 2030)
+}
+GROUP BY ?decade
+ORDER BY ?decade""",
+    },
+    {
+        "nl": "Which concert venues host the most performance events in the musiconn.performance archive — the leading opera houses, concert halls, and theatres of German-language musical life?",
+        "sparql": """PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+
+SELECT (STR(?lbl) AS ?venue) (COUNT(DISTINCT ?event) AS ?eventCount)
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event ;
+           cto:CTO_0001011 ?place .
+    ?place a musiconn:Place ;
+           rdfs:label ?lbl .
+  }
+}
+GROUP BY STR(?lbl)
+ORDER BY DESC(?eventCount)
+LIMIT 15""",
+    },
+    {
+        "nl": "Which musical works are most frequently programmed across the musiconn.performance concert archive — the most-performed pieces of the canonical repertoire?",
+        "sparql": """PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+
+SELECT ?work (SAMPLE(?lbl) AS ?title) (COUNT(DISTINCT ?event) AS ?performanceCount)
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event ;
+           cto:CTO_0001019 ?work .
+    ?work a musiconn:Work ;
+          rdfs:label ?lbl .
+  }
+}
+GROUP BY ?work
+ORDER BY DESC(?performanceCount)
+LIMIT 15""",
+    },
+    {
+        "nl": "Whose music dominates the musiconn.performance archive? Rank composers — identified by their Wikidata reference — by the number of performance events featuring at least one of their works.",
+        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+
+SELECT ?composerQID (COUNT(DISTINCT ?event) AS ?eventCount)
+WHERE {
+  GRAPH musiconn: {
+    ?event a musiconn:Event ;
+           cto:CTO_0001019 ?work .
+    ?work cto:CTO_0001009 ?person .
+    ?person a musiconn:Person ;
+            wdt:P2888 ?composerQID .
+  }
+  FILTER(STRSTARTS(STR(?composerQID), "http://www.wikidata.org/entity/"))
+}
+GROUP BY ?composerQID
+ORDER BY DESC(?eventCount)
+LIMIT 15""",
+    },
+    {
+        "nl": "How varied are concert programmes across the musiconn.performance archive — across all documented performance events, how is the catalogue distributed by number of works programmed per event?",
+        "sparql": """PREFIX cto:      <https://nfdi4culture.de/ontology/>
+PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
+
+SELECT ?programmeSize (COUNT(DISTINCT ?event) AS ?eventCount)
+WHERE {
+  {
+    SELECT ?event (COUNT(DISTINCT ?work) AS ?programmeSize)
+    WHERE {
+      GRAPH musiconn: {
+        ?event a musiconn:Event ;
+               cto:CTO_0001019 ?work .
+      }
+    }
+    GROUP BY ?event
+  }
+}
+GROUP BY ?programmeSize
+ORDER BY ?programmeSize""",
     },
 ]
