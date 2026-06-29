@@ -28,6 +28,35 @@ export const fr: Dictionary = {
     refine: "Affiner",
     send: "Envoyer",
     generate: "Générer",
+    examples: "Exemples",
+    tryExample: "Essayez un exemple",
+    starters: [
+      {
+        label: "Classement multi-bases",
+        query:
+          "Trouver les compositeurs présents à la fois dans les sources RISM et dans l'historique des concerts musiconn, classés par nombre de concerts",
+      },
+      {
+        label: "Œuvres d'un compositeur en concert",
+        query:
+          "Quelles œuvres de Clara Schumann figurent dans les programmes de concerts musiconn ?",
+      },
+      {
+        label: "Mises en scène d'opéra par époque",
+        query:
+          "Quels opéras ont été représentés au théâtre de la cour de Detmold dans les années 1830 ?",
+      },
+      {
+        label: "Premiers enregistrements de terrain",
+        query:
+          "Afficher les enregistrements de terrain arabes de musique vocale collectés avant 1950",
+      },
+      {
+        label: "Interprètes nés dans une ville",
+        query:
+          "Quels compositeurs ayant joué lors de concerts documentés par musiconn sont nés à Vienne ?",
+      },
+    ],
   },
   editor: {
     title: "Éditeur SPARQL",

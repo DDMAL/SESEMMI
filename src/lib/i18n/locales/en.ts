@@ -29,6 +29,31 @@ export const en = {
     refine: "Refine",
     send: "Send",
     generate: "Generate",
+    examples: "Examples",
+    tryExample: "Try an example",
+    starters: [
+      {
+        label: "Cross-database ranking",
+        query:
+          "Find composers who appear in both RISM sources and musiconn concert history, ranked by number of concerts",
+      },
+      {
+        label: "A composer's works in concerts",
+        query: "Which works by Clara Schumann appear in musiconn concert programmes?",
+      },
+      {
+        label: "Opera staging by era",
+        query: "What operas were staged at the Detmold court theatre in the 1830s?",
+      },
+      {
+        label: "Early field recordings",
+        query: "Show Arabic field recordings of vocal music collected before 1950",
+      },
+      {
+        label: "Performers born in a city",
+        query: "Which composers performed at musiconn-documented concerts were born in Vienna?",
+      },
+    ],
   },
   editor: {
     title: "SPARQL Editor",

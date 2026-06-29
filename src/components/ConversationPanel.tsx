@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Spinner } from "@/components/Spinner";
 import { StepsPanel } from "@/components/StepsPanel";
+import { ExamplesModal } from "@/components/ExamplesModal";
 import { useI18n } from "@/lib/i18n/context";
 import type { ChatMessage, ClarifyFlow } from "@/hooks/useClarifyFlow";
 
@@ -148,11 +150,16 @@ function Bubble({
 export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
   const { t } = useI18n();
   const [text, setText] = useState("");
+  const [showExamples, setShowExamples] = useState(false);
+  const [examplesSeen, setExamplesSeen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { messages, phase, isPending, awaitingAnswer, awaitingFeedback, steps } = flow;
 
   const isTranslating = phase === "translating";
   const isAwaitingApproval = phase === "awaiting_approval";
   const hasConversation = messages.length > 0;
+  // First-run nudge: draw the eye to Examples on the empty start screen, until first opened.
+  const attract = !hasConversation && !examplesSeen;
 
   const handleSubmit = () => {
     if (!text.trim() || isTranslating) return;
@@ -170,6 +177,56 @@ export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
           {t("conversation.label")}
         </label>
         <div className="flex items-center gap-2">
+          {(phase === "idle" || phase === "done") && (
+            <>
+              {attract && (
+                <span className="hidden items-center gap-1 text-xs font-medium sm:flex">
+                  <span className="shimmer-text">{t("conversation.tryExample")}</span>
+                  <span
+                    className="attract-arrow text-indigo-500 rtl:-scale-x-100"
+                    aria-hidden="true"
+                  >
+                    <svg
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M5 12h14m-6-6l6 6-6 6" />
+                    </svg>
+                  </span>
+                </span>
+              )}
+              <button
+                onClick={() => {
+                  setShowExamples(true);
+                  setExamplesSeen(true);
+                }}
+                className={`flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium text-indigo-600 transition-all hover:brightness-105${attract ? " attract-glow" : ""}`}
+                style={{
+                  background: "rgba(99,102,241,0.08)",
+                  border: "1px solid rgba(99,102,241,0.3)",
+                }}
+              >
+                <svg
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M9 4l1.2 3.4L13.5 8.6 10.2 9.8 9 13.2 7.8 9.8 4.5 8.6 7.8 7.4 9 4zm9 9l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z" />
+                </svg>
+                {t("conversation.examples")}
+              </button>
+            </>
+          )}
           {phase === "clarifying" && (
             <button
               onClick={flow.generateNow}
@@ -236,6 +293,7 @@ export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
             </svg>
             <input
               id="nl-input"
+              ref={inputRef}
               type="text"
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -289,6 +347,19 @@ export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
       )}
 
       <StepsPanel steps={steps} isPending={isPending} />
+
+      {showExamples &&
+        createPortal(
+          <ExamplesModal
+            onPick={(query) => {
+              setText(query);
+              setShowExamples(false);
+              inputRef.current?.focus();
+            }}
+            onClose={() => setShowExamples(false)}
+          />,
+          document.body,
+        )}
     </div>
   );
 }

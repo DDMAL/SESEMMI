@@ -27,6 +27,33 @@ export const es: Dictionary = {
     refine: "Refinar",
     send: "Enviar",
     generate: "Generar",
+    examples: "Ejemplos",
+    tryExample: "Prueba un ejemplo",
+    starters: [
+      {
+        label: "Clasificación entre bases",
+        query:
+          "Encontrar compositores que aparecen tanto en fuentes de RISM como en el historial de conciertos de musiconn, ordenados por número de conciertos",
+      },
+      {
+        label: "Obras de un compositor en conciertos",
+        query: "¿Qué obras de Clara Schumann aparecen en los programas de conciertos de musiconn?",
+      },
+      {
+        label: "Representaciones de ópera por época",
+        query:
+          "¿Qué óperas se representaron en el teatro de la corte de Detmold en la década de 1830?",
+      },
+      {
+        label: "Primeras grabaciones de campo",
+        query: "Mostrar grabaciones de campo árabes de música vocal recopiladas antes de 1950",
+      },
+      {
+        label: "Intérpretes nacidos en una ciudad",
+        query:
+          "¿Qué compositores que actuaron en conciertos documentados por musiconn nacieron en Viena?",
+      },
+    ],
   },
   editor: {
     title: "Editor SPARQL",

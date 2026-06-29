@@ -27,6 +27,32 @@ export const de: Dictionary = {
     refine: "Verfeinern",
     send: "Senden",
     generate: "Generieren",
+    examples: "Beispiele",
+    tryExample: "Beispiel ausprobieren",
+    starters: [
+      {
+        label: "Datenbankübergreifendes Ranking",
+        query:
+          "Finde Komponisten, die sowohl in RISM-Quellen als auch in der musiconn-Konzertgeschichte vorkommen, sortiert nach Anzahl der Konzerte",
+      },
+      {
+        label: "Werke eines Komponisten in Konzerten",
+        query: "Welche Werke von Clara Schumann erscheinen in musiconn-Konzertprogrammen?",
+      },
+      {
+        label: "Opernaufführungen nach Epoche",
+        query: "Welche Opern wurden in den 1830er-Jahren am Detmolder Hoftheater aufgeführt?",
+      },
+      {
+        label: "Frühe Feldaufnahmen",
+        query: "Zeige arabische Feldaufnahmen von Vokalmusik, die vor 1950 gesammelt wurden",
+      },
+      {
+        label: "Interpreten geboren in einer Stadt",
+        query:
+          "Welche Komponisten, die bei musiconn-dokumentierten Konzerten auftraten, wurden in Wien geboren?",
+      },
+    ],
   },
   editor: {
     title: "SPARQL-Editor",
