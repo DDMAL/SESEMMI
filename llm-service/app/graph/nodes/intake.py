@@ -27,7 +27,12 @@ _DB_DESCRIPTIONS = {
     "ckg-musiconn": "CKG musiconn.performance — NFDI4Culture feed for music performance history (events, persons, organizations, works, places, collections)",
 }
 
-_DB_LIST = "\n".join(f'  <db name="{k}">{v}</db>' for k, v in _DB_DESCRIPTIONS.items())
+# Only offer enabled databases to the model (disabled ones are excluded from VALID_DB_NAMES).
+_DB_LIST = "\n".join(
+    f'  <db name="{k}">{v}</db>'
+    for k, v in _DB_DESCRIPTIONS.items()
+    if k in VALID_DB_NAMES
+)
 
 
 class EntityContext(BaseModel):
@@ -172,7 +177,8 @@ async def intake_node(state: GraphState) -> dict:
         )
         return {
             "intents": result.intents,
-            "target_graphs": result.target_graphs,
+            # Drop any disabled database the model may still have picked.
+            "target_graphs": [g for g in result.target_graphs if g in VALID_DB_NAMES],
             "needs_federation": result.needs_federation,
             "entity_contexts": {
                 ec.entity: ec.description for ec in result.entity_contexts

@@ -8,7 +8,11 @@ from pydantic import BaseModel
 from app.config import settings
 from app.graph.examples import FEW_SHOT_EXAMPLES
 from app.graph.model import get_structured_model
-from app.graph.schema_corpus import INSTRUCTION_CHUNKS, ONTOLOGY_CHUNKS
+from app.graph.schema_corpus import (
+    DISABLED_DB_NAMES,
+    INSTRUCTION_CHUNKS,
+    ONTOLOGY_CHUNKS,
+)
 from app.graph.state import GraphState
 from app.graph.tools.graph_traverse import Node, Edge, Graph
 from app.graph.tools.ontology_parser import (
@@ -70,6 +74,14 @@ def _get_rag_examples(query: str, target_graphs: list[str]) -> list[dict]:
         if doc.page_content not in seen:
             seen.add(doc.page_content)
             unique_docs.append(doc)
+
+    # Never surface examples that touch a disabled database (incl. cross-DB ones),
+    # so disabled-graph SPARQL can't leak into the prompt via the fallback path.
+    unique_docs = [
+        doc
+        for doc in unique_docs
+        if not (DISABLED_DB_NAMES & set(doc.metadata.get("databases", [])))
+    ]
 
     filtered = [
         {"nl": doc.page_content, "sparql": doc.metadata["sparql"]}

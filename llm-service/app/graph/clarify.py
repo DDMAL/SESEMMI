@@ -19,11 +19,15 @@ from pydantic import BaseModel, Field
 from app.config import settings
 from app.graph.model import get_structured_model
 from app.graph.nodes.intake import _DB_DESCRIPTIONS
+from app.graph.schema_corpus import VALID_DB_NAMES
 from app.language import is_english, language_name
 
 logger = logging.getLogger(__name__)
 
-_DB_LIST = "\n".join(f"  - {k}: {v}" for k, v in _DB_DESCRIPTIONS.items())
+# Only list enabled databases (disabled ones are excluded from VALID_DB_NAMES).
+_DB_LIST = "\n".join(
+    f"  - {k}: {v}" for k, v in _DB_DESCRIPTIONS.items() if k in VALID_DB_NAMES
+)
 
 
 class ClarifyQuestion(BaseModel):
@@ -107,7 +111,7 @@ async def clarify_query(
     """
     model = get_structured_model(ClarifyResult)
     system = _SYSTEM_PROMPT.format(
-        db_count=len(_DB_DESCRIPTIONS),
+        db_count=len(VALID_DB_NAMES),
         db_list=_DB_LIST,
         max_questions=settings.clarification_max_questions,
     )

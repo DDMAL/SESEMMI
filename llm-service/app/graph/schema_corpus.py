@@ -650,6 +650,8 @@ rism:Person
 </ontology>
 </database>\
 """,
+    # DISABLED via DISABLED_DB_NAMES (kept for reference): the loaded wjazzd graph has no
+    # rdf:type triples, so type-filtered queries return 0. Not routed to or retrieved.
     "weimarjazz": """\
 <database name="Weimar Jazz Database" graph-iri="https://linkedmusic.ca/graphs/wjazzd/" prefix="wjazzd:">
 <description>
@@ -1089,4 +1091,9 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
 """,
 }
 
-VALID_DB_NAMES: list[str] = list(ONTOLOGY_CHUNKS.keys())
+# Databases kept in ONTOLOGY_CHUNKS for reference but turned OFF: never routed to,
+# offered to the model, or surfaced via RAG. (weimarjazz: the loaded wjazzd graph has
+# no rdf:type triples, so every query returns 0.) Re-enable by removing from this set.
+DISABLED_DB_NAMES: set[str] = {"weimarjazz"}
+
+VALID_DB_NAMES: list[str] = [k for k in ONTOLOGY_CHUNKS if k not in DISABLED_DB_NAMES]

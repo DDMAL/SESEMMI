@@ -33,25 +33,25 @@ export const en = {
     tryExample: "Try an example",
     starters: [
       {
-        label: "Cross-database ranking",
+        label: "Charlie Parker in New York",
+        query: "Find all solos Charlie Parker performed in New York City in Dig That Lick",
+      },
+      {
+        label: "Cross-database composers",
+        query: "Find all compositions in DIAMM whose composer also appears as a composer in RISM",
+      },
+      {
+        label: "Shared instruments",
         query:
-          "Find composers who appear in both RISM sources and musiconn concert history, ranked by number of concerts",
+          "Find all instruments that appear in both solo recordings in Dig That Lick and songs in the Global Jukebox",
       },
       {
-        label: "A composer's works in concerts",
-        query: "Which works by Clara Schumann appear in musiconn concert programmes?",
+        label: "Concerts in Vienna",
+        query: "Find all musiconn events that took place in Vienna",
       },
       {
-        label: "Opera staging by era",
-        query: "What operas were staged at the Detmold court theatre in the 1830s?",
-      },
-      {
-        label: "Early field recordings",
-        query: "Show Arabic field recordings of vocal music collected before 1950",
-      },
-      {
-        label: "Performers born in a city",
-        query: "Which composers performed at musiconn-documented concerts were born in Vienna?",
+        label: "RISM at the British Library",
+        query: "Find all sources in RISM held at the British Library",
       },
     ],
   },
