@@ -217,74 +217,76 @@ export function ConversationPanel({ flow, highlight }: ConversationPanelProps) {
         </div>
       )}
 
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <svg
-            aria-hidden="true"
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 10.607z"
+      {!isTranslating && (
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <svg
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 10.607z"
+              />
+            </svg>
+            <input
+              id="nl-input"
+              type="text"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              placeholder={
+                awaitingFeedback
+                  ? t("conversation.placeholderChange")
+                  : awaitingAnswer
+                    ? t("conversation.placeholderAnswer")
+                    : t("conversation.placeholderDefault")
+              }
+              className={`w-full rounded-xl py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-50${highlight ? " nl-shine" : ""}`}
+              style={{
+                background: "var(--surface-input)",
+                border: "1px solid rgba(99,102,241,0.2)",
+              }}
+              disabled={isTranslating || (isAwaitingApproval && !awaitingFeedback)}
             />
-          </svg>
-          <input
-            id="nl-input"
-            type="text"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            placeholder={
+          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={isPending || !text.trim()}
+            aria-label={
               awaitingFeedback
-                ? t("conversation.placeholderChange")
+                ? t("conversation.sendFeedback")
                 : awaitingAnswer
-                  ? t("conversation.placeholderAnswer")
-                  : t("conversation.placeholderDefault")
+                  ? t("conversation.sendAnswer")
+                  : t("conversation.translate")
             }
-            className={`w-full rounded-xl py-2.5 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400/40 disabled:opacity-50${highlight ? " nl-shine" : ""}`}
-            style={{
-              background: "var(--surface-input)",
-              border: "1px solid rgba(99,102,241,0.2)",
-            }}
-            disabled={isTranslating || (isAwaitingApproval && !awaitingFeedback)}
-          />
-        </div>
-        <button
-          onClick={handleSubmit}
-          disabled={isPending || !text.trim()}
-          aria-label={
-            awaitingFeedback
-              ? t("conversation.sendFeedback")
-              : awaitingAnswer
-                ? t("conversation.sendAnswer")
-                : t("conversation.translate")
-          }
-          className="flex cursor-pointer items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
-          style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
-        >
-          {isPending ? (
-            <>
-              <Spinner />
+            className="flex cursor-pointer items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+            style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
+          >
+            {isPending ? (
+              <>
+                <Spinner />
+                <span>
+                  {isTranslating ? t("conversation.generating") : t("conversation.thinking")}
+                </span>
+              </>
+            ) : (
               <span>
-                {isTranslating ? t("conversation.generating") : t("conversation.thinking")}
+                {awaitingFeedback
+                  ? t("conversation.refine")
+                  : awaitingAnswer
+                    ? t("conversation.send")
+                    : t("conversation.generate")}
               </span>
-            </>
-          ) : (
-            <span>
-              {awaitingFeedback
-                ? t("conversation.refine")
-                : awaitingAnswer
-                  ? t("conversation.send")
-                  : t("conversation.generate")}
-            </span>
-          )}
-        </button>
-      </div>
+            )}
+          </button>
+        </div>
+      )}
 
       <StepsPanel steps={steps} isPending={isPending} />
     </div>

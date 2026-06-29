@@ -166,7 +166,7 @@ export function SparqlEditor({
   originalQuery,
   onRefine,
 }: SparqlEditorProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const reducedMotion = usePrefersReducedMotion();
   const [lastValidated, setLastValidated] = useState<LastValidated | null>(null);
   const [isErrorExpanded, setIsErrorExpanded] = useState(true);
@@ -317,7 +317,7 @@ export function SparqlEditor({
     }, 500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  }, [value, locale]);
 
   const handleExplain = () => {
     setChatMessages([]);

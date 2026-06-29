@@ -11,10 +11,11 @@ interface EntityInfo {
   description?: string;
 }
 
-async function fetchChunk(ids: string[]): Promise<Record<string, EntityInfo>> {
+async function fetchChunk(ids: string[], lang: string): Promise<Record<string, EntityInfo>> {
+  const languages = lang === "en" ? "en" : `${lang}|en`;
   const url =
     `${WIKIDATA_API}?action=wbgetentities&ids=${ids.join("|")}` +
-    `&props=labels|descriptions&languages=en&format=json&origin=*`;
+    `&props=labels|descriptions&languages=${languages}&languagefallback=1&format=json&origin=*`;
   const res = await fetch(url, {
     headers: { "User-Agent": "SESEMMI/1.0 (music metadata search; contact admin)" },
   });
@@ -30,8 +31,11 @@ async function fetchChunk(ids: string[]): Promise<Record<string, EntityInfo>> {
   };
   const out: Record<string, EntityInfo> = {};
   for (const [id, ent] of Object.entries(data.entities ?? {})) {
-    const label = ent.labels?.en?.value;
-    if (label) out[id] = { label, description: ent.descriptions?.en?.value };
+    const label = ent.labels?.[lang]?.value ?? ent.labels?.en?.value;
+    if (label) {
+      const description = ent.descriptions?.[lang]?.value ?? ent.descriptions?.en?.value;
+      out[id] = { label, description };
+    }
   }
   return out;
 }
@@ -55,7 +59,7 @@ export async function POST(req: NextRequest) {
     // Batch in chunks of 50 (wbgetentities limit), resolve all in parallel.
     const chunks: string[][] = [];
     for (let i = 0; i < body.ids.length; i += 50) chunks.push(body.ids.slice(i, i + 50));
-    const results = await Promise.all(chunks.map(fetchChunk));
+    const results = await Promise.all(chunks.map((ids) => fetchChunk(ids, body.language)));
     const labels = Object.assign({}, ...results) as Record<string, EntityInfo>;
     const durationMs = Math.round(performance.now() - start);
     logger.info({ event: "api_response", route: "/api/wikidata", durationMs, status: 200 });

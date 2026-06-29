@@ -118,7 +118,7 @@ function Cell({
 }
 
 export function ResultsTable({ data, isError, error, isPending }: ResultsTableProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [labels, setLabels] = useState<Record<string, string>>({});
   const [selectedQid, setSelectedQid] = useState<string | null>(null);
   const [prevData, setPrevData] = useState(data);
@@ -144,18 +144,17 @@ export function ResultsTable({ data, isError, error, isPending }: ResultsTablePr
     return [...set];
   }, [data]);
 
-  // Prefetch their labels once per result set (labels are keyed by QID, so
-  // entries left from a prior query are harmless and simply ignored).
+  // Prefetch their labels in the active locale; refetch when the language changes.
   useEffect(() => {
     if (qids.length === 0) return;
     let active = true;
-    fetchLabels(qids)
+    fetchLabels(qids, locale)
       .then((m) => active && setLabels(m))
       .catch(() => {});
     return () => {
       active = false;
     };
-  }, [qids]);
+  }, [qids, locale]);
 
   if (isPending) {
     return (

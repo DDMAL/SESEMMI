@@ -12,7 +12,7 @@ interface EntityDetailProps {
 }
 
 export function EntityDetail({ qid, onClose }: EntityDetailProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const dialogRef = useFocusTrap<HTMLDivElement>();
   const titleId = `entity-title-${qid}`;
   const [entity, setEntity] = useState<Entity | null>(null);
@@ -20,13 +20,13 @@ export function EntityDetail({ qid, onClose }: EntityDetailProps) {
 
   useEffect(() => {
     let active = true;
-    fetchEntity(qid)
+    fetchEntity(qid, locale)
       .then((e) => active && setEntity(e))
       .catch(() => active && setError(true));
     return () => {
       active = false;
     };
-  }, [qid]);
+  }, [qid, locale]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();

@@ -5,8 +5,14 @@
 
 const API = "https://www.wikidata.org/w/api.php";
 
+// Caches are keyed by `${lang}:${qid}` so a language switch doesn't serve stale labels.
 const labelCache = new Map<string, string>();
 const entityCache = new Map<string, EntityDetail>();
+
+/** Wikidata `languages` value: just "en" for English, else "<lang>|en" with fallback. */
+function langParam(lang: string): string {
+  return lang === "en" ? "en" : `${lang}|en`;
+}
 
 export interface EntityFact {
   prop: string; // human label of the property, e.g. "occupation"
@@ -33,16 +39,18 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
-/** Batch-resolve QIDs to English labels (chunked ≤50/request), using the cache. */
-export async function fetchLabels(qids: string[]): Promise<Record<string, string>> {
-  const unique = [...new Set(qids)].filter((q) => !labelCache.has(q));
+/** Batch-resolve QIDs to labels in `lang` (English fallback), chunked ≤50/request, cached. */
+export async function fetchLabels(qids: string[], lang = "en"): Promise<Record<string, string>> {
+  const key = (q: string) => `${lang}:${q}`;
+  const unique = [...new Set(qids)].filter((q) => !labelCache.has(key(q)));
 
   await Promise.all(
     chunk(unique, 50).map(async (ids) => {
       const params = new URLSearchParams({
         action: "wbgetentities",
         props: "labels",
-        languages: "en",
+        languages: langParam(lang),
+        languagefallback: "1",
         format: "json",
         origin: "*",
         ids: ids.join("|"),
@@ -52,8 +60,9 @@ export async function fetchLabels(qids: string[]): Promise<Record<string, string
         if (!res.ok) return;
         const data = await res.json();
         for (const id of ids) {
-          const label = data?.entities?.[id]?.labels?.en?.value;
-          labelCache.set(id, label ?? id);
+          const labels = data?.entities?.[id]?.labels;
+          const label = labels?.[lang]?.value ?? labels?.en?.value;
+          labelCache.set(key(id), label ?? id);
         }
       } catch {
         // Network/parse failure — leave uncached so a later attempt can retry.
@@ -62,7 +71,7 @@ export async function fetchLabels(qids: string[]): Promise<Record<string, string
   );
 
   const out: Record<string, string> = {};
-  for (const q of qids) out[q] = labelCache.get(q) ?? q;
+  for (const q of qids) out[q] = labelCache.get(key(q)) ?? q;
   return out;
 }
 
@@ -86,15 +95,17 @@ function formatTime(value: string): string {
   return `${y}-${mo}-${d}`;
 }
 
-/** Fetch a single entity's label, description, and a curated set of facts. */
-export async function fetchEntity(qid: string): Promise<EntityDetail> {
-  const cached = entityCache.get(qid);
+/** Fetch a single entity's label, description, and a curated set of facts in `lang`. */
+export async function fetchEntity(qid: string, lang = "en"): Promise<EntityDetail> {
+  const cacheKey = `${lang}:${qid}`;
+  const cached = entityCache.get(cacheKey);
   if (cached) return cached;
 
   const params = new URLSearchParams({
     action: "wbgetentities",
     props: "labels|descriptions|claims",
-    languages: "en",
+    languages: langParam(lang),
+    languagefallback: "1",
     format: "json",
     origin: "*",
     ids: qid,
@@ -105,8 +116,9 @@ export async function fetchEntity(qid: string): Promise<EntityDetail> {
   const data = await res.json();
   const ent = data?.entities?.[qid];
 
-  const label: string = ent?.labels?.en?.value ?? qid;
-  const description: string = ent?.descriptions?.en?.value ?? "";
+  const label: string = ent?.labels?.[lang]?.value ?? ent?.labels?.en?.value ?? qid;
+  const description: string =
+    ent?.descriptions?.[lang]?.value ?? ent?.descriptions?.en?.value ?? "";
   const claims = ent?.claims ?? {};
 
   // First pass: collect raw fact values; gather entity-valued QIDs to resolve.
@@ -128,7 +140,7 @@ export async function fetchEntity(qid: string): Promise<EntityDetail> {
     }
   }
 
-  const refLabels = refQids.length ? await fetchLabels(refQids) : {};
+  const refLabels = refQids.length ? await fetchLabels(refQids, lang) : {};
   const facts: EntityFact[] = raw.map((r) => ({
     prop: r.label,
     value: r.refQid ? (refLabels[r.refQid] ?? r.value) : r.value,
@@ -141,7 +153,7 @@ export async function fetchEntity(qid: string): Promise<EntityDetail> {
     facts,
     url: `https://www.wikidata.org/wiki/${qid}`,
   };
-  entityCache.set(qid, detail);
-  labelCache.set(qid, label);
+  entityCache.set(cacheKey, detail);
+  labelCache.set(`${lang}:${qid}`, label);
   return detail;
 }
