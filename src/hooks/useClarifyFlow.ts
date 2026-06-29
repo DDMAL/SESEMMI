@@ -62,6 +62,9 @@ export function useClarifyFlow(opts: {
   // Durable conversation state kept in refs to avoid stale closures across async calls.
   const originalQuery = useRef("");
   const fallbackQuery = useRef("");
+  // Localized, display-only copy of fallbackQuery. The pipeline always uses
+  // fallbackQuery (English); only the user-visible card/info uses this.
+  const fallbackQueryDisplay = useRef("");
   const history = useRef<ClarifyTurn[]>([]);
   const round = useRef(0);
   const pendingQuestions = useRef<{ question: string; options: string[] }[]>([]);
@@ -85,7 +88,8 @@ export function useClarifyFlow(opts: {
       setAwaitingAnswer(false);
       pendingQuestions.current = [];
       setPhase("translating");
-      push({ role: "assistant", kind: "info", text: `Generating SPARQL for: "${query}"` });
+      const shown = fallbackQueryDisplay.current || query;
+      push({ role: "assistant", kind: "info", text: `Generating SPARQL for: "${shown}"` });
       translate.mutate(query, {
         onSuccess: (data) => {
           onSparql.current(data.sparql);
@@ -102,7 +106,7 @@ export function useClarifyFlow(opts: {
     push({
       role: "assistant",
       kind: "approval",
-      text: fallbackQuery.current || originalQuery.current,
+      text: fallbackQueryDisplay.current || fallbackQuery.current || originalQuery.current,
     });
     setPhase("awaiting_approval");
   }, [push]);
@@ -114,6 +118,7 @@ export function useClarifyFlow(opts: {
     });
     if (result.enriched_query?.trim()) {
       fallbackQuery.current = result.enriched_query;
+      fallbackQueryDisplay.current = result.enriched_query_display || result.enriched_query;
     }
 
     const noMore = result.ready || result.questions.length === 0 || round.current >= MAX_ROUNDS;
@@ -134,6 +139,7 @@ export function useClarifyFlow(opts: {
       onStart.current?.();
       originalQuery.current = query;
       fallbackQuery.current = query;
+      fallbackQueryDisplay.current = query;
       history.current = [];
       round.current = 0;
       pendingQuestions.current = [];
@@ -231,6 +237,7 @@ export function useClarifyFlow(opts: {
       setAwaitingFeedback(false);
       originalQuery.current = enriched;
       fallbackQuery.current = enriched;
+      fallbackQueryDisplay.current = enriched;
       history.current = [];
       round.current = 0;
       pendingQuestions.current = [];

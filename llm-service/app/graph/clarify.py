@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from app.config import settings
 from app.graph.model import get_structured_model
 from app.graph.nodes.intake import _DB_DESCRIPTIONS
+from app.language import is_english, language_name
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,11 @@ class ClarifyResult(BaseModel):
     enriched_query: str = Field(
         description="The best precise, disambiguated rewrite of the query given everything "
         "known so far. Always populated, even when ready=False, so it can be used as a fallback."
+    )
+    enriched_query_display: str = Field(
+        default="",
+        description="A display-only copy of enriched_query for the user. Leave empty unless a "
+        "language directive asks for a translation; the server falls back to enriched_query.",
     )
 
 
@@ -89,11 +95,15 @@ def _format_history(query: str, history: list[dict]) -> str:
     return "\n".join(lines)
 
 
-async def clarify_query(query: str, history: list[dict]) -> ClarifyResult:
+async def clarify_query(
+    query: str, history: list[dict], language: str = "en"
+) -> ClarifyResult:
     """Return clarifying questions, or a ready signal with an enriched query.
 
     ``history`` is a list of ``{"question": str, "answer": str}`` dicts representing the
-    clarifications the user has already answered.
+    clarifications the user has already answered. ``language`` is the website locale code;
+    when non-English the user-facing ``question``/``options`` are localized while
+    ``enriched_query`` (which feeds the SPARQL pipeline) stays in English.
     """
     model = get_structured_model(ClarifyResult)
     system = _SYSTEM_PROMPT.format(
@@ -101,6 +111,13 @@ async def clarify_query(query: str, history: list[dict]) -> ClarifyResult:
         db_list=_DB_LIST,
         max_questions=settings.clarification_max_questions,
     )
+    if not is_english(language):
+        lang = language_name(language)
+        system += (
+            f"\n\n<language>Write each `question` and its `options` in {lang}. Keep "
+            f"`enriched_query` in English, and set `enriched_query_display` to the {lang} "
+            "translation of `enriched_query`.</language>"
+        )
     user = _format_history(query, history)
     try:
         result = await model.ainvoke(
@@ -117,4 +134,7 @@ async def clarify_query(query: str, history: list[dict]) -> ClarifyResult:
         result.questions = result.questions[: settings.clarification_max_questions]
     if not result.enriched_query.strip():
         result.enriched_query = query
+    # Display copy falls back to the English rewrite when no translation was produced.
+    if not result.enriched_query_display.strip():
+        result.enriched_query_display = result.enriched_query
     return result

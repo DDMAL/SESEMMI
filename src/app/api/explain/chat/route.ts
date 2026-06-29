@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   logger.info({ event: "api_request", route: "/api/explain/chat", ip });
 
   try {
-    const result = await explainChat(body.sparql, body.messages);
+    const result = await explainChat(body.sparql, body.messages, body.language);
     const durationMs = Math.round(performance.now() - start);
     logger.info({ event: "api_response", route: "/api/explain/chat", durationMs, status: 200 });
     return NextResponse.json({ reply: result.reply, intent: result.intent });

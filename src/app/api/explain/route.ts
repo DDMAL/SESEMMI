@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   logger.info({ event: "api_request", route: "/api/explain", ip });
 
   try {
-    const result = await explainSparql(body.sparql);
+    const result = await explainSparql(body.sparql, body.language);
     const durationMs = Math.round(performance.now() - start);
     logger.info({ event: "api_response", route: "/api/explain", durationMs, status: 200 });
     return NextResponse.json({ explanation: result.explanation });

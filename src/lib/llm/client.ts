@@ -25,11 +25,14 @@ export interface ClarifyResult {
   ready: boolean;
   questions: ClarifyQuestion[];
   enriched_query: string;
+  /** Display-only, localized copy of enriched_query (falls back to enriched_query). */
+  enriched_query_display: string;
 }
 
 export async function clarifyQuery(
   userQuery: string,
   history: ClarifyTurn[],
+  language = "en",
 ): Promise<ClarifyResult> {
   const maxAttempts = 3;
   let lastError: Error | undefined;
@@ -39,7 +42,7 @@ export async function clarifyQuery(
       const res = await fetch(`${env.LLM_SERVICE_URL}/clarify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: userQuery, history }),
+        body: JSON.stringify({ query: userQuery, history, language }),
       });
 
       if (!res.ok) {
@@ -63,7 +66,7 @@ export interface ExplainResult {
   explanation: string;
 }
 
-export async function explainSparql(sparql: string): Promise<ExplainResult> {
+export async function explainSparql(sparql: string, language = "en"): Promise<ExplainResult> {
   const maxAttempts = 3;
   let lastError: Error | undefined;
 
@@ -72,7 +75,7 @@ export async function explainSparql(sparql: string): Promise<ExplainResult> {
       const res = await fetch(`${env.LLM_SERVICE_URL}/explain`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sparql }),
+        body: JSON.stringify({ sparql, language }),
       });
 
       if (!res.ok) {
@@ -106,6 +109,7 @@ export interface ExplainChatResult {
 export async function explainChat(
   sparql: string,
   messages: ExplainChatMessage[],
+  language = "en",
 ): Promise<ExplainChatResult> {
   const maxAttempts = 3;
   let lastError: Error | undefined;
@@ -115,7 +119,7 @@ export async function explainChat(
       const res = await fetch(`${env.LLM_SERVICE_URL}/explain/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sparql, messages }),
+        body: JSON.stringify({ sparql, messages, language }),
       });
 
       if (!res.ok) {

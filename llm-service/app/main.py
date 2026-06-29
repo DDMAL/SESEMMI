@@ -29,6 +29,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.config import settings
+from app.language import is_english, language_name
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from app.graph.builder import build_graph, run_graph
@@ -85,17 +86,21 @@ class ClarifyTurn(BaseModel):
 class ClarifyRequest(BaseModel):
     query: str = Field(min_length=1, max_length=2000)
     history: list[ClarifyTurn] = Field(default_factory=list)
+    language: str = "en"
 
 
 @app.post("/clarify", response_model=ClarifyResult)
 async def clarify(req: ClarifyRequest):
     if not settings.clarification_enabled:
         return ClarifyResult(ready=True, questions=[], enriched_query=req.query)
-    return await clarify_query(req.query, [t.model_dump() for t in req.history])
+    return await clarify_query(
+        req.query, [t.model_dump() for t in req.history], req.language
+    )
 
 
 class ExplainRequest(BaseModel):
     sparql: str = Field(min_length=1, max_length=5000)
+    language: str = "en"
 
 
 class ExplainResponse(BaseModel):
@@ -115,9 +120,12 @@ _EXPLAIN_SYSTEM = (
 async def explain(req: ExplainRequest):
     try:
         model = get_chat_model()
+        system = _EXPLAIN_SYSTEM
+        if not is_english(req.language):
+            system += f"\nRespond entirely in {language_name(req.language)}."
         response = await model.ainvoke(
             [
-                SystemMessage(content=_EXPLAIN_SYSTEM),
+                SystemMessage(content=system),
                 HumanMessage(content=f"Explain this SPARQL query:\n\n{req.sparql}"),
             ]
         )
@@ -134,6 +142,7 @@ class ExplainChatMessage(BaseModel):
 class ExplainChatRequest(BaseModel):
     sparql: str = Field(min_length=1, max_length=5000)
     messages: list[ExplainChatMessage] = Field(default_factory=list, max_length=40)
+    language: str = "en"
 
 
 class ExplainChatResponse(BaseModel):
@@ -168,7 +177,14 @@ async def explain_chat(req: ExplainChatRequest):
             )
             for msg in req.messages
         ]
-        lc_messages = [SystemMessage(content=_EXPLAIN_CHAT_SYSTEM), context, *history]
+        system = _EXPLAIN_CHAT_SYSTEM
+        if not is_english(req.language):
+            system += (
+                f"\nWrite your reply in {language_name(req.language)}. Keep the final "
+                "line exactly in the format 'INTENT: <phrase>' with the INTENT label "
+                "and the phrase in English."
+            )
+        lc_messages = [SystemMessage(content=system), context, *history]
         response = await model.ainvoke(lc_messages)
         raw = str(response.content).strip()
         intent = ""

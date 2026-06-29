@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   logger.info({ event: "api_request", route: "/api/clarify", ip });
 
   try {
-    const result = await clarifyQuery(body.query, body.history);
+    const result = await clarifyQuery(body.query, body.history, body.language);
     const durationMs = Math.round(performance.now() - start);
     logger.info({ event: "api_response", route: "/api/clarify", durationMs, status: 200 });
     return NextResponse.json(result);
