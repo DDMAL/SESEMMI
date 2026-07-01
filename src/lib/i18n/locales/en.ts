@@ -37,8 +37,8 @@ export const en = {
         query: "Find all solos Charlie Parker performed in New York City in Dig That Lick",
       },
       {
-        label: "Clara Schumann in concerts",
-        query: "Which works by Clara Schumann appear in musiconn concert programs?",
+        label: "Cross-database composers",
+        query: "Find all compositions in DIAMM whose composer also appears as a composer in RISM",
       },
       {
         label: "Shared instruments",

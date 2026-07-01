@@ -36,8 +36,9 @@ export const de: Dictionary = {
           "Finde alle Soli, die Charlie Parker in New York City gespielt hat, in Dig That Lick",
       },
       {
-        label: "Clara Schumann in Konzerten",
-        query: "Welche Werke von Clara Schumann erscheinen in musiconn-Konzertprogrammen?",
+        label: "Datenbankübergreifende Komponisten",
+        query:
+          "Finde alle Kompositionen in DIAMM, deren Komponist auch als Komponist in RISM erscheint",
       },
       {
         label: "Gemeinsame Instrumente",

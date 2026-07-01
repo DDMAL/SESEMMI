@@ -36,9 +36,9 @@ export const fr: Dictionary = {
         query: "Trouver tous les solos joués par Charlie Parker à New York dans Dig That Lick",
       },
       {
-        label: "Clara Schumann en concert",
+        label: "Compositeurs multi-bases",
         query:
-          "Quelles œuvres de Clara Schumann figurent dans les programmes de concerts musiconn ?",
+          "Trouver toutes les compositions de DIAMM dont le compositeur figure aussi comme compositeur dans RISM",
       },
       {
         label: "Instruments partagés",
