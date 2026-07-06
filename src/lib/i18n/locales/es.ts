@@ -31,27 +31,27 @@ export const es: Dictionary = {
     tryExample: "Prueba un ejemplo",
     starters: [
       {
-        label: "Charlie Parker en Nueva York",
+        label: "Clasificación entre bases",
         query:
-          "Encontrar todos los solos que Charlie Parker interpretó en Nueva York en Dig That Lick",
+          "Encontrar compositores que aparecen tanto en fuentes de RISM como en el historial de conciertos de musiconn, ordenados por número de conciertos",
       },
       {
-        label: "Compositores entre bases",
+        label: "Obras de un compositor en conciertos",
+        query: "¿Qué obras de Clara Schumann aparecen en los programas de conciertos de musiconn?",
+      },
+      {
+        label: "Representaciones de ópera por época",
         query:
-          "Encontrar todas las composiciones de DIAMM cuyo compositor también aparece como compositor en RISM",
+          "¿Qué óperas se representaron en el teatro de la corte de Detmold en la década de 1830?",
       },
       {
-        label: "Instrumentos compartidos",
+        label: "Primeras grabaciones de campo",
+        query: "Mostrar grabaciones de campo árabes de música vocal recopiladas antes de 1950",
+      },
+      {
+        label: "Intérpretes nacidos en una ciudad",
         query:
-          "Encontrar todos los instrumentos que aparecen tanto en los solos de Dig That Lick como en las canciones de Global Jukebox",
-      },
-      {
-        label: "Conciertos en Viena",
-        query: "Encontrar todos los eventos de musiconn que tuvieron lugar en Viena",
-      },
-      {
-        label: "RISM en la British Library",
-        query: "Encontrar todas las fuentes de RISM conservadas en la British Library",
+          "¿Qué compositores que actuaron en conciertos documentados por musiconn nacieron en Viena?",
       },
     ],
   },

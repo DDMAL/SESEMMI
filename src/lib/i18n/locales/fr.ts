@@ -32,26 +32,29 @@ export const fr: Dictionary = {
     tryExample: "Essayez un exemple",
     starters: [
       {
-        label: "Charlie Parker à New York",
-        query: "Trouver tous les solos joués par Charlie Parker à New York dans Dig That Lick",
-      },
-      {
-        label: "Compositeurs multi-bases",
+        label: "Classement multi-bases",
         query:
-          "Trouver toutes les compositions de DIAMM dont le compositeur figure aussi comme compositeur dans RISM",
+          "Trouver les compositeurs présents à la fois dans les sources RISM et dans l'historique des concerts musiconn, classés par nombre de concerts",
       },
       {
-        label: "Instruments partagés",
+        label: "Œuvres d'un compositeur en concert",
         query:
-          "Trouver tous les instruments présents à la fois dans les solos de Dig That Lick et dans les chansons du Global Jukebox",
+          "Quelles œuvres de Clara Schumann figurent dans les programmes de concerts musiconn ?",
       },
       {
-        label: "Concerts à Vienne",
-        query: "Trouver tous les événements musiconn ayant eu lieu à Vienne",
+        label: "Mises en scène d'opéra par époque",
+        query:
+          "Quels opéras ont été représentés au théâtre de la cour de Detmold dans les années 1830 ?",
       },
       {
-        label: "RISM à la British Library",
-        query: "Trouver toutes les sources de RISM conservées à la British Library",
+        label: "Premiers enregistrements de terrain",
+        query:
+          "Afficher les enregistrements de terrain arabes de musique vocale collectés avant 1950",
+      },
+      {
+        label: "Interprètes nés dans une ville",
+        query:
+          "Quels compositeurs ayant joué lors de concerts documentés par musiconn sont nés à Vienne ?",
       },
     ],
   },
