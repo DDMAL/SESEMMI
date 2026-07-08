@@ -689,7 +689,7 @@ wjazzd:Solo
 \twdt:P2550\twjazzd:Composition ;
 \twdt:P175\t"performer" ;
 \twdt:P870\t"instrumentation" ;
-\twdt:P176\t"manufacturer" ;
+\twdt:P136\t"genre" ;
 \twdt:P1725\t"beats per minute" ;
 \twdt:P3440\t"time signature" .
 wjazzd:Track
