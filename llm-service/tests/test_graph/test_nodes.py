@@ -545,11 +545,12 @@ _JUDGE_STATE = {
 }
 
 
-def _mock_judge_llm(satisfied: bool, reason: str = "test reason"):
+def _mock_judge_llm(satisfied: bool, reason: str = "test reason", limitation=None):
     """Return the mock structured chain (what get_structured_model returns) for answer_node."""
     verdict = MagicMock()
     verdict.satisfied = satisfied
     verdict.reason = reason
+    verdict.limitation = limitation
     mock_judge_chain = AsyncMock()
     mock_judge_chain.ainvoke.return_value = verdict
     return mock_judge_chain
@@ -610,3 +611,100 @@ async def test_answer_judge_unsatisfied_exhausted():
     assert result["confidence"] == "low"
     assert result.get("judge_feedback") is None
     assert any("Still wrong" in a for a in result.get("assumptions", []))
+
+
+async def test_answer_judge_receives_schema_context():
+    """The judge prompt includes the schema_context the generator saw."""
+    mock_chain = _mock_judge_llm(satisfied=True)
+    state = {
+        **_JUDGE_STATE,
+        "repair_count": 0,
+        "schema_context": "<schema-context>musiconn ontology chunk</schema-context>",
+    }
+
+    with patch("app.graph.nodes.judge.settings") as mock_settings:
+        mock_settings.semantic_judge_enabled = True
+        mock_settings.max_repair_iterations = 3
+        with patch(
+            "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
+        ):
+            await answer_node(state)
+
+    judge_user = mock_chain.ainvoke.call_args[0][0][1].content
+    assert "musiconn ontology chunk" in judge_user
+
+
+async def test_answer_empty_probe_triggers_targeted_repair():
+    """A zero-row result with an unsatisfiable pattern → probe sets specific judge_feedback."""
+    state = {
+        **_ANSWER_BASE_STATE,
+        "is_valid": True,
+        "execution_error": None,
+        "result_count": 0,
+        "results": {"results": {"bindings": []}},
+        "sparql": "SELECT ?w WHERE { GRAPH <g> { ?p <p2888> <q1> } }",
+        "repair_count": 0,
+        "max_repairs": 3,
+    }
+    with patch("app.graph.nodes.judge.settings") as mock_settings:
+        mock_settings.empty_probe_enabled = True
+        mock_settings.semantic_judge_enabled = True
+        mock_settings.max_repair_iterations = 3
+        with patch(
+            "app.graph.nodes.judge.probe_empty_patterns",
+            new=AsyncMock(return_value=["?p <p2888> <q1>"]),
+        ):
+            result = await answer_node(state)
+
+    assert result["judge_feedback"] is not None
+    assert "?p <p2888> <q1>" in result["judge_feedback"]
+
+
+async def test_answer_empty_probe_no_culprit_falls_through_to_judge():
+    """Zero rows but every pattern is individually satisfiable (join-empty) → LLM judge runs."""
+    state = {
+        **_ANSWER_BASE_STATE,
+        "is_valid": True,
+        "execution_error": None,
+        "result_count": 0,
+        "results": {"results": {"bindings": []}},
+        "repair_count": 0,
+        "max_repairs": 3,
+    }
+    judge_chain = _mock_judge_llm(satisfied=False, reason="join is empty")
+    with patch("app.graph.nodes.judge.settings") as mock_settings:
+        mock_settings.empty_probe_enabled = True
+        mock_settings.semantic_judge_enabled = True
+        mock_settings.max_repair_iterations = 3
+        with patch(
+            "app.graph.nodes.judge.probe_empty_patterns",
+            new=AsyncMock(return_value=[]),
+        ):
+            with patch(
+                "app.graph.nodes.judge.get_structured_model", return_value=judge_chain
+            ):
+                result = await answer_node(state)
+
+    assert result["judge_feedback"] == "join is empty"
+
+
+async def test_answer_judge_limitation_recorded_as_assumption():
+    """Satisfied verdict with a schema limitation surfaces it as an assumption, no repair."""
+    mock_chain = _mock_judge_llm(
+        satisfied=True,
+        limitation="apsearch records no language; results not narrowed to Arabic",
+    )
+    state = {**_JUDGE_STATE, "repair_count": 0}
+
+    with patch("app.graph.nodes.judge.settings") as mock_settings:
+        mock_settings.semantic_judge_enabled = True
+        mock_settings.max_repair_iterations = 3
+        with patch(
+            "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
+        ):
+            result = await answer_node(state)
+
+    assert result.get("judge_feedback") is None
+    assert any(
+        "apsearch records no language" in a for a in result.get("assumptions", [])
+    )

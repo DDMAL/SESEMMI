@@ -42,11 +42,15 @@ def get_chat_model() -> BaseChatModel:
     elif provider == "qwen":
         from langchain_openai import ChatOpenAI
 
+        # DashScope connections occasionally stall; without a timeout a hung request
+        # blocks the whole /translate call indefinitely. Bound it and retry.
         return ChatOpenAI(
             model=settings.llm_model,
             api_key=settings.dashscope_api_key,
             base_url=settings.qwen_base_url,
             temperature=0,
+            timeout=settings.llm_request_timeout,
+            max_retries=2,
         )
     else:  # ollama (default)
         from langchain_ollama import ChatOllama

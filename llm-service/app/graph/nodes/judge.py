@@ -6,31 +6,64 @@ from pydantic import BaseModel
 from app.config import settings
 from app.graph.state import GraphState
 from app.graph.model import get_structured_model
+from app.graph.tools.empty_probe import probe_empty_patterns
 
 logger = logging.getLogger(__name__)
+
+
+def _empty_probe_feedback(empties: list[str]) -> str:
+    patterns = "\n".join(f"- {e}" for e in empties)
+    return (
+        "The query executed but returned no results. Each of these triple patterns "
+        "individually matches no data in the target graph, so they are the reason the "
+        f"result is empty:\n{patterns}\n"
+        "The entity or value may not exist in this graph, or the constraint may be "
+        "over-specified. Remove or relax the unsupported pattern(s) and rewrite the query."
+    )
 
 
 class _JudgeVerdict(BaseModel):
     satisfied: bool
     reason: str
+    # A distinction the question asked for that the schema simply cannot express.
+    # Recorded as an assumption on an accepted query — it does NOT force a repair.
+    limitation: str | None = None
 
 
 _JUDGE_SYSTEM = """\
-You are evaluating whether a SPARQL query result satisfies the user's intent.
+You are evaluating whether a SPARQL query and its results satisfy the user's intent,
+judged strictly against the database schema the query was written for.
+
+You are given that schema — the ontology (classes, predicates, edge directions) plus the
+generation rules. Evaluate the query ONLY against what this schema can express. Do not fault
+it for failing to capture a distinction the schema does not model, and do not expect data the
+schema has no place for.
 
 <instructions>
-Check two things, in order:
-1. Relevance — do the results directly answer what the question is asking?
-   Does the SPARQL match the intent of the NLQ?
-2. Column shape — do the result columns match what the question asks for?
-   Default is a single URI column; a label column appears only if the question
+1. Relevance — does the query express the user's intent as faithfully as the schema allows?
+   Are the right classes and predicates used, in the direction the ontology declares?
+2. Schema honesty — if the question asks for a property, class, or filter that is simply not in
+   the provided ontology, do NOT demand it. Accept the closest query the schema supports and
+   describe the gap in "limitation" (e.g. the target graph records no language, so results cannot
+   be narrowed to one language). A recorded limitation does NOT make the query unsatisfied.
+3. Empty-result check — a syntactically valid query returning no rows, for a question that should
+   plausibly match data, is a warning sign. Inspect the triple patterns for an inverted edge
+   direction or a predicate/class that does not appear in the schema. If you find one, set
+   satisfied=false and name the specific triple to fix.
+4. Column shape — default to a single URI column; expect a label column only when the question
    explicitly asks for a name, title, or label.
 
-Set "satisfied" to true only if both checks pass. Provide a brief "reason".
+Set "satisfied" true only when the query is the most faithful expression the schema supports.
+Set it false only for a fixable fault — wrong edge direction, invented predicate/class, wrong
+columns, or genuinely off-target results — and put the concrete fix in "reason".
 Note: wdt:P2888 is used for exact match (owl:sameAs equivalent in Wikidata).
 </instructions>"""
 
 _JUDGE_USER_TEMPLATE = """\
+<schema>
+{schema_context}
+</schema>
+
 <user_question>
 {user_query}
 </user_question>
@@ -65,6 +98,24 @@ async def judge_node(state: GraphState) -> dict:
 
     updates.update({"confidence": confidence, "assumptions": assumptions})
 
+    # Zero-row diagnostic: ASK-probe the query for the specific unsatisfiable pattern and
+    # repair with that concrete signal, before falling back to the schema-blind LLM judge.
+    if (
+        settings.empty_probe_enabled
+        and not state.get("execution_error")
+        and state.get("result_count", 0) == 0
+        and state.get("repair_count", 0)
+        < state.get("max_repairs", settings.max_repair_iterations)
+    ):
+        try:
+            empties = await probe_empty_patterns(state.get("sparql", ""))
+        except Exception:
+            logger.exception("empty-probe failed, skipping")
+            empties = []
+        if empties:
+            updates["judge_feedback"] = _empty_probe_feedback(empties)
+            return updates
+
     # Semantic judge (only when enabled and execution succeeded)
     if (
         settings.semantic_judge_enabled
@@ -77,6 +128,7 @@ async def judge_node(state: GraphState) -> dict:
         judge_model = get_structured_model(_JudgeVerdict)
 
         judge_user = _JUDGE_USER_TEMPLATE.format(
+            schema_context=state.get("schema_context", "") or "(no schema provided)",
             user_query=state["user_query"],
             sparql=state.get("sparql", ""),
             sample_results=sample if sample else "(no results)",
@@ -100,5 +152,10 @@ async def judge_node(state: GraphState) -> dict:
                 assumptions_new = list(assumptions)
                 assumptions_new.append(f"Semantic judge unsatisfied: {verdict.reason}")
                 updates["assumptions"] = assumptions_new
+        elif verdict.limitation:
+            # Accepted the closest supported query; surface the schema gap instead of churning.
+            assumptions_new = list(assumptions)
+            assumptions_new.append(verdict.limitation)
+            updates["assumptions"] = assumptions_new
 
     return updates
