@@ -40,9 +40,8 @@ class Settings(BaseSettings):
     max_repair_iterations: int = 3
     llm_request_timeout: int = 120  # seconds; abort a stalled provider call and retry
     semantic_judge_enabled: bool = True
-    empty_probe_enabled: bool = (
-        True  # ASK-probe a zero-row query for its unsatisfiable pattern
-    )
+    # ASK-probe a zero-row query for its unsatisfiable pattern
+    empty_probe_enabled: bool = True
 
     # Conversational clarification (pre-translation disambiguation)
     clarification_enabled: bool = True
