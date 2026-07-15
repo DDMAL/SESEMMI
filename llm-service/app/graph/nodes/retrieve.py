@@ -13,7 +13,7 @@ from app.graph.state import GraphState
 from app.graph.tools.graph_traverse import Node, Edge, Graph
 from app.graph.tools.ontology_parser import (
     parse_ontology_to_graph,
-    parse_graph_to_ontology,
+    slice_database_ontology,
 )
 from app.graph.tools.wikidata import wikidata_qid_lookup
 
@@ -36,9 +36,8 @@ def _build_schema_context(
     needs_federation: bool,
     intents: list[str] | None = None,
 ) -> str:
-    ontologies = "\n\n".join(
-        f"<ontology>\n{ontology}\n</ontology>" for _, ontology in db_to_ontology.items()
-    )
+    # Values are already faithful <database>…</database> docs (see slice_database_ontology).
+    ontologies = "\n\n".join(db_to_ontology.values())
 
     keys = ["named_graph_rules", "output_format_rules", "entity_type_rules"]
     if has_entities:
@@ -127,26 +126,16 @@ select only the entity types that are necessary to answer the query.
 Return only the list of required node names."""
 
 
-def _build_graph(nodes: set[Node], edges: set[Edge]) -> Graph:
-    full_nodes = nodes | {e.source for e in edges} | {e.target for e in edges}
-    return Graph(full_nodes, edges)
-
-
-def _get_sub_ontology_related_to_nodes(
-    ontology_graph: Graph, related_nodes: list[Node]
-) -> str:
+def _relevant_classes(ontology_graph: Graph, related_nodes: list[Node]) -> set[str]:
+    """Selected classes plus any classes that connect them along the ontology paths."""
     sub_edges: set[Edge] = set()
-    node_pairs = list(combinations(related_nodes, 2))
-    for pair in node_pairs:
-        sub_edges.update(
-            ontology_graph.get_edges_on_paths(source=pair[0], target=pair[1])
-        )
-        sub_edges.update(
-            ontology_graph.get_edges_on_paths(source=pair[1], target=pair[0])
-        )
-    sub_graph: Graph = _build_graph(nodes=set(related_nodes), edges=sub_edges)
-    sub_ontology: str = parse_graph_to_ontology(graph=sub_graph)
-    return sub_ontology
+    for a, b in combinations(related_nodes, 2):
+        sub_edges |= ontology_graph.get_edges_on_paths(source=a, target=b)
+        sub_edges |= ontology_graph.get_edges_on_paths(source=b, target=a)
+    names = {n.name for n in related_nodes}
+    names |= {e.source.name for e in sub_edges}
+    names |= {e.target.name for e in sub_edges}
+    return names
 
 
 async def _get_needed_ontologies(
@@ -177,21 +166,17 @@ async def _get_needed_ontologies(
             for db, graph in ontology_graphs.items()
         ]
     )
+    db_to_selected: dict[str, list[str]] = dict(zip(ontology_graphs.keys(), results))
 
-    db_to_related_node_name: dict[str, list[str]] = dict(
-        zip(ontology_graphs.keys(), results)
-    )
-    db_to_related_nodes: dict[str, list[Node]] = {
-        k: [ontology_graphs[k].get_node_by_name(name=n) for n in v]
-        for k, v in db_to_related_node_name.items()
-    }
-    db_to_sub_ontology: dict[str, str] = {
-        k: _get_sub_ontology_related_to_nodes(
-            ontology_graph=ontology_graphs[k], related_nodes=v
-        )
-        for k, v in db_to_related_nodes.items()
-    }
-    return db_to_sub_ontology
+    db_to_ontology: dict[str, str] = {}
+    for db, graph in ontology_graphs.items():
+        related = [graph.get_node_by_name(name=n) for n in db_to_selected[db]]
+        related = [n for n in related if n is not None]
+        class_names = _relevant_classes(graph, related)
+        # Emit the verbatim authored schema for the relevant classes — direction and
+        # literal properties intact — rather than the lossy graph round-trip.
+        db_to_ontology[db] = slice_database_ontology(ONTOLOGY_CHUNKS[db], class_names)
+    return db_to_ontology
 
 
 async def retrieve_node(state: GraphState) -> dict:
