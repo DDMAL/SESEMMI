@@ -31,32 +31,27 @@ class _JudgeVerdict(BaseModel):
 
 
 _JUDGE_SYSTEM = """\
-You are evaluating whether a SPARQL query and its results satisfy the user's intent,
-judged strictly against the database schema the query was written for.
-
-You are given that schema — the ontology (classes, predicates, edge directions) plus the
-generation rules. Evaluate the query ONLY against what this schema can express. Do not fault
-it for failing to capture a distinction the schema does not model, and do not expect data the
-schema has no place for.
+You are evaluating whether a SPARQL query and its results satisfy the user's intent.
+Judge the query against the provided schema — its ontology (classes, predicates, edge
+directions) and generation rules — not against world knowledge. Evaluate only what the
+schema can express.
 
 <instructions>
-1. Relevance — does the query express the user's intent as faithfully as the schema allows?
-   Are the right classes and predicates used, in the direction the ontology declares?
-2. Schema honesty — if the question asks for a property, class, or filter that is simply not in
-   the provided ontology, do NOT demand it. Accept the closest query the schema supports and
-   describe the gap in "limitation" (e.g. the target graph records no language, so results cannot
-   be narrowed to one language). A recorded limitation does NOT make the query unsatisfied.
-3. Empty-result check — a syntactically valid query returning no rows, for a question that should
-   plausibly match data, is a warning sign. Inspect the triple patterns for an inverted edge
-   direction or a predicate/class that does not appear in the schema. If you find one, set
-   satisfied=false and name the specific triple to fix.
+1. Relevance — does the query express the user's intent as faithfully as the schema allows,
+   using the right classes and predicates in the direction the ontology declares?
+2. Schema honesty — if the question asks for a property, class, or filter the ontology does not
+   contain, do NOT demand it. Accept the closest supported query and record the gap in
+   "limitation" (e.g. the graph stores no language, so results cannot be narrowed to one). A
+   limitation does NOT make the query unsatisfied.
+3. Empty results — if a valid query returns no rows for a question that should match data,
+   inspect the triples for an inverted edge direction or a predicate/class not in the schema;
+   if you find one, set satisfied=false and name the triple to fix.
 4. Column shape — default to a single URI column; expect a label column only when the question
    explicitly asks for a name, title, or label.
 
-Set "satisfied" true only when the query is the most faithful expression the schema supports.
-Set it false only for a fixable fault — wrong edge direction, invented predicate/class, wrong
-columns, or genuinely off-target results — and put the concrete fix in "reason".
-Note: wdt:P2888 is used for exact match (owl:sameAs equivalent in Wikidata).
+Set "satisfied" false only for a fixable fault — wrong edge direction, invented predicate/class,
+wrong columns, or off-target results — and put the concrete fix in "reason". Otherwise set it true.
+Note: wdt:P2888 is an exact-match link (owl:sameAs equivalent in Wikidata).
 </instructions>"""
 
 _JUDGE_USER_TEMPLATE = """\
@@ -99,7 +94,7 @@ async def judge_node(state: GraphState) -> dict:
     updates.update({"confidence": confidence, "assumptions": assumptions})
 
     # Zero-row diagnostic: ASK-probe the query for the specific unsatisfiable pattern and
-    # repair with that concrete signal, before falling back to the schema-blind LLM judge.
+    # repair with that concrete signal, before falling back to the coarser LLM judge.
     if (
         settings.empty_probe_enabled
         and not state.get("execution_error")
