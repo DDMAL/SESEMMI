@@ -15,6 +15,9 @@ def get_chat_model() -> BaseChatModel:
     Switch providers by setting LLM_PROVIDER and LLM_MODEL in the environment.
     """
     provider = settings.llm_provider
+    # A hung provider call would otherwise block the whole /translate request
+    # indefinitely (DashScope in particular stalls). Bound every call and retry.
+    timeout = settings.llm_request_timeout
     if provider == "openai":
         from langchain_openai import ChatOpenAI
 
@@ -22,6 +25,8 @@ def get_chat_model() -> BaseChatModel:
             model=settings.llm_model,
             api_key=settings.openai_api_key,
             temperature=0,
+            timeout=timeout,
+            max_retries=2,
         )
     elif provider == "anthropic":
         from langchain_anthropic import ChatAnthropic
@@ -30,6 +35,8 @@ def get_chat_model() -> BaseChatModel:
             model=settings.llm_model,
             api_key=settings.anthropic_api_key,
             temperature=0,
+            timeout=timeout,
+            max_retries=2,
         )
     elif provider == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
@@ -38,23 +45,24 @@ def get_chat_model() -> BaseChatModel:
             model=settings.llm_model,
             google_api_key=settings.gemini_api_key,
             temperature=0,
+            timeout=timeout,
+            max_retries=2,
         )
     elif provider == "qwen":
         from langchain_openai import ChatOpenAI
 
-        # DashScope connections occasionally stall; without a timeout a hung request
-        # blocks the whole /translate call indefinitely. Bound it and retry.
         return ChatOpenAI(
             model=settings.llm_model,
             api_key=settings.dashscope_api_key,
             base_url=settings.qwen_base_url,
             temperature=0,
-            timeout=settings.llm_request_timeout,
+            timeout=timeout,
             max_retries=2,
         )
     else:  # ollama (default)
         from langchain_ollama import ChatOllama
 
+        # ChatOllama exposes no timeout/max_retries; bound the underlying HTTP client instead.
         return ChatOllama(
             model=settings.llm_model,
             base_url=settings.ollama_base_url,
@@ -62,6 +70,7 @@ def get_chat_model() -> BaseChatModel:
             num_ctx=settings.ollama_num_ctx,
             num_thread=settings.ollama_num_thread,
             think=settings.ollama_think,
+            client_kwargs={"timeout": timeout},
         )
 
 

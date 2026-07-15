@@ -67,3 +67,52 @@ async def test_probe_ignores_execution_errors():
 
 async def test_probe_parse_failure_returns_empty():
     assert await probe_empty_patterns("NOT VALID SPARQL {{{") == []
+
+
+_Q_OPTIONAL = """
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+PREFIX cto: <https://nfdi4culture.de/ontology/>
+SELECT ?work WHERE {
+  GRAPH detmold: {
+    ?work a detmold:Work .
+    OPTIONAL { ?work cto:CTO_0001011 ?place . }
+  }
+} LIMIT 100
+"""
+
+_Q_VAR_GRAPH = """
+PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
+SELECT ?work ?g WHERE {
+  GRAPH ?g { ?work a detmold:Work . }
+} LIMIT 100
+"""
+
+
+async def test_probe_skips_optional_patterns():
+    """An empty OPTIONAL pattern cannot cause zero rows, so it must not be flagged."""
+    seen: list[str] = []
+
+    async def fake_exec(query: str) -> dict:
+        seen.append(query)
+        return {"results": {"boolean": True}, "error": None}
+
+    with patch("app.graph.tools.empty_probe.execute_sparql", new=fake_exec):
+        await probe_empty_patterns(_Q_OPTIONAL)
+
+    assert any("Work" in q for q in seen), "required pattern should be probed"
+    assert all("CTO_0001011" not in q for q in seen), "optional pattern must be skipped"
+
+
+async def test_probe_variable_graph_is_valid_sparql():
+    """A variable graph renders as `GRAPH ?g`, never a malformed `GRAPH <g>`."""
+    seen: list[str] = []
+
+    async def fake_exec(query: str) -> dict:
+        seen.append(query)
+        return {"results": {"boolean": True}, "error": None}
+
+    with patch("app.graph.tools.empty_probe.execute_sparql", new=fake_exec):
+        await probe_empty_patterns(_Q_VAR_GRAPH)
+
+    assert seen, "expected the variable-graph triple to be probed"
+    assert all("GRAPH ?g" in q and "<?g>" not in q and "<g>" not in q for q in seen)

@@ -1,5 +1,4 @@
 import re
-from collections import defaultdict
 
 from app.graph.tools.graph_traverse import Edge, Graph, Node
 
@@ -115,19 +114,3 @@ def slice_database_ontology(ontology_chunk: str, class_names: set[str]) -> str:
 
     inner = "\n".join(prefixes + ([""] + selected if selected else []))
     return f"{db_tag}\n<ontology>\n{inner}\n</ontology>\n</database>"
-
-
-def parse_graph_to_ontology(graph: Graph) -> str:
-    outgoing: dict[str, list[Edge]] = defaultdict(list)
-    for edge in graph.edges:
-        outgoing[edge.source.name].append(edge)
-
-    lines = []
-    for node in graph.nodes:
-        lines.append(node.name)
-        edges = outgoing.get(node.name, [])
-        for i, edge in enumerate(edges):
-            sep = "." if i == len(edges) - 1 else ";"
-            lines.append(f"\t{edge.name}\t{edge.target.name} {sep}")
-
-    return "\n".join(lines)

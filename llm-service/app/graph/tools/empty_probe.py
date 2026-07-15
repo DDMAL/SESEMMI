@@ -30,8 +30,11 @@ def _term(t) -> str | None:
 
 
 def _collect(node, graph, out: list) -> None:
-    """Walk the SPARQL algebra, collecting (graph_iri, triple) for BGP triples that sit
-    inside a GRAPH block. SERVICE blocks are pruned so we never probe federated endpoints.
+    """Walk the SPARQL algebra, collecting (graph_iri, triple) for required BGP triples that
+    sit inside a GRAPH block. Only patterns whose emptiness can actually cause a zero-row
+    result are collected: SERVICE blocks (federated), the optional side of an OPTIONAL, and
+    the excluded side of a MINUS are skipped, since a pattern that legitimately matches
+    nothing there is never the reason the query is empty.
     """
     if node is None or isinstance(node, (str, URIRef, Variable, Literal)):
         return
@@ -45,7 +48,11 @@ def _collect(node, graph, out: list) -> None:
         if graph is not None:
             out.extend((graph, t) for t in node.triples)
         return
-    for attr in ("p", "p1", "p2", "expr"):
+    # OPTIONAL / MINUS: keep the required left side, drop the optional / excluded side.
+    if name in ("LeftJoin", "Minus"):
+        _collect(node.p1, graph, out)
+        return
+    for attr in ("p", "p1", "p2"):
         child = getattr(node, attr, None)
         if child is not None:
             _collect(child, graph, out)
@@ -70,16 +77,15 @@ async def probe_empty_patterns(sparql: str, max_probes: int = 12) -> list[str]:
     for graph, (s, p, o) in triples:
         if not isinstance(p, URIRef):  # skip unbound-predicate patterns
             continue
-        st, pt, ot = _term(s), _term(p), _term(o)
-        if None in (st, pt, ot):
+        gt, st, pt, ot = _term(graph), _term(s), _term(p), _term(o)
+        # gt renders a URIRef graph as <iri> and a variable graph as ?g — never a bare <?g>.
+        if None in (gt, st, pt, ot):
             continue
-        key = (str(graph), st, pt, ot)
+        key = (gt, st, pt, ot)
         if key in seen:
             continue
         seen.add(key)
-        probes.append(
-            (f"ASK {{ GRAPH <{graph}> {{ {st} {pt} {ot} }} }}", f"{st} {pt} {ot}")
-        )
+        probes.append((f"ASK {{ GRAPH {gt} {{ {st} {pt} {ot} }} }}", f"{st} {pt} {ot}"))
         if len(probes) >= max_probes:
             break
 
