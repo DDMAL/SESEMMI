@@ -575,13 +575,24 @@ async def test_answer_judge_satisfied():
     assert result.get("judge_feedback") is None
 
 
-async def test_answer_judge_unsatisfied_repairs_left():
-    """Judge unsatisfied + repairs remaining → judge_feedback set to trigger re-generation."""
+async def test_answer_judge_unsatisfied_empty_repairs_left():
+    """Judge unsatisfied on a ZERO-row result + repairs remaining → judge_feedback set to trigger
+    re-generation. Repair is reserved for empty results (a nonempty result is trusted).
+    """
     mock_chain = _mock_judge_llm(satisfied=False, reason="Missing time filter")
-    state = {**_JUDGE_STATE, "repair_count": 0, "max_repairs": 3}
+    state = {
+        **_JUDGE_STATE,
+        "result_count": 0,
+        "results": {"results": {"bindings": []}},
+        "repair_count": 0,
+        "max_repairs": 3,
+    }
 
     with patch("app.graph.nodes.judge.settings") as mock_settings:
         mock_settings.semantic_judge_enabled = True
+        mock_settings.empty_probe_enabled = (
+            False  # isolate the semantic-judge path (no network)
+        )
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
@@ -593,13 +604,49 @@ async def test_answer_judge_unsatisfied_repairs_left():
     assert result["judge_feedback"] == "Missing time filter"
 
 
-async def test_answer_judge_unsatisfied_exhausted():
-    """Judge unsatisfied + repairs exhausted → confidence=low, reason in assumptions."""
-    mock_chain = _mock_judge_llm(satisfied=False, reason="Still wrong")
-    state = {**_JUDGE_STATE, "repair_count": 3, "max_repairs": 3}
+async def test_answer_judge_unsatisfied_nonempty_is_advisory():
+    """Judge unsatisfied but the query RETURNED ROWS → no repair loop: judge_feedback stays None,
+    confidence is downgraded high→medium, and the concern is recorded as an assumption.
+    """
+    mock_chain = _mock_judge_llm(satisfied=False, reason="Prefers a wdt:P2888 join")
+    state = {
+        **_JUDGE_STATE,
+        "repair_count": 0,
+        "max_repairs": 3,
+    }  # result_count=2 (nonempty)
 
     with patch("app.graph.nodes.judge.settings") as mock_settings:
         mock_settings.semantic_judge_enabled = True
+        mock_settings.llm_model = "gemini-2.5-flash-lite"
+        mock_settings.llm_api_key = "test-key"
+        mock_settings.max_repair_iterations = 3
+        with patch(
+            "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
+        ):
+            result = await answer_node(state)
+
+    assert result.get("judge_feedback") is None
+    assert result["confidence"] == "medium"
+    assert any("Prefers a wdt:P2888 join" in a for a in result.get("assumptions", []))
+
+
+async def test_answer_judge_unsatisfied_exhausted():
+    """Judge unsatisfied on a ZERO-row result + repairs exhausted → confidence=low, reason in
+    assumptions (no more repair rounds available)."""
+    mock_chain = _mock_judge_llm(satisfied=False, reason="Still wrong")
+    state = {
+        **_JUDGE_STATE,
+        "result_count": 0,
+        "results": {"results": {"bindings": []}},
+        "repair_count": 3,
+        "max_repairs": 3,
+    }
+
+    with patch("app.graph.nodes.judge.settings") as mock_settings:
+        mock_settings.semantic_judge_enabled = True
+        mock_settings.empty_probe_enabled = (
+            False  # isolate the semantic-judge path (no network)
+        )
         mock_settings.llm_model = "gemini-2.5-flash-lite"
         mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
