@@ -96,7 +96,7 @@ Named graphs are `https://linkedmusic.ca/graphs/<name>/` for: musicbrainz, rism,
 **Run one faithful query through the real pipeline (host-side).** The `sesemmi-llm` container fails startup locally (can't resolve host `postgres`), so `localhost:8000` is unreliable — drive the graph from the host venv instead:
 
 ```python
-# run from llm-service/ with PYTHONPATH=llm-service
+# from llm-service/, run with an absolute PYTHONPATH (see command below)
 import asyncio, os
 os.environ.update(LLM_PROVIDER="qwen", RAG_ENABLED="false",
                   FEW_SHOT_ENABLED="true", LANGSMITH_TRACING="false")
@@ -104,7 +104,7 @@ from app.graph.builder import run_graph  # -> {sparql, resultCount, executionErr
 print(asyncio.run(run_graph("your natural-language query")))
 ```
 
-Run with `PYTHONPATH=llm-service .venv/bin/python <script>.py`; the root `.env` supplies the model, endpoint, and prod Virtuoso. Caveat: this loads the *full static* `FEW_SHOT_EXAMPLES` rather than prod's RAG top-k (RAG needs pgvector + ollama embeddings, not up locally) — faithful on model and schema, less so on example selection. An `intake` structured-output parse error → broad-graph fallback matches prod and is harmless.
+Run from `llm-service/` with `PYTHONPATH="$PWD" .venv/bin/python <script>.py` (a relative `PYTHONPATH` won't resolve `app`); the root `.env` supplies the model, endpoint, and prod Virtuoso. Caveat: this loads the *full static* `FEW_SHOT_EXAMPLES` rather than prod's RAG top-k (RAG needs pgvector + ollama embeddings, not up locally) — faithful on model and schema, less so on example selection. An `intake` structured-output parse error → broad-graph fallback matches prod and is harmless.
 
 **LangSmith traces are the primary debugging signal.** The CLI is **`langsmith-cli`** (a uv tool — `uv tool list`), not `langsmith`, and uses the `runs` group. Projects: `sesemmi-prod` (deployed/demo runs — start here), `sesemmi-agent` (dev), `sesemmi-eval` (eval). Add `--api-key $LANGSMITH_API_KEY` (from `.env`):
 
