@@ -31,18 +31,18 @@ export const es: Dictionary = {
     tryExample: "Prueba un ejemplo",
     starters: [
       {
-        label: "Clasificación entre bases",
+        label: "Interpretación en vivo vs. música grabada",
         query:
-          "Encontrar compositores que aparecen tanto en fuentes de RISM como en el historial de conciertos de musiconn, ordenados por número de conciertos",
+          "Década a década, compara el número de conciertos públicos en la base de datos de conciertos musiconn con el número de grabaciones musicales publicadas en MusicBrainz, para trazar la transición de la interpretación en vivo a la música grabada.",
       },
       {
         label: "Obras de un compositor en conciertos",
         query: "¿Qué obras de Clara Schumann aparecen en los programas de conciertos de musiconn?",
       },
       {
-        label: "Representaciones de ópera por época",
+        label: "Repertorio del teatro de la corte",
         query:
-          "¿Qué óperas se representaron en el teatro de la corte de Detmold en la década de 1830?",
+          "¿Qué obras se representaron en el teatro de la corte de Detmold en la década de 1830?",
       },
       {
         label: "Primeras grabaciones de campo",

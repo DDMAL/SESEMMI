@@ -31,17 +31,17 @@ export const de: Dictionary = {
     tryExample: "Beispiel ausprobieren",
     starters: [
       {
-        label: "Datenbankübergreifendes Ranking",
+        label: "Live-Aufführung vs. Tonaufnahme",
         query:
-          "Finde Komponisten, die sowohl in RISM-Quellen als auch in der musiconn-Konzertgeschichte vorkommen, sortiert nach Anzahl der Konzerte",
+          "Vergleiche Jahrzehnt für Jahrzehnt die Zahl öffentlicher Konzertveranstaltungen in der musiconn-Konzertdatenbank mit der Zahl der in MusicBrainz veröffentlichten Musikaufnahmen, um den Wandel von der Live-Aufführung zur Tonaufnahme nachzuzeichnen.",
       },
       {
         label: "Werke eines Komponisten in Konzerten",
         query: "Welche Werke von Clara Schumann erscheinen in musiconn-Konzertprogrammen?",
       },
       {
-        label: "Opernaufführungen nach Epoche",
-        query: "Welche Opern wurden in den 1830er-Jahren am Detmolder Hoftheater aufgeführt?",
+        label: "Hoftheater-Repertoire",
+        query: "Welche Werke wurden in den 1830er-Jahren am Detmolder Hoftheater aufgeführt?",
       },
       {
         label: "Frühe Feldaufnahmen",

@@ -33,17 +33,17 @@ export const en = {
     tryExample: "Try an example",
     starters: [
       {
-        label: "Cross-database ranking",
+        label: "Live performance vs. recorded music",
         query:
-          "Find composers who appear in both RISM sources and musiconn concert history, ranked by number of concerts",
+          "Decade by decade, compare the number of public concert events in the musiconn concert database with the number of music recordings released in MusicBrainz, to trace the shift from live performance to recorded music.",
       },
       {
         label: "A composer's works in concerts",
         query: "Which works by Clara Schumann appear in musiconn concert programmes?",
       },
       {
-        label: "Opera staging by era",
-        query: "What operas were staged at the Detmold court theatre in the 1830s?",
+        label: "Court theatre repertoire",
+        query: "What works were staged at the Detmold court theatre in the 1830s?",
       },
       {
         label: "Early field recordings",

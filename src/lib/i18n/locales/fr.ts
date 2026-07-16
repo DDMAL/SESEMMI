@@ -32,9 +32,9 @@ export const fr: Dictionary = {
     tryExample: "Essayez un exemple",
     starters: [
       {
-        label: "Classement multi-bases",
+        label: "Concert vivant vs. musique enregistrée",
         query:
-          "Trouver les compositeurs présents à la fois dans les sources RISM et dans l'historique des concerts musiconn, classés par nombre de concerts",
+          "Décennie par décennie, comparez le nombre de concerts publics dans la base de concerts musiconn avec le nombre d'enregistrements musicaux publiés dans MusicBrainz, afin de retracer le passage du concert vivant à la musique enregistrée.",
       },
       {
         label: "Œuvres d'un compositeur en concert",
@@ -42,9 +42,9 @@ export const fr: Dictionary = {
           "Quelles œuvres de Clara Schumann figurent dans les programmes de concerts musiconn ?",
       },
       {
-        label: "Mises en scène d'opéra par époque",
+        label: "Répertoire du théâtre de la cour",
         query:
-          "Quels opéras ont été représentés au théâtre de la cour de Detmold dans les années 1830 ?",
+          "Quelles œuvres ont été jouées au théâtre de la cour de Detmold dans les années 1830 ?",
       },
       {
         label: "Premiers enregistrements de terrain",
