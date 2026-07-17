@@ -26,7 +26,7 @@ async def test_success_returns_results():
         )
         result = await execute_sparql(_SPARQL_QUERY)
 
-    assert result == {"results": _SPARQL_RESULTS, "error": None}
+    assert result == {"results": _SPARQL_RESULTS, "error": None, "error_kind": None}
 
 
 async def test_uses_settings_endpoint_by_default():
@@ -118,3 +118,52 @@ async def test_timeout_returns_error_string():
 
     assert result["results"] is None
     assert result["error"] is not None
+
+
+async def test_http_error_classified_query_fault():
+    """A local Virtuoso fault (SP031-style 500) → error_kind='query_fault', no retry."""
+    mock_inner_response = MagicMock()
+    mock_inner_response.status_code = 500
+    mock_inner_response.text = "Virtuoso 37000 Error SP031: SPARQL compiler"
+
+    mock_response = MagicMock()
+    mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+        "500", request=MagicMock(), response=mock_inner_response
+    )
+
+    mock_post = AsyncMock(return_value=mock_response)
+    with patch("app.graph.tools.sparql_execute.httpx.AsyncClient") as mock_client:
+        mock_client.return_value.__aenter__.return_value.post = mock_post
+        result = await execute_sparql(_SPARQL_QUERY)
+
+    assert result["error_kind"] == "query_fault"
+    assert mock_post.call_count == 1  # not retried
+
+
+async def test_external_service_429_classified_and_retried():
+    """A WDQS 429 (wrapped as a Virtuoso 500) → error_kind='external_service' after a retry."""
+    mock_inner_response = MagicMock()
+    mock_inner_response.status_code = 500
+    mock_inner_response.text = (
+        "Virtuoso 42000 Error SPARQL_REXEC: remote endpoint "
+        "<https://query.wikidata.org/sparql> returned HTTP/1.1 429 Too Many Requests"
+    )
+
+    mock_response = MagicMock()
+    mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+        "500", request=MagicMock(), response=mock_inner_response
+    )
+
+    mock_post = AsyncMock(return_value=mock_response)
+    with patch("app.graph.tools.sparql_execute.httpx.AsyncClient") as mock_client:
+        mock_client.return_value.__aenter__.return_value.post = mock_post
+        with patch(
+            "app.graph.tools.sparql_execute.asyncio.sleep", new=AsyncMock()
+        ) as mock_sleep:
+            result = await execute_sparql(_SPARQL_QUERY)
+
+    assert result["results"] is None
+    assert result["error_kind"] == "external_service"
+    assert "429" in result["error"]
+    assert mock_post.call_count == 2  # retried once with backoff
+    mock_sleep.assert_awaited()

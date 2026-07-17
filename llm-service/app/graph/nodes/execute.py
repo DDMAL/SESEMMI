@@ -12,6 +12,7 @@ async def execute_node(state: GraphState) -> dict:
         if result["error"] is not None:
             return {
                 "execution_error": result["error"],
+                "error_kind": result.get("error_kind"),
                 "results": None,
                 "result_count": 0,
             }
@@ -20,11 +21,13 @@ async def execute_node(state: GraphState) -> dict:
             "results": result["results"],
             "result_count": len(bindings),
             "execution_error": None,
+            "error_kind": None,
         }
     except Exception as exc:
         logger.exception("execute_node raised unexpectedly")
         return {
             "execution_error": str(exc) or repr(exc),
+            "error_kind": "query_fault",
             "results": None,
             "result_count": 0,
         }
