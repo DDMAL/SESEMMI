@@ -1,6 +1,11 @@
 import pytest
 
-from app.graph.validation import is_valid, validate_intent, validate_sparql
+from app.graph.validation import (
+    is_valid,
+    validate_federation,
+    validate_intent,
+    validate_sparql,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -141,3 +146,68 @@ LIMIT 10
 """
     errors = validate_intent(sparql, "lookup", False, True)
     assert any("SERVICE" in e for e in errors)
+
+
+# ---------------------------------------------------------------------------
+# Layer 1 — federated-query shape gate
+# ---------------------------------------------------------------------------
+
+_WELL_SHAPED_FEDERATION = (
+    "SELECT ?person ?viaf WHERE { "
+    "{ SELECT ?person ?qid WHERE { "
+    "GRAPH <https://linkedmusic.ca/graphs/ckg-musiconn/> { ?person wdt:P2888 ?qid } "
+    "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?mb wdt:P2888 ?qid } } } "
+    "SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P214 ?viaf . } } LIMIT 10"
+)
+
+
+def test_federation_noop_without_service():
+    sparql = "SELECT ?x WHERE { GRAPH <https://linkedmusic.ca/graphs/diamm/> { ?x a ?t } } LIMIT 10"
+    assert validate_federation(sparql) == []
+
+
+def test_federation_wellshaped_passes():
+    """A bounded, top-level, type-free SERVICE (like query #3) is accepted."""
+    assert validate_federation(_WELL_SHAPED_FEDERATION) == []
+
+
+def test_federation_unbounded_cartesian_rejected():
+    """A SERVICE that shares no variable with the local query is an unbounded push."""
+    sparql = (
+        "SELECT ?a ?viaf WHERE { "
+        "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?a a ?t } "
+        "SERVICE <https://query.wikidata.org/sparql> { ?x wdt:P214 ?viaf } } LIMIT 10"
+    )
+    errors = validate_federation(sparql)
+    assert any("unbounded" in e for e in errors)
+
+
+def test_federation_service_inside_graph_rejected():
+    sparql = (
+        "SELECT ?person WHERE { "
+        "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { "
+        "?person wdt:P2888 ?qid . "
+        "SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P214 ?viaf } } } LIMIT 10"
+    )
+    errors = validate_federation(sparql)
+    assert any("nested inside a GRAPH" in e for e in errors)
+
+
+def test_federation_service_inside_optional_rejected():
+    sparql = (
+        "SELECT ?person WHERE { "
+        "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?person wdt:P2888 ?qid } "
+        "OPTIONAL { SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P214 ?viaf } } } LIMIT 10"
+    )
+    errors = validate_federation(sparql)
+    assert any("nested inside an OPTIONAL" in e for e in errors)
+
+
+def test_federation_type_in_service_rejected():
+    sparql = (
+        "SELECT ?person ?viaf WHERE { "
+        "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?person wdt:P2888 ?qid } "
+        "SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P214 ?viaf ; wdt:P31 wd:Q5 } } LIMIT 10"
+    )
+    errors = validate_federation(sparql)
+    assert any("entity type" in e for e in errors)

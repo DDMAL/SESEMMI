@@ -403,6 +403,27 @@ async def test_validate_aggregation_missing_count():
     )
 
 
+async def test_validate_rejects_unbounded_federation():
+    """validate_node surfaces a Layer-1 federated-shape error and marks the query invalid."""
+    state = {
+        "sparql": (
+            "SELECT ?a ?viaf WHERE { "
+            "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?a a ?t } "
+            "SERVICE <https://query.wikidata.org/sparql> { ?x wdt:P214 ?viaf } } LIMIT 10"
+        ),
+        "intents": ["lookup"],
+        "target_graphs": ["musicbrainz"],
+        "entity_contexts": {},
+        "needs_federation": True,
+        "repair_count": 0,
+        "max_repairs": 3,
+    }
+    result = await validate_node(state)
+
+    assert result["is_valid"] is False
+    assert any("unbounded" in e for e in result["validation_errors"])
+
+
 async def test_validate_exhausted_repairs_sets_confidence():
     """Invalid query with repairs exhausted → confidence=low, assumptions collected."""
     state = {
