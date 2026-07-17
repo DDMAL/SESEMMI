@@ -52,12 +52,10 @@ class Settings(BaseSettings):
     langsmith_project: str = "sesemmi-agent"
     langsmith_tracing: bool = False
     sparql_timeout: int = 120  # seconds; increase for slow federated queries
-    sparql_max_attempts: int = (
-        2  # total execute tries for transient (timeout/429) failures
-    )
-    sparql_retry_backoff: float = (
-        2.0  # seconds between retries; ≥1 keeps WDQS under 1 RPS
-    )
+    # total execute tries for transient (timeout/429) failures
+    sparql_max_attempts: int = 2
+    # seconds between retries; ≥1 keeps WDQS under 1 RPS
+    sparql_retry_backoff: float = 2.0
 
 
 settings = Settings()

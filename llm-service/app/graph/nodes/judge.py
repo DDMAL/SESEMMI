@@ -13,6 +13,14 @@ from app.graph.tools.sparql_execute import execute_sparql
 logger = logging.getLogger(__name__)
 
 
+def _base_assumptions(state: GraphState) -> list[str]:
+    """Prior assumptions plus one line per resolved QID."""
+    assumptions = list(state.get("assumptions") or [])
+    for name, qid in (state.get("resolved_qids") or {}).items():
+        assumptions.append(f"Assumed QID {qid} for {name}")
+    return assumptions
+
+
 async def _degrade_external_service(state: GraphState) -> dict:
     """Layer 3 — turn a transient federated-SERVICE failure into an honest answer.
 
@@ -22,9 +30,7 @@ async def _degrade_external_service(state: GraphState) -> dict:
     If there is no local part, degrade to an explicit "requires live Wikidata data" result rather
     than surfacing the raw error.
     """
-    assumptions: list[str] = list(state.get("assumptions") or [])
-    for name, qid in (state.get("resolved_qids") or {}).items():
-        assumptions.append(f"Assumed QID {qid} for {name}")
+    assumptions = _base_assumptions(state)
 
     local_query = strip_service_blocks(state.get("sparql", ""))
     salvaged: dict | None = None
@@ -36,6 +42,7 @@ async def _degrade_external_service(state: GraphState) -> dict:
         except Exception:
             logger.exception("Layer-3 strip-and-rerun failed")
 
+    cleared = {"judge_feedback": None, "execution_error": None, "error_kind": None}
     if salvaged is not None:
         bindings = salvaged.get("results", {}).get("bindings", [])
         assumptions.append(
@@ -43,9 +50,7 @@ async def _degrade_external_service(state: GraphState) -> dict:
             "not be attached; results reflect the local graphs only."
         )
         return {
-            "judge_feedback": None,
-            "execution_error": None,
-            "error_kind": None,
+            **cleared,
             "results": salvaged,
             "result_count": len(bindings),
             "confidence": "medium",
@@ -57,9 +62,7 @@ async def _degrade_external_service(state: GraphState) -> dict:
         "query service could not be reached)."
     )
     return {
-        "judge_feedback": None,
-        "execution_error": None,
-        "error_kind": None,
+        **cleared,
         "results": None,
         "result_count": 0,
         "confidence": "low",
@@ -148,10 +151,7 @@ async def judge_node(state: GraphState) -> dict:
     else:
         confidence = "low"
 
-    assumptions: list[str] = list(state.get("assumptions") or [])
-    for name, qid in (state.get("resolved_qids") or {}).items():
-        assumptions.append(f"Assumed QID {qid} for {name}")
-
+    assumptions = _base_assumptions(state)
     updates.update({"confidence": confidence, "assumptions": assumptions})
 
     # Zero-row diagnostic: ASK-probe the query for the specific unsatisfiable pattern and
