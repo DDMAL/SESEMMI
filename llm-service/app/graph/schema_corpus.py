@@ -891,7 +891,7 @@ detmold:Place
 \twdt:P2888\t"exact match" .
 detmold:Work
 \trdfs:label\t"label" ;
-\twdt:P31\t"instance of" ;
+\twdt:P31\t"instance of" ;  # ALWAYS wd:Q838948 "work of art" — a generic fallback covering the whole repertoire; operas, spoken plays, and Singspiele are NOT distinguished (no genre/dramatic-type to filter on)
 \twdt:P123\t"publisher" ;
 \twdt:P571\t"inception" ;
 \tcto:CTO_0001006\t"is referenced in" ;
