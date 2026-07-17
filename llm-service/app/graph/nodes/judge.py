@@ -136,7 +136,15 @@ async def judge_node(state: GraphState) -> dict:
                 [SystemMessage(content=_JUDGE_SYSTEM), HumanMessage(content=judge_user)]
             )
         except Exception:
+            # The 27b judge intermittently emits non-object structured output (bare "42", '){ ')
+            # that fails to parse. Keep the base confidence — a judge crash is not evidence the
+            # query is wrong — but record that it was never independently confirmed, so a
+            # judge-crashed result can't be mistaken for a validated one.
             logger.exception("Semantic judge failed, skipping")
+            updates["assumptions"] = assumptions + [
+                "Semantic judge could not be evaluated (malformed verdict); "
+                "confidence not independently confirmed."
+            ]
             return updates
 
         if not verdict.satisfied:

@@ -735,6 +735,31 @@ async def test_answer_empty_probe_no_culprit_falls_through_to_judge():
     assert result["judge_feedback"] == "join is empty"
 
 
+async def test_answer_judge_malformed_output_records_caveat():
+    """Judge structured output fails to parse (27b emits a non-object) → base confidence is kept
+    (a judge crash is not evidence the query is wrong), but a caveat is recorded so a
+    judge-crashed result can't be mistaken for an independently-confirmed one."""
+    mock_chain = AsyncMock()
+    mock_chain.ainvoke.side_effect = ValueError(
+        "could not parse structured output: '42'"
+    )
+    state = {**_JUDGE_STATE, "repair_count": 0}
+
+    with patch("app.graph.nodes.judge.settings") as mock_settings:
+        mock_settings.semantic_judge_enabled = True
+        mock_settings.max_repair_iterations = 3
+        with patch(
+            "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
+        ):
+            result = await answer_node(state)
+
+    assert (
+        result["confidence"] == "high"
+    )  # base confidence preserved (caveat-only policy)
+    assert result.get("judge_feedback") is None
+    assert any("could not be evaluated" in a for a in result.get("assumptions", []))
+
+
 async def test_answer_judge_limitation_recorded_as_assumption():
     """Satisfied verdict with a schema limitation surfaces it as an assumption, no repair."""
     mock_chain = _mock_judge_llm(
