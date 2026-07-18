@@ -1,6 +1,11 @@
 from app.config import settings
 from app.graph.state import GraphState
-from app.graph.validation import is_valid, validate_intent, validate_sparql
+from app.graph.validation import (
+    is_valid,
+    validate_federation,
+    validate_intent,
+    validate_sparql,
+)
 
 
 async def validate_node(state: GraphState) -> dict:
@@ -11,7 +16,8 @@ async def validate_node(state: GraphState) -> dict:
         bool(state.get("entity_contexts")),
         state.get("needs_federation", False),
     )
-    all_errors = syntax_errors + intent_errors
+    federation_errors = validate_federation(state["sparql"])
+    all_errors = syntax_errors + intent_errors + federation_errors
     valid = is_valid(all_errors)
     result: dict = {"validation_errors": all_errors, "is_valid": valid}
 

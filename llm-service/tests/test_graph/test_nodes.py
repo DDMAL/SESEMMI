@@ -403,6 +403,27 @@ async def test_validate_aggregation_missing_count():
     )
 
 
+async def test_validate_rejects_unbounded_federation():
+    """validate_node surfaces a Layer-1 federated-shape error and marks the query invalid."""
+    state = {
+        "sparql": (
+            "SELECT ?a ?viaf WHERE { "
+            "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?a a ?t } "
+            "SERVICE <https://query.wikidata.org/sparql> { ?x wdt:P214 ?viaf } } LIMIT 10"
+        ),
+        "intents": ["lookup"],
+        "target_graphs": ["musicbrainz"],
+        "entity_contexts": {},
+        "needs_federation": True,
+        "repair_count": 0,
+        "max_repairs": 3,
+    }
+    result = await validate_node(state)
+
+    assert result["is_valid"] is False
+    assert any("unbounded" in e for e in result["validation_errors"])
+
+
 async def test_validate_exhausted_repairs_sets_confidence():
     """Invalid query with repairs exhausted → confidence=low, assumptions collected."""
     state = {
@@ -708,3 +729,121 @@ async def test_answer_judge_limitation_recorded_as_assumption():
     assert any(
         "apsearch records no language" in a for a in result.get("assumptions", [])
     )
+
+
+# ---------------------------------------------------------------------------
+# Answer node — Layer 3 honest degradation on external-service failure
+# ---------------------------------------------------------------------------
+
+_FEDERATED_SPARQL = (
+    "SELECT ?person ?viaf WHERE { "
+    "{ SELECT ?person ?qid WHERE { "
+    "GRAPH <https://linkedmusic.ca/graphs/ckg-musiconn/> { ?person wdt:P2888 ?qid } "
+    "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?mb wdt:P2888 ?qid } } } "
+    "SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P214 ?viaf . } } LIMIT 10"
+)
+
+
+async def test_answer_external_service_degrades_to_local_answer():
+    """external_service failure → strip SERVICE, re-run local, report medium + caveat."""
+    local_rows = {"results": {"bindings": [{"person": {"value": "p1"}}, {}, {}]}}
+    state = {
+        **_ANSWER_BASE_STATE,
+        "sparql": _FEDERATED_SPARQL,
+        "is_valid": True,
+        "execution_error": "HTTP 500: SPARQL_REXEC ... 429 Too Many Requests",
+        "error_kind": "external_service",
+        "result_count": 0,
+        "results": None,
+    }
+    with patch(
+        "app.graph.nodes.judge.execute_sparql", new_callable=AsyncMock
+    ) as mock_exec:
+        mock_exec.return_value = {
+            "results": local_rows,
+            "error": None,
+            "error_kind": None,
+        }
+        result = await answer_node(state)
+
+    # Re-ran the SERVICE-stripped query, not the original.
+    reran = mock_exec.call_args[0][0]
+    assert "SERVICE" not in reran.upper()
+    assert result["confidence"] == "medium"
+    assert result["execution_error"] is None
+    assert result["result_count"] == 3
+    assert result["results"] == local_rows
+    assert any("Wikidata lookup was unavailable" in a for a in result["assumptions"])
+
+
+async def test_answer_external_service_no_local_part_reports_unavailable():
+    """A whole-answer-in-Wikidata query has no local part → honest 'unavailable', no re-run."""
+    state = {
+        **_ANSWER_BASE_STATE,
+        "sparql": "SELECT ?viaf WHERE { SERVICE <https://query.wikidata.org/sparql> { ?x wdt:P214 ?viaf } } LIMIT 10",
+        "is_valid": True,
+        "execution_error": "HTTP 500: SPARQL_REXEC ... 429",
+        "error_kind": "external_service",
+    }
+    with patch(
+        "app.graph.nodes.judge.execute_sparql", new_callable=AsyncMock
+    ) as mock_exec:
+        result = await answer_node(state)
+
+    mock_exec.assert_not_called()  # no GRAPH block → nothing local to salvage
+    assert result["confidence"] == "low"
+    assert result["results"] is None
+    assert any("requires live Wikidata data" in a for a in result["assumptions"])
+
+
+async def test_answer_external_service_local_rerun_fails_reports_unavailable():
+    """If the stripped local query also errors, degrade to the honest unavailable result."""
+    state = {
+        **_ANSWER_BASE_STATE,
+        "sparql": _FEDERATED_SPARQL,
+        "is_valid": True,
+        "execution_error": "HTTP 500: SPARQL_REXEC ... 429",
+        "error_kind": "external_service",
+    }
+    with patch(
+        "app.graph.nodes.judge.execute_sparql", new_callable=AsyncMock
+    ) as mock_exec:
+        mock_exec.return_value = {
+            "results": None,
+            "error": "HTTP 500: local fault",
+            "error_kind": "query_fault",
+        }
+        result = await answer_node(state)
+
+    assert result["confidence"] == "low"
+    assert result["execution_error"] is None  # no raw error dump surfaced
+    assert any("requires live Wikidata data" in a for a in result["assumptions"])
+
+
+async def test_answer_external_service_degrades_default_graph_local():
+    """A local pattern over the default graph (no GRAPH keyword) is still salvaged."""
+    local_rows = {"results": {"bindings": [{"person": {"value": "p1"}}]}}
+    state = {
+        **_ANSWER_BASE_STATE,
+        "sparql": (
+            "SELECT ?person ?viaf WHERE { ?person wdt:P2888 ?qid . "
+            "SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P214 ?viaf } } LIMIT 10"
+        ),
+        "is_valid": True,
+        "execution_error": "HTTP 500: SPARQL_REXEC ... 429",
+        "error_kind": "external_service",
+    }
+    with patch(
+        "app.graph.nodes.judge.execute_sparql", new_callable=AsyncMock
+    ) as mock_exec:
+        mock_exec.return_value = {
+            "results": local_rows,
+            "error": None,
+            "error_kind": None,
+        }
+        result = await answer_node(state)
+
+    mock_exec.assert_called_once()
+    assert "SERVICE" not in mock_exec.call_args[0][0].upper()
+    assert result["confidence"] == "medium"
+    assert result["result_count"] == 1
