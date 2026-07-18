@@ -8,12 +8,15 @@ gracefully on a parse miss.
 
 import re
 
-# A failure of the federated SERVICE call to public Wikidata. Virtuoso wraps it in an
-# SPARQL_REXEC error that names the remote endpoint. We don't distinguish 429 / 5xx / timeout:
-# all are external and all degrade the same way (we neither retry nor repair the remote call),
-# so "did the remote SERVICE fail?" is the only question the classifier needs to answer.
+# A failure of the federated SERVICE call to public Wikidata. Virtuoso reports it with an
+# SPARQL_REXEC wrapper that names the remote endpoint and echoes the remote HTTP status. We don't
+# distinguish 429 / 5xx / timeout — all are external and degrade the same way — so "did the remote
+# SERVICE fail?" is the only question. We match only evidence Virtuoso *adds* to describe a remote
+# failure, NOT the bare endpoint URL: Virtuoso echoes the offending query (which always contains
+# `SERVICE <…wikidata…>`) in many local compile errors (e.g. SP031), so keying on the URL would
+# misread a repairable local fault as an unfixable remote one.
 _EXTERNAL_MARKER = re.compile(
-    r"SPARQL_REXEC|query\.wikidata\.org|wikidata\.org/sparql", re.IGNORECASE
+    r"SPARQL_REXEC|remote endpoint|returned\s+HTTP|too many requests", re.IGNORECASE
 )
 _WD_SERVICE = re.compile(r"SERVICE\s+<[^>]*wikidata[^>]*>", re.IGNORECASE)
 _SERVICE_KW = re.compile(r"\bSERVICE\b", re.IGNORECASE)

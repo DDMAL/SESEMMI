@@ -38,6 +38,20 @@ def test_classify_local_sp031_is_query_fault():
     assert classify_execution_error(_LOCAL_JOIN, err) == "query_fault"
 
 
+def test_classify_local_fault_echoing_query_is_query_fault():
+    """A local compile fault whose error echoes the query is a query_fault, not external.
+
+    Virtuoso echoes the offending query — which contains `SERVICE <…wikidata…>` — in the error
+    text. The endpoint URL is present only because of that echo, not because the remote call
+    failed, so the classifier must NOT read it as external (which would skip the repair loop).
+    """
+    err = (
+        "HTTP 500: Virtuoso 37000 Error SP031: SPARQL: Internal error: "
+        "The variable '?foo' is used but not assigned. SPARQL query: " + _LOCAL_JOIN
+    )
+    assert classify_execution_error(_LOCAL_JOIN, err) == "query_fault"
+
+
 def test_classify_timeout_with_wd_service_is_external():
     assert classify_execution_error(_LOCAL_JOIN, "timeout") == "external_service"
 
