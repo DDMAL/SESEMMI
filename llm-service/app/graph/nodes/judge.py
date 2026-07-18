@@ -7,7 +7,7 @@ from app.config import settings
 from app.graph.state import GraphState
 from app.graph.model import get_structured_model
 from app.graph.tools.empty_probe import probe_empty_patterns
-from app.graph.tools.federation import strip_service_blocks
+from app.graph.tools.federation import has_local_pattern, strip_service_blocks
 from app.graph.tools.sparql_execute import execute_sparql
 
 logger = logging.getLogger(__name__)
@@ -32,9 +32,10 @@ async def _degrade_external_service(state: GraphState) -> dict:
     """
     assumptions = _base_assumptions(state)
 
-    local_query = strip_service_blocks(state.get("sparql", ""))
+    sparql = state.get("sparql", "")
+    local_query = strip_service_blocks(sparql)
     salvaged: dict | None = None
-    if "GRAPH" in local_query.upper():  # a local part exists to answer
+    if has_local_pattern(sparql):  # a local part exists to answer
         try:
             res = await execute_sparql(local_query)
             if res["error"] is None:

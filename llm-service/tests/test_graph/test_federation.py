@@ -2,6 +2,7 @@
 
 from app.graph.tools.federation import (
     classify_execution_error,
+    has_local_pattern,
     has_wikidata_service,
     service_block_spans,
     strip_service_blocks,
@@ -68,3 +69,25 @@ def test_strip_service_blocks_removes_only_the_service():
 def test_strip_service_blocks_noop_without_service():
     local = "SELECT ?x WHERE { GRAPH <g> { ?x a ?t } } LIMIT 10"
     assert strip_service_blocks(local) == local
+
+
+def test_has_local_pattern_true_for_named_graph_local():
+    assert has_local_pattern(_LOCAL_JOIN) is True
+
+
+def test_has_local_pattern_true_for_default_graph_local():
+    """A local pattern over the default graph (no GRAPH keyword) still counts."""
+    sparql = (
+        "SELECT ?viaf WHERE { ?person wdt:P2888 ?qid . "
+        "SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P214 ?viaf } } LIMIT 10"
+    )
+    assert has_local_pattern(sparql) is True
+
+
+def test_has_local_pattern_false_when_only_service():
+    """A query whose whole WHERE body is the SERVICE block has nothing local to salvage."""
+    sparql = (
+        "SELECT ?viaf WHERE { "
+        "SERVICE <https://query.wikidata.org/sparql> { ?x wdt:P214 ?viaf } } LIMIT 10"
+    )
+    assert has_local_pattern(sparql) is False

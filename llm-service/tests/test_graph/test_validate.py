@@ -182,6 +182,17 @@ def test_federation_unbounded_cartesian_rejected():
     assert any("unbounded" in e for e in errors)
 
 
+def test_federation_values_bound_service_allowed():
+    """A SERVICE bounded by an inline VALUES is self-bounded; it needs no shared local variable."""
+    sparql = (
+        "SELECT ?viaf WHERE { "
+        "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?a wdt:P2888 ?q } "
+        "SERVICE <https://query.wikidata.org/sparql> { VALUES ?x { wd:Q1 wd:Q2 } "
+        "?x wdt:P214 ?viaf } } LIMIT 10"
+    )
+    assert validate_federation(sparql) == []
+
+
 def test_federation_service_inside_graph_rejected():
     sparql = (
         "SELECT ?person WHERE { "
@@ -208,6 +219,17 @@ def test_federation_type_in_service_rejected():
         "SELECT ?person ?viaf WHERE { "
         "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?person wdt:P2888 ?qid } "
         "SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P214 ?viaf ; wdt:P31 wd:Q5 } } LIMIT 10"
+    )
+    errors = validate_federation(sparql)
+    assert any("entity type" in e for e in errors)
+
+
+def test_federation_a_keyword_type_in_service_rejected():
+    """The bare `a` predicate (rdf:type shorthand) inside a SERVICE is also a type-check."""
+    sparql = (
+        "SELECT ?person ?viaf WHERE { "
+        "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?person wdt:P2888 ?qid } "
+        "SERVICE <https://query.wikidata.org/sparql> { ?qid a wd:Q5 ; wdt:P214 ?viaf } } LIMIT 10"
     )
     errors = validate_federation(sparql)
     assert any("entity type" in e for e in errors)

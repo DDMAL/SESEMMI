@@ -140,8 +140,11 @@ async def test_http_error_classified_query_fault():
     assert mock_post.call_count == 1  # not retried
 
 
-async def test_external_service_429_classified_and_retried():
-    """A WDQS 429 (wrapped as a Virtuoso 500) → error_kind='external_service' after a retry."""
+async def test_external_service_429_classified_not_retried():
+    """A WDQS 429 (wrapped as a Virtuoso 500) → error_kind='external_service', failed fast.
+
+    We don't retry: a volume-driven 429 won't clear in seconds, so we degrade immediately rather
+    than make the user wait."""
     mock_inner_response = MagicMock()
     mock_inner_response.status_code = 500
     mock_inner_response.text = (
@@ -157,13 +160,9 @@ async def test_external_service_429_classified_and_retried():
     mock_post = AsyncMock(return_value=mock_response)
     with patch("app.graph.tools.sparql_execute.httpx.AsyncClient") as mock_client:
         mock_client.return_value.__aenter__.return_value.post = mock_post
-        with patch(
-            "app.graph.tools.sparql_execute.asyncio.sleep", new=AsyncMock()
-        ) as mock_sleep:
-            result = await execute_sparql(_SPARQL_QUERY)
+        result = await execute_sparql(_SPARQL_QUERY)
 
     assert result["results"] is None
     assert result["error_kind"] == "external_service"
     assert "429" in result["error"]
-    assert mock_post.call_count == 2  # retried once with backoff
-    mock_sleep.assert_awaited()
+    assert mock_post.call_count == 1  # no retry

@@ -8,14 +8,12 @@ gracefully on a parse miss.
 
 import re
 
-# A federated call to public Wikidata. Virtuoso wraps a failed SERVICE call in an SPARQL_REXEC
-# error that names the remote endpoint; a 429/5xx from public WDQS (or a SERVICE timeout) is a
-# transient, external failure — rewriting our query cannot fix it.
+# A failure of the federated SERVICE call to public Wikidata. Virtuoso wraps it in an
+# SPARQL_REXEC error that names the remote endpoint. We don't distinguish 429 / 5xx / timeout:
+# all are external and all degrade the same way (we neither retry nor repair the remote call),
+# so "did the remote SERVICE fail?" is the only question the classifier needs to answer.
 _EXTERNAL_MARKER = re.compile(
     r"SPARQL_REXEC|query\.wikidata\.org|wikidata\.org/sparql", re.IGNORECASE
-)
-_TRANSIENT = re.compile(
-    r"\b(429|50\d)\b|too many requests|timed?\s*out|timeout", re.IGNORECASE
 )
 _WD_SERVICE = re.compile(r"SERVICE\s+<[^>]*wikidata[^>]*>", re.IGNORECASE)
 _SERVICE_KW = re.compile(r"\bSERVICE\b", re.IGNORECASE)
@@ -29,12 +27,13 @@ def has_wikidata_service(sparql: str) -> bool:
 def classify_execution_error(query: str, error_text: str) -> str:
     """Classify a failed execution so the pipeline can route it.
 
-    "external_service" — a federated SERVICE call to an external endpoint failed transiently
-    (429 / 5xx / timeout); repairing the local query is futile. "query_fault" — a fault in the
-    query itself (syntax, Virtuoso SP031, missing variable); a repair may fix it.
+    "external_service" — the federated SERVICE call to Wikidata failed (a SPARQL_REXEC wrapping a
+    remote error, or a timeout on a query that federates); the remote call can't be fixed by
+    rewriting, so the pipeline degrades to the local part. "query_fault" — a fault in the query
+    itself (syntax, Virtuoso SP031, missing variable); a repair may fix it.
     """
     text = error_text or ""
-    if _EXTERNAL_MARKER.search(text) and _TRANSIENT.search(text):
+    if _EXTERNAL_MARKER.search(text):
         return "external_service"
     low = text.lower()
     if ("timeout" in low or "timed out" in low) and has_wikidata_service(query):
@@ -85,3 +84,14 @@ def strip_service_blocks(sparql: str) -> str:
             break
         i = _match_brace(sparql, brace) + 1
     return "".join(out)
+
+
+def has_local_pattern(sparql: str) -> bool:
+    """True if a graph pattern survives once SERVICE blocks are stripped — i.e. there is a local
+    subquery worth running on its own. Detects a variable in the WHERE body (after the opening
+    brace, so the SELECT projection doesn't count), which reads as absent for a query whose only
+    content was the SERVICE block. More robust than a bare ``"GRAPH" in ...`` check, which misses
+    a local pattern over the default graph."""
+    body = strip_service_blocks(sparql)
+    brace = body.find("{")
+    return bool(re.search(r"[?$][A-Za-z_]", body[brace:] if brace != -1 else body))

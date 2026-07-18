@@ -4,11 +4,14 @@ from app.graph.builder import after_judge, after_validate
 
 
 def test_after_judge_external_service_does_not_reroute():
-    """A persistent external-SERVICE failure ends the run — it must not loop back to intake."""
+    """A persistent external-SERVICE failure ends the run — it must not loop back to intake.
+
+    Layer 3 in judge degrades such a failure and clears execution_error, so by the time the
+    router sees the state there is no error to repair and it finalizes."""
     state = {
         "judge_feedback": None,
-        "execution_error": "HTTP 500: SPARQL_REXEC ... 429 Too Many Requests",
-        "error_kind": "external_service",
+        "execution_error": None,  # judge's _degrade_external_service cleared it
+        "error_kind": None,
         "repair_count": 0,
         "max_repairs": 3,
     }

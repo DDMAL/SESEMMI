@@ -177,20 +177,23 @@ def validate_federation(sparql: str) -> list[str]:
 
     for start, end in service_block_spans(sparql):
         block = sparql[start:end]
-        # No entity-type verification inside a SERVICE block.
-        if re.search(r"\bwdt:P31\b|\brdf:type\b", block):
+        # No entity-type verification inside a SERVICE block (wdt:P31, rdf:type, or the bare
+        # `a` predicate — guarded so it doesn't match ?a / prefixed names / IRI internals).
+        if re.search(r"\bwdt:P31\b|\brdf:type\b|(?<![\w?$:])a(?![\w?$:])", block):
             errors.append(
-                "SERVICE block must not verify entity type (wdt:P31 / rdf:type); check "
+                "SERVICE block must not verify entity type (wdt:P31 / rdf:type / a); check "
                 "types in a local GRAPH block instead."
             )
-        # The SERVICE must consume a locally-bound variable, else the push is unbounded
-        # (Cartesian) and will time out / provoke throttling.
+        # The SERVICE must be bounded, else the push is unbounded (Cartesian) and will time out /
+        # provoke throttling. It counts as bounded if it shares a variable with the local query
+        # OR carries an inline VALUES that binds its input directly.
         svc_vars = set(_VAR.findall(block))
-        if svc_vars and not (svc_vars & local_vars):
+        inline_bound = re.search(r"\bVALUES\b", block, re.IGNORECASE)
+        if svc_vars and not (svc_vars & local_vars) and not inline_bound:
             errors.append(
-                "SERVICE block shares no variable with the local query, so its input is "
-                "unbounded; pre-bind its join variable with a subquery over the local graphs "
-                "before the SERVICE block."
+                "SERVICE block shares no variable with the local query and has no inline VALUES, "
+                "so its input is unbounded; pre-bind its join variable with a subquery over the "
+                "local graphs (or a VALUES list) before the SERVICE block."
             )
 
     errors.extend(_service_nesting_errors(sparql))

@@ -818,3 +818,32 @@ async def test_answer_external_service_local_rerun_fails_reports_unavailable():
     assert result["confidence"] == "low"
     assert result["execution_error"] is None  # no raw error dump surfaced
     assert any("requires live Wikidata data" in a for a in result["assumptions"])
+
+
+async def test_answer_external_service_degrades_default_graph_local():
+    """A local pattern over the default graph (no GRAPH keyword) is still salvaged."""
+    local_rows = {"results": {"bindings": [{"person": {"value": "p1"}}]}}
+    state = {
+        **_ANSWER_BASE_STATE,
+        "sparql": (
+            "SELECT ?person ?viaf WHERE { ?person wdt:P2888 ?qid . "
+            "SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P214 ?viaf } } LIMIT 10"
+        ),
+        "is_valid": True,
+        "execution_error": "HTTP 500: SPARQL_REXEC ... 429",
+        "error_kind": "external_service",
+    }
+    with patch(
+        "app.graph.nodes.judge.execute_sparql", new_callable=AsyncMock
+    ) as mock_exec:
+        mock_exec.return_value = {
+            "results": local_rows,
+            "error": None,
+            "error_kind": None,
+        }
+        result = await answer_node(state)
+
+    mock_exec.assert_called_once()
+    assert "SERVICE" not in mock_exec.call_args[0][0].upper()
+    assert result["confidence"] == "medium"
+    assert result["result_count"] == 1
