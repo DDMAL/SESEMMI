@@ -48,6 +48,11 @@ _VIRTUOSO_ERROR = {
     "error": "Virtuoso SPARQL syntax error",
 }
 
+_VIRTUOSO_EMPTY = {
+    "results": {"results": {"bindings": []}},
+    "error": None,
+}
+
 # ---------------------------------------------------------------------------
 # Pre-built intake classifications
 # ---------------------------------------------------------------------------
@@ -114,6 +119,7 @@ def _answer_settings(*, semantic_judge_enabled: bool = False):
     """Return a settings mock suitable for patching app.graph.nodes.judge.settings."""
     s = MagicMock()
     s.semantic_judge_enabled = semantic_judge_enabled
+    s.empty_probe_enabled = False  # keep tests hermetic — the probe would hit Virtuoso
     s.llm_model = "gemini-2.5-flash-lite"
     s.llm_api_key = "test-key"
     s.max_repair_iterations = 3
@@ -313,8 +319,10 @@ async def test_structural_intent_check_triggers_repair():
 
 async def test_semantic_judge_triggers_repair_then_satisfied():
     """
-    Semantic judge enabled: first judge unsatisfied → repair → second judge satisfied.
-    Final repair_count=1, confidence='high', judge_feedback cleared.
+    Semantic judge enabled: an empty first result makes the judge unsatisfied → repair → the
+    second result has rows and the judge is satisfied. Final repair_count=1, confidence='high',
+    judge_feedback cleared. (Repair is reserved for zero-row results; a nonempty result is
+    trusted — see the unit test test_answer_judge_unsatisfied_nonempty_is_advisory.)
     """
     with (
         patch(
@@ -338,8 +346,7 @@ async def test_semantic_judge_triggers_repair_then_satisfied():
         ),
         patch(
             "app.graph.nodes.execute.execute_sparql",
-            new_callable=AsyncMock,
-            return_value=_VIRTUOSO_SUCCESS,
+            new=AsyncMock(side_effect=[_VIRTUOSO_EMPTY, _VIRTUOSO_SUCCESS]),
         ),
     ):
         graph = build_graph()

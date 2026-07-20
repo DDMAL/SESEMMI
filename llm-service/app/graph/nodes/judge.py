@@ -7,8 +7,68 @@ from app.config import settings
 from app.graph.state import GraphState
 from app.graph.model import get_structured_model
 from app.graph.tools.empty_probe import probe_empty_patterns
+from app.graph.tools.federation import has_local_pattern, strip_service_blocks
+from app.graph.tools.sparql_execute import execute_sparql
 
 logger = logging.getLogger(__name__)
+
+
+def _base_assumptions(state: GraphState) -> list[str]:
+    """Prior assumptions plus one line per resolved QID."""
+    assumptions = list(state.get("assumptions") or [])
+    for name, qid in (state.get("resolved_qids") or {}).items():
+        assumptions.append(f"Assumed QID {qid} for {name}")
+    return assumptions
+
+
+async def _degrade_external_service(state: GraphState) -> dict:
+    """Layer 3 — turn a transient federated-SERVICE failure into an honest answer.
+
+    The external enrichment (e.g. a live Wikidata VIAF lookup) was unreachable, but the local
+    part of the query is still answerable. Strip the SERVICE block and re-run the local subquery
+    (no model call), then report the partial result with a downgraded confidence and a caveat.
+    If there is no local part, degrade to an explicit "requires live Wikidata data" result rather
+    than surfacing the raw error.
+    """
+    assumptions = _base_assumptions(state)
+
+    sparql = state.get("sparql", "")
+    local_query = strip_service_blocks(sparql)
+    salvaged: dict | None = None
+    if has_local_pattern(sparql):  # a local part exists to answer
+        try:
+            res = await execute_sparql(local_query)
+            if res["error"] is None:
+                salvaged = res["results"]
+        except Exception:
+            logger.exception("Layer-3 strip-and-rerun failed")
+
+    cleared = {"judge_feedback": None, "execution_error": None, "error_kind": None}
+    if salvaged is not None:
+        bindings = salvaged.get("results", {}).get("bindings", [])
+        assumptions.append(
+            "The live Wikidata lookup was unavailable, so externally-enriched fields could "
+            "not be attached; results reflect the local graphs only."
+        )
+        return {
+            **cleared,
+            "results": salvaged,
+            "result_count": len(bindings),
+            "confidence": "medium",
+            "assumptions": assumptions,
+        }
+
+    assumptions.append(
+        "This answer requires live Wikidata data, which was unavailable (the federated "
+        "query service could not be reached)."
+    )
+    return {
+        **cleared,
+        "results": None,
+        "result_count": 0,
+        "confidence": "low",
+        "assumptions": assumptions,
+    }
 
 
 def _empty_probe_feedback(empties: list[str]) -> str:
@@ -23,8 +83,10 @@ def _empty_probe_feedback(empties: list[str]) -> str:
 
 
 class _JudgeVerdict(BaseModel):
-    satisfied: bool
+    # reason precedes satisfied on purpose: structured output is emitted in field order, so the
+    # model reasons before committing to the verdict (chain-of-thought) instead of rationalizing it.
     reason: str
+    satisfied: bool
     # A distinction the question asked for that the schema simply cannot express.
     # Recorded as an assumption on an accepted query — it does NOT force a repair.
     limitation: str | None = None
@@ -75,6 +137,11 @@ _JUDGE_USER_TEMPLATE = """\
 async def judge_node(state: GraphState) -> dict:
     updates: dict = {"judge_feedback": None}  # clear prior judge signal by default
 
+    # Layer 3 — honest degradation: an external federated call failed transiently. Salvage the
+    # local part and report it with a caveat rather than surfacing the raw external error.
+    if state.get("error_kind") == "external_service" and state.get("execution_error"):
+        return await _degrade_external_service(state)
+
     # Determine base confidence
     if (
         state.get("is_valid")
@@ -87,10 +154,7 @@ async def judge_node(state: GraphState) -> dict:
     else:
         confidence = "low"
 
-    assumptions: list[str] = list(state.get("assumptions") or [])
-    for name, qid in (state.get("resolved_qids") or {}).items():
-        assumptions.append(f"Assumed QID {qid} for {name}")
-
+    assumptions = _base_assumptions(state)
     updates.update({"confidence": confidence, "assumptions": assumptions})
 
     # Zero-row diagnostic: ASK-probe the query for the specific unsatisfiable pattern and
@@ -134,19 +198,33 @@ async def judge_node(state: GraphState) -> dict:
                 [SystemMessage(content=_JUDGE_SYSTEM), HumanMessage(content=judge_user)]
             )
         except Exception:
+            # The 27b judge intermittently emits non-object structured output (bare "42", '){ ')
+            # that fails to parse. Keep the base confidence — a judge crash is not evidence the
+            # query is wrong — but record that it was never independently confirmed, so a
+            # judge-crashed result can't be mistaken for a validated one.
             logger.exception("Semantic judge failed, skipping")
+            updates["assumptions"] = assumptions + [
+                "Semantic judge could not be evaluated (malformed verdict); "
+                "confidence not independently confirmed."
+            ]
             return updates
 
         if not verdict.satisfied:
+            has_rows = state.get("result_count", 0) > 0
             max_repairs = state.get("max_repairs", settings.max_repair_iterations)
-            if state.get("repair_count", 0) < max_repairs:
+            # Regenerate only when the query returned NO rows — there a repair can find data.
+            # A query that already returned rows is trusted: the semantic judge becomes advisory
+            # (record the concern, drop confidence high→medium) rather than burning repair rounds.
+            # The 27b judge routinely false-flags cross-graph rdfs:label joins as needing an
+            # impossible wdt:P2888, so looping on that just discards correct answers.
+            if not has_rows and state.get("repair_count", 0) < max_repairs:
                 updates["judge_feedback"] = verdict.reason
                 return updates
-            else:
-                updates["confidence"] = "low"
-                assumptions_new = list(assumptions)
-                assumptions_new.append(f"Semantic judge unsatisfied: {verdict.reason}")
-                updates["assumptions"] = assumptions_new
+            updates["confidence"] = "medium" if has_rows else "low"
+            assumptions_new = list(assumptions)
+            verb = "flagged" if has_rows else "unsatisfied"
+            assumptions_new.append(f"Semantic judge {verb}: {verdict.reason}")
+            updates["assumptions"] = assumptions_new
         elif verdict.limitation:
             # Accepted the closest supported query; surface the schema gap instead of churning.
             assumptions_new = list(assumptions)

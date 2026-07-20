@@ -28,6 +28,9 @@ class GraphState(TypedDict, total=False):
 
     # Execution
     execution_error: str | None
+    # "external_service" (a federated SERVICE call failed transiently — repair is futile) |
+    # "query_fault" (a fault in the query itself — a repair may help) | None
+    error_kind: str | None
     result_count: int
     results: dict | None
 

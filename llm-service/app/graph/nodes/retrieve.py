@@ -44,6 +44,8 @@ def _build_schema_context(
         keys += ["qid_resolution_rules", "string_matching_rules"]
     if needs_federation or len(db_to_ontology) > 1:
         keys.append("federated_query_rules")
+    if len(db_to_ontology) > 1:
+        keys.append("cross_database_join_rules")
     if "musicbrainz" in db_to_ontology:
         keys.append("musicbrainz_specific")
     if intents and "aggregation" in intents:

@@ -25,6 +25,9 @@ def after_validate(state: GraphState) -> str:
 def after_judge(state: GraphState) -> str:
     if state.get("judge_feedback") is not None:
         return "intake"
+    # A genuine query fault with repairs left routes back to intake. An external-SERVICE failure
+    # (e.g. WDQS 429) never reaches here as an error: Layer 3 in judge has already stripped it,
+    # degraded to an honest answer, and cleared execution_error.
     if state.get("execution_error") is not None and state.get(
         "repair_count", 0
     ) < state.get("max_repairs", settings.max_repair_iterations):

@@ -1033,6 +1033,28 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
 </constraints>
 </rules>\
 """,
+    "cross_database_join_rules": """\
+<rules category="cross-database-joins">
+- These rules apply when a query spans two or more LinkedMusic named graphs and must link
+  entities that represent the same real-world thing (the same composition, tune, artist,
+  or place appearing in both graphs).
+- Preferred bridge — shared Wikidata QID: when BOTH classes being linked expose
+  wdt:P2888 "exact match" in their ontology slice, bind the QID on each side and join on
+  it, e.g. GRAPH g1 { ?a wdt:P2888 ?qid } GRAPH g2 { ?b wdt:P2888 ?qid }. Never write
+  ?a wdt:P2888 ?b directly, and never chain wdt:P2888 off a variable that already holds a
+  Wikidata URI.
+- Fallback bridge — shared literal: when either side's class does NOT expose wdt:P2888
+  (check the ontology slice — e.g. wjazzd:Composition and ts:Tune have no wdt:P2888),
+  there is no QID to join on. Join on a shared literal instead — an exact rdfs:label match
+  for a title/name, or a shared year/decade for a temporal correspondence, e.g.
+  GRAPH g1 { ?a rdfs:label ?title } GRAPH g2 { ?b rdfs:label ?title }. This is the correct
+  and intended cross-database link when no shared QID exists; it is NOT a Cartesian product
+  and must not be treated as an error or as "unreliable" — it is the only bridge the schema
+  supports for those classes.
+- Do not demand or add wdt:P2888 on a class whose ontology slice does not list it; doing so
+  makes the query impossible to satisfy.
+</rules>\
+""",
     "entity_type_rules": """\
 <rules category="entity-types">
 - For any entity searched within the LinkedMusic graph (not in Wikidata), add a triple
