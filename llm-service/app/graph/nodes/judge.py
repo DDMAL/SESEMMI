@@ -83,8 +83,10 @@ def _empty_probe_feedback(empties: list[str]) -> str:
 
 
 class _JudgeVerdict(BaseModel):
-    satisfied: bool
+    # reason precedes satisfied on purpose: structured output is emitted in field order, so the
+    # model reasons before committing to the verdict (chain-of-thought) instead of rationalizing it.
     reason: str
+    satisfied: bool
     # A distinction the question asked for that the schema simply cannot express.
     # Recorded as an assumption on an accepted query — it does NOT force a repair.
     limitation: str | None = None
@@ -196,19 +198,33 @@ async def judge_node(state: GraphState) -> dict:
                 [SystemMessage(content=_JUDGE_SYSTEM), HumanMessage(content=judge_user)]
             )
         except Exception:
+            # The 27b judge intermittently emits non-object structured output (bare "42", '){ ')
+            # that fails to parse. Keep the base confidence — a judge crash is not evidence the
+            # query is wrong — but record that it was never independently confirmed, so a
+            # judge-crashed result can't be mistaken for a validated one.
             logger.exception("Semantic judge failed, skipping")
+            updates["assumptions"] = assumptions + [
+                "Semantic judge could not be evaluated (malformed verdict); "
+                "confidence not independently confirmed."
+            ]
             return updates
 
         if not verdict.satisfied:
+            has_rows = state.get("result_count", 0) > 0
             max_repairs = state.get("max_repairs", settings.max_repair_iterations)
-            if state.get("repair_count", 0) < max_repairs:
+            # Regenerate only when the query returned NO rows — there a repair can find data.
+            # A query that already returned rows is trusted: the semantic judge becomes advisory
+            # (record the concern, drop confidence high→medium) rather than burning repair rounds.
+            # The 27b judge routinely false-flags cross-graph rdfs:label joins as needing an
+            # impossible wdt:P2888, so looping on that just discards correct answers.
+            if not has_rows and state.get("repair_count", 0) < max_repairs:
                 updates["judge_feedback"] = verdict.reason
                 return updates
-            else:
-                updates["confidence"] = "low"
-                assumptions_new = list(assumptions)
-                assumptions_new.append(f"Semantic judge unsatisfied: {verdict.reason}")
-                updates["assumptions"] = assumptions_new
+            updates["confidence"] = "medium" if has_rows else "low"
+            assumptions_new = list(assumptions)
+            verb = "flagged" if has_rows else "unsatisfied"
+            assumptions_new.append(f"Semantic judge {verb}: {verdict.reason}")
+            updates["assumptions"] = assumptions_new
         elif verdict.limitation:
             # Accepted the closest supported query; surface the schema gap instead of churning.
             assumptions_new = list(assumptions)
