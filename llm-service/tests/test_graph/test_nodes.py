@@ -72,7 +72,7 @@ async def test_intake_single_graph():
         intents=["lookup"],
         target_graphs=["diamm"],
         needs_federation=False,
-        entity_contexts=[],
+        entity_contexts={},
     )
     mock_chain = AsyncMock()
     mock_chain.ainvoke.return_value = classification
@@ -91,7 +91,7 @@ async def test_intake_cross_graph():
         intents=["lookup"],
         target_graphs=["diamm", "musicbrainz"],
         needs_federation=True,
-        entity_contexts=[],
+        entity_contexts={},
     )
     mock_chain = AsyncMock()
     mock_chain.ainvoke.return_value = classification
