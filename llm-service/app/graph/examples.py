@@ -557,6 +557,7 @@ LIMIT 100""",
     {
         "nl": "Find all chants in Cantus DB for the feast of Saint Stephen.",
         "sparql": """PREFIX cdb: <https://linkedmusic.ca/graphs/cantusdb/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 SELECT ?chant
 WHERE {
   GRAPH cdb: {
@@ -2605,21 +2606,21 @@ GROUP BY ?person
 ORDER BY DESC(?eventCount)""",
     },
     {
-        "nl": "Find Arabic field recordings in CKG APSearch published by the Berlin-Brandenburg Academy of Sciences and Humanities, with their recording dates",
+        "nl": "Find up to 100 records explicitly classified as audio recordings in CKG APSearch published by the Berlin-Brandenburg Academy of Sciences and Humanities, with their catalogued creation years, earliest first",
         "sparql": """PREFIX wd:       <http://www.wikidata.org/entity/>
 PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
 PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
-SELECT DISTINCT ?work ?date
+SELECT DISTINCT ?work ?creationYear
 WHERE {
   GRAPH apsearch: {
     ?work a apsearch:Work ;
+          wdt:P31 wd:Q3302947 ;
           wdt:P123 ?publisher ;
-          wdt:P571 ?date .
+          wdt:P571 ?creationYear .
     ?publisher wdt:P2888 wd:Q219989 .
   }
-  FILTER(STR(?date) >= "1900" && STR(?date) < "2025")
 }
-ORDER BY ?date
+ORDER BY ?creationYear ?work
 LIMIT 100""",
     },
     # CKG — Tier 3: Wikidata federation
@@ -2796,7 +2797,8 @@ LIMIT 100""",
     },
     {
         "nl": "Across the nineteenth century, how did musical life shift from court-patronage stage works to public concert culture? For each decade between 1800 and 1900, count newly composed stage works and concerts or performance events held.",
-        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+        "sparql": """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
 PREFIX detmold:  <https://linkedmusic.ca/graphs/ckg-detmold/>
 PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
 PREFIX mb:       <https://linkedmusic.ca/graphs/musicbrainz/>
@@ -2942,14 +2944,15 @@ WHERE {
 GROUP BY ?composer ?name
 ORDER BY DESC(?totalItems)""",
     },
-    # CKG — Tier 6: apsearch-dedicated ethnographic / folk-music breadth
+    # CKG — Tier 6: dated archive coverage
     {
-        "nl": "How has the documented output of ethnographic and folk-music recording shifted across the 20th and early 21st centuries? For each decade from 1900 onward, sum the total dated entries our datalake holds across Arabic field recordings, world-music ethnomusicological surveys, and online Irish traditional-session logs.",
-        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+        "nl": "For each decade from 1900 through 2029, sum the number of dated entries across CKG APSearch works, Global Jukebox songs, and The Session events, using each archive's stored date.",
+        "sparql": """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
 PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
 PREFIX gj:       <https://linkedmusic.ca/graphs/theglobaljukebox/>
 PREFIX ts:       <https://linkedmusic.ca/graphs/thesession/>
-SELECT ?decade (SUM(?n) AS ?ethnographicEntries)
+SELECT ?decade (SUM(?n) AS ?datedEntries)
 WHERE {
   {
     SELECT ?decade (COUNT(DISTINCT ?w) AS ?n) WHERE {
@@ -2979,12 +2982,13 @@ GROUP BY ?decade
 ORDER BY ?decade""",
     },
     {
-        "nl": "In the 21st century, how does community-driven documentation of living folk traditions compare across regions? Decade by decade since 2000, how many entries does our datalake hold for Arabic ethnographic field-recording activity versus community-logged Irish traditional sessions?",
-        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+        "nl": "For each decade from 2000 through 2029, compare the number of CKG APSearch work-date entries with The Session event-date entries, using each archive's stored date.",
+        "sparql": """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
 PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
 PREFIX ts:       <https://linkedmusic.ca/graphs/thesession/>
 SELECT ?decade
-       (SUM(?ap) AS ?arabicFieldRecordings)
+       (SUM(?ap) AS ?apsearchEntries)
        (SUM(?ir) AS ?irishSessions)
 WHERE {
   {
@@ -3006,7 +3010,8 @@ ORDER BY ?decade""",
     # ── Single-database expansion — MusicBrainz ──
     {
         "nl": "Across the twentieth and early twenty-first centuries, how did the number of MusicBrainz-documented recordings published in each decade change?",
-        "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+        "sparql": """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX mb:  <https://linkedmusic.ca/graphs/musicbrainz/>
 
 SELECT ?decade (COUNT(?rec) AS ?recordingCount)
@@ -3044,7 +3049,8 @@ LIMIT 25""",
     },
     {
         "nl": "How is MusicBrainz's coverage of music events distributed across decades since 1900?",
-        "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+        "sparql": """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX mb:  <https://linkedmusic.ca/graphs/musicbrainz/>
 
 SELECT ?decade (COUNT(?event) AS ?eventCount)
@@ -3254,7 +3260,8 @@ LIMIT 25""",
     },
     {
         "nl": "Year by year across the twenty-first century, how many Irish traditional sessions has the community logged in The Session?",
-        "sparql": """PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+        "sparql": """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX ts:  <https://linkedmusic.ca/graphs/thesession/>
 
 SELECT ?year (COUNT(DISTINCT ?event) AS ?eventCount)
@@ -3271,11 +3278,12 @@ ORDER BY ?year""",
     },
     # ── Single-database expansion — CKG APSearch ──
     {
-        "nl": "Across the twentieth and early twenty-first centuries, decade by decade, how many Arabic ethnographic field recordings does APSearch catalogue?",
-        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+        "nl": "Across 1900–2029, how many CKG APSearch works have a catalogued creation year in each decade?",
+        "sparql": """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
 PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
 
-SELECT ?decade (COUNT(DISTINCT ?work) AS ?recordingCount)
+SELECT ?decade (COUNT(DISTINCT ?work) AS ?workCount)
 WHERE {
   GRAPH apsearch: {
     ?work a apsearch:Work ;
@@ -3288,7 +3296,7 @@ GROUP BY ?decade
 ORDER BY ?decade""",
     },
     {
-        "nl": "Which entries in APSearch document the wax-cylinder era of Arabic phonogram field recording, dated before 1925?",
+        "nl": "List up to 100 CKG APSearch works with catalogued creation years from 1900 through 1924, including their titles and years, earliest first.",
         "sparql": """PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
 PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
@@ -3307,7 +3315,7 @@ ORDER BY ?date
 LIMIT 100""",
     },
     {
-        "nl": "What categories of material does APSearch's archive of Arabic phonogram field recordings document — how is its catalog distributed across content types?",
+        "nl": "How many CKG APSearch works are assigned to each content type?",
         "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
 PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
 
@@ -3322,7 +3330,7 @@ GROUP BY ?materialType
 ORDER BY DESC(?workCount)""",
     },
     {
-        "nl": "Under which rights regimes are the Arabic field recordings in APSearch released — which licenses or rights-holders cover the largest share of the archive?",
+        "nl": "Which recorded licenses or access terms cover the most works in CKG APSearch?",
         "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
 PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
 
@@ -3337,11 +3345,12 @@ GROUP BY ?license
 ORDER BY DESC(?workCount)""",
     },
     {
-        "nl": "Year by year through the 2010s, how many Arabic field recordings does APSearch document for each recording year?",
-        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+        "nl": "Year by year from 2010 through 2019, how many CKG APSearch works have each catalogued creation year?",
+        "sparql": """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
 PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>
 
-SELECT ?year (COUNT(DISTINCT ?work) AS ?recordingCount)
+SELECT ?year (COUNT(DISTINCT ?work) AS ?workCount)
 WHERE {
   GRAPH apsearch: {
     ?work a apsearch:Work ;
@@ -3356,7 +3365,8 @@ ORDER BY ?year""",
     # ── Single-database expansion — CKG Detmold ──
     {
         "nl": "Across the 18th and 19th centuries, decade by decade, how many newly composed stage works does the Detmolder Hoftheater catalogue document?",
-        "sparql": """PREFIX wdt:     <http://www.wikidata.org/prop/direct/>
+        "sparql": """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt:     <http://www.wikidata.org/prop/direct/>
 PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
 
 SELECT ?decade (COUNT(DISTINCT ?work) AS ?workCount)
@@ -3373,7 +3383,8 @@ ORDER BY ?decade""",
     },
     {
         "nl": "Year by year through the Detmolder Hoftheater's peak repertoire decades (1820–1849), how many newly composed stage works does the catalogue document?",
-        "sparql": """PREFIX wdt:     <http://www.wikidata.org/prop/direct/>
+        "sparql": """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt:     <http://www.wikidata.org/prop/direct/>
 PREFIX detmold: <https://linkedmusic.ca/graphs/ckg-detmold/>
 
 SELECT ?year (COUNT(DISTINCT ?work) AS ?workCount)
@@ -3448,7 +3459,8 @@ ORDER BY ?numContributors""",
     # ── Single-database expansion — CKG musiconn ──
     {
         "nl": "Across more than three centuries of concert culture documented by musiconn.performance — from the early 1700s into the present — how many performance events does the archive record decade by decade?",
-        "sparql": """PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+        "sparql": """PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
 PREFIX musiconn: <https://linkedmusic.ca/graphs/ckg-musiconn/>
 
 SELECT ?decade (COUNT(DISTINCT ?event) AS ?eventCount)

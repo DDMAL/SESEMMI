@@ -892,7 +892,9 @@ cannot be fully verified from feed membership; explain the missing constraints.
 Some records have only the generic creative-work type wd:Q17537576. An audio-type
 filter excludes these unclassified records; zero audio matches does not prove that
 the archive has no recordings in the requested period.
-wdt:P571 stores creation years as xsd:gYear. Extract the year with
+wdt:P571 stores catalogued creation years as xsd:gYear. Source date ranges were
+reduced to their start year; their end year is not retained. These values do not
+establish an exact recording date. Extract the year with
 xsd:integer(SUBSTR(STR(?date), 1, 4)); do not assume YEAR() accepts every stored datatype.
 </query-notes>
 <ontology>
