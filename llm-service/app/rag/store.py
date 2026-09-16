@@ -49,7 +49,7 @@ _IRI_TO_DB = {
     "graphs/dig-that-lick/": "digthatlick",
     "graphs/cantusdb/": "cantusdb",
     "graphs/rism/": "rism",
-    "graphs/wjazzd/": "wjazzd",
+    "graphs/wjazzd/": "weimarjazz",
     "graphs/simssadb/": "simssadb",
     "graphs/utsi/": "utsi",
     "graphs/cantusindex/": "cantusindex",
@@ -115,7 +115,7 @@ async def seed_store() -> None:
     global _store
     # Drop and recreate the collection on every startup to handle embedding
     # model changes (e.g., dimension shifts between Gemini and Ollama).
-    # Safe because the corpus is static (24 hardcoded examples).
+    # Safe because the corpus is maintained in app.graph.examples.
     with _seed_lock():
         _store = PGVector(
             embeddings=get_embeddings(),

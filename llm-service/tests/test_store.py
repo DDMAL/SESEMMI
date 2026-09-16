@@ -3,7 +3,16 @@
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
-from app.rag.store import _example_id, seed_store
+from app.rag.store import _example_id, enrich_example, seed_store
+
+
+def test_weimar_metadata_matches_intake_database_name():
+    metadata = enrich_example(
+        {
+            "sparql": "SELECT ?s WHERE { GRAPH <https://linkedmusic.ca/graphs/wjazzd/> { ?s ?p ?o } }"
+        }
+    )
+    assert metadata["databases"] == ["weimarjazz"]
 
 
 @contextmanager
