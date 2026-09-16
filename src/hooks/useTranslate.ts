@@ -12,11 +12,13 @@ export interface Step {
   tokens: string;
 }
 
-interface TranslateResult {
+export interface TranslateResult {
   sparql: string;
+  confidence: string | null;
+  assumptions: string[];
 }
 
-function handleSseEvent(
+export function handleSseEvent(
   eventType: string,
   data: Record<string, unknown>,
   setSteps: React.Dispatch<React.SetStateAction<Step[]>>,
@@ -51,7 +53,13 @@ function handleSseEvent(
       ),
     );
   } else if (eventType === "done") {
-    onSuccess({ sparql: (data.sparql as string) ?? "" });
+    onSuccess({
+      sparql: (data.sparql as string) ?? "",
+      confidence: typeof data.confidence === "string" ? data.confidence : null,
+      assumptions: Array.isArray(data.assumptions)
+        ? data.assumptions.filter((item): item is string => typeof item === "string")
+        : [],
+    });
   } else if (eventType === "error") {
     onError(new Error((data.message as string) ?? "Streaming error"));
   }
@@ -62,6 +70,7 @@ export function useTranslate() {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [steps, setSteps] = useState<Step[]>([]);
+  const [result, setResult] = useState<TranslateResult | null>(null);
 
   const mutate = useCallback(
     async (query: string, callbacks: { onSuccess: (data: TranslateResult) => void }) => {
@@ -69,6 +78,7 @@ export function useTranslate() {
       setIsError(false);
       setError(null);
       setSteps([]);
+      setResult(null);
 
       let errorOccurred = false;
 
@@ -108,14 +118,23 @@ export function useTranslate() {
             } catch {
               continue;
             }
-            handleSseEvent(eventType, data, setSteps, callbacks.onSuccess, (err) => {
-              errorOccurred = true;
-              setIsError(true);
-              setError(err);
-              setSteps((prev) =>
-                prev.map((s) => (s.status === "running" ? { ...s, status: "error" } : s)),
-              );
-            });
+            handleSseEvent(
+              eventType,
+              data,
+              setSteps,
+              (data) => {
+                setResult(data);
+                callbacks.onSuccess(data);
+              },
+              (err) => {
+                errorOccurred = true;
+                setIsError(true);
+                setError(err);
+                setSteps((prev) =>
+                  prev.map((s) => (s.status === "running" ? { ...s, status: "error" } : s)),
+                );
+              },
+            );
           }
         }
       } catch (e) {
@@ -130,5 +149,5 @@ export function useTranslate() {
     [],
   );
 
-  return { mutate, isPending, isError, error, steps };
+  return { mutate, isPending, isError, error, steps, result };
 }

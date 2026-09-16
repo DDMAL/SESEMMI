@@ -82,6 +82,7 @@ export const fr: Dictionary = {
     thinking: "Réflexion…",
   },
   results: {
+    searchNotes: "Remarques et limites de la recherche",
     title: "Résultats",
     emptyState: "Exécutez une requête pour explorer les métadonnées musicales",
     queryFailed: "Échec de la requête",

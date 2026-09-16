@@ -79,6 +79,7 @@ export const de: Dictionary = {
     thinking: "Denkt nach…",
   },
   results: {
+    searchNotes: "Hinweise und Einschränkungen zur Suche",
     title: "Ergebnisse",
     emptyState: "Führen Sie eine Abfrage aus, um Musikmetadaten zu erkunden",
     queryFailed: "Abfrage fehlgeschlagen",

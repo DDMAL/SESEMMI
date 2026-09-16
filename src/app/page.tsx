@@ -123,6 +123,16 @@ export default function Home() {
         <section ref={conversationRef} className="rounded-2xl p-5" style={glassPanel}>
           <ConversationPanel flow={flow} highlight={highlightNL} />
           {flow.error && <p className="mt-2 text-xs text-red-500">{flow.error.message}</p>}
+          {flow.assessment?.sparql === sparql && flow.assessment.assumptions.length > 0 && (
+            <aside className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-slate-700">
+              <h2 className="font-semibold">{t("results.searchNotes")}</h2>
+              <ul className="mt-1 list-disc space-y-1 pl-5">
+                {flow.assessment.assumptions.map((note, index) => (
+                  <li key={`${index}-${note}`}>{note}</li>
+                ))}
+              </ul>
+            </aside>
+          )}
         </section>
 
         {/* SPARQL Editor glass panel */}
