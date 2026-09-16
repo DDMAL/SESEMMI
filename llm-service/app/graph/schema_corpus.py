@@ -179,13 +179,14 @@ ts:Recording
 <description>
 All triples for MusicBrainz are stored in the
 &lt;https://linkedmusic.ca/graphs/musicbrainz/&gt; graph. Open music encyclopedia covering
-artists, recordings, releases, labels, events, places, genres, and instruments. Entity
-types use the `mb:` prefix. Note: the LinkedMusic import does not include mb:Work,
-mb:ReleaseGroup, or mb:Series — queries must not reference these classes.
+artists, works, recordings, releases, release groups, series, labels, events, places,
+genres, and instruments. Entity types use the `mb:` prefix.
 </description>
 <qid-linking>
 mb:Area, mb:Artist, mb:Event, mb:Genre, mb:Instrument, mb:Label, mb:Place,
-mb:Recording, and mb:Release all have wdt:P2888 "exact match" for Wikidata reconciliation.
+mb:Recording, mb:Release, mb:ReleaseGroup, mb:Series, and mb:Work can carry
+wdt:P2888 reconciliation/reference links. Values include Wikidata IRIs and
+non-Wikidata URL literals; do not assume every P2888 value is a Wikidata QID.
 </qid-linking>
 <cross-database>
 MusicBrainz has the broadest Wikidata coverage of all LinkedMusic
@@ -331,6 +332,7 @@ mb:Place
 \tskos:altLabel\t"alt label" .
 mb:Recording
 \trdfs:label\t"label" ;
+\twdt:P2550\tmb:Work ;
 \twdt:P123\tmb:Label ;
 \twdt:P136\tmb:Genre ;
 \twdt:P2888\t"exact match" ;
@@ -423,6 +425,17 @@ mb:Release
 \twdt:P495\tmb:Area ;
 \tskos:altLabel\t"alt label" ;
 \twdt:P1081\tmb:Area .
+mb:ReleaseGroup
+\trdfs:label\t"label" ;
+\twdt:P175\tmb:Artist ;
+\twdt:P2888\t"exact match or external reference" .
+mb:Series
+\trdfs:label\t"label" ;
+\twdt:P2888\t"exact match or external reference" .
+mb:Work
+\trdfs:label\t"label" ;
+\twdt:P86\tmb:Artist ;
+\twdt:P2888\t"exact match or external reference" .
 </ontology>
 </database>\
 """,
@@ -1133,10 +1146,13 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
 """,
     "musicbrainz_specific": """\
 <rules category="musicbrainz-specific">
-- Very few mb:Recording entities are reconciled against Wikidata, because Wikidata does
-  not carry information about specific recordings — only about songs (works).
-- mb:Work, mb:ReleaseGroup, and mb:Series are not present in the LinkedMusic import;
-  do not reference these classes in any query.
+- mb:Work, mb:ReleaseGroup, and mb:Series are present in the LinkedMusic graph.
+- For recordings of a composer's works, follow Recording -> wdt:P2550 -> Work ->
+  wdt:P86 -> Artist; reconcile the local Artist through wdt:P2888 when using a QID.
+  A work and a recording are different entities; use the type the question asks for.
+- mb:ReleaseGroup wdt:P175 links credited artists. A release group is not a release.
+- wdt:P2888 can contain non-Wikidata URL literals as well as Wikidata IRIs. Use an
+  actual Wikidata IRI for QID joins rather than treating every value as a QID.
 </rules>\
 """,
     "aggregation_rules": """\
