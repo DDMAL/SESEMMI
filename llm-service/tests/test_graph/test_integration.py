@@ -109,6 +109,7 @@ def _judge_mock(*verdicts: tuple[bool, str]):
         v = MagicMock()
         v.satisfied = satisfied
         v.reason = reason
+        v.limitation = None
         verdict_objects.append(v)
     chain = AsyncMock()
     chain.ainvoke.side_effect = verdict_objects
@@ -134,7 +135,7 @@ def _answer_settings(*, semantic_judge_enabled: bool = False):
 async def test_happy_path():
     """
     Full graph: intake → retrieve → generate → validate → execute → judge.
-    Valid SPARQL + Virtuoso 200 → confidence='high', results populated, no repairs.
+    Valid SPARQL + Virtuoso 200 without a judge → confidence='medium', results populated, no repairs.
     """
     with (
         patch(
@@ -164,7 +165,7 @@ async def test_happy_path():
             }
         )
 
-    assert final["confidence"] == "high"
+    assert final["confidence"] == "medium"
     assert final["result_count"] == 2
     assert final["results"] is not None
     assert final["execution_error"] is None
@@ -206,7 +207,7 @@ async def test_repair_loop_invalid_then_valid():
         )
 
     assert final["repair_count"] == 1
-    assert final["confidence"] == "high"
+    assert final["confidence"] == "medium"
     assert final["is_valid"] is True
 
 
@@ -273,7 +274,7 @@ async def test_execution_error_triggers_repair():
 
     assert final["repair_count"] == 1
     assert final["execution_error"] is None
-    assert final["confidence"] == "high"
+    assert final["confidence"] == "medium"
 
 
 async def test_structural_intent_check_triggers_repair():
@@ -313,7 +314,7 @@ async def test_structural_intent_check_triggers_repair():
 
     assert final["repair_count"] == 1
     assert final["is_valid"] is True
-    assert final["confidence"] == "high"
+    assert final["confidence"] == "medium"
     assert "COUNT" in final["sparql"]
 
 
@@ -355,9 +356,11 @@ async def test_semantic_judge_triggers_repair_then_satisfied():
                 "user_query": "Find DIAMM manuscripts from the 15th century",
                 "repair_count": 0,
                 "max_repairs": 3,
+                "assumptions": ["A previous query used the wrong date range."],
             }
         )
 
     assert final["repair_count"] == 1
     assert final["confidence"] == "high"
     assert final.get("judge_feedback") is None
+    assert "A previous query used the wrong date range." not in final["assumptions"]

@@ -514,8 +514,8 @@ _ANSWER_BASE_STATE = {
 }
 
 
-async def test_answer_high_confidence():
-    """Valid query with results and no error → confidence=high."""
+async def test_answer_execution_alone_is_medium_confidence():
+    """Execution success without a semantic check does not verify the answer."""
     state = {
         **_ANSWER_BASE_STATE,
         "is_valid": True,
@@ -530,7 +530,7 @@ async def test_answer_high_confidence():
         mock_settings.max_repair_iterations = 3
         result = await answer_node(state)
 
-    assert result["confidence"] == "high"
+    assert result["confidence"] == "medium"
 
 
 async def test_answer_low_confidence_max_repairs():
@@ -627,7 +627,7 @@ async def test_answer_judge_unsatisfied_empty_repairs_left():
 
 async def test_answer_judge_unsatisfied_nonempty_is_advisory():
     """Judge unsatisfied but the query RETURNED ROWS → no repair loop: judge_feedback stays None,
-    confidence is downgraded high→medium, and the concern is recorded as an assumption.
+    confidence is low, and the concern is recorded as an assumption.
     """
     mock_chain = _mock_judge_llm(satisfied=False, reason="Prefers a wdt:P2888 join")
     state = {
@@ -647,7 +647,7 @@ async def test_answer_judge_unsatisfied_nonempty_is_advisory():
             result = await answer_node(state)
 
     assert result.get("judge_feedback") is None
-    assert result["confidence"] == "medium"
+    assert result["confidence"] == "low"
     assert any("Prefers a wdt:P2888 join" in a for a in result.get("assumptions", []))
 
 
@@ -702,30 +702,55 @@ async def test_answer_judge_receives_schema_context():
     assert "musiconn ontology chunk" in judge_user
 
 
-async def test_answer_empty_probe_triggers_targeted_repair():
-    """A zero-row result with an unsatisfiable pattern → probe sets specific judge_feedback."""
+async def test_answer_empty_probe_missing_link_preserves_empty_result():
+    """A missing QID link is not an instruction to drop the requested person."""
     state = {
-        **_ANSWER_BASE_STATE,
-        "is_valid": True,
-        "execution_error": None,
+        **_JUDGE_STATE,
         "result_count": 0,
         "results": {"results": {"bindings": []}},
-        "sparql": "SELECT ?w WHERE { GRAPH <g> { ?p <p2888> <q1> } }",
         "repair_count": 0,
-        "max_repairs": 3,
     }
-    with patch("app.graph.nodes.judge.settings") as mock_settings:
-        mock_settings.empty_probe_enabled = True
-        mock_settings.semantic_judge_enabled = True
-        mock_settings.max_repair_iterations = 3
-        with patch(
+    judge = _mock_judge_llm(
+        satisfied=True, reason="Valid query; this person is unlinked"
+    )
+    with (
+        patch("app.graph.nodes.judge.settings") as settings,
+        patch(
             "app.graph.nodes.judge.probe_empty_patterns",
-            new=AsyncMock(return_value=["?p <p2888> <q1>"]),
-        ):
-            result = await answer_node(state)
+            new=AsyncMock(return_value=["?person <P2888> <Q123>"]),
+        ),
+        patch("app.graph.nodes.judge.get_structured_model", return_value=judge),
+    ):
+        settings.empty_probe_enabled = True
+        settings.semantic_judge_enabled = True
+        settings.max_repair_iterations = 3
+        result = await answer_node(state)
+    assert result["judge_feedback"] is None
+    assert result["confidence"] == "medium"
+    assert any("Missing data" in note for note in result["assumptions"])
+    # The judge receives the live diagnostic instead of the router treating it as a fault.
+    assert "<Q123>" in judge.ainvoke.call_args[0][0][1].content
 
-    assert result["judge_feedback"] is not None
-    assert "?p <p2888> <q1>" in result["judge_feedback"]
+
+async def test_answer_empty_probe_with_judge_disabled_never_forces_repair():
+    state = {
+        **_JUDGE_STATE,
+        "result_count": 0,
+        "results": {"results": {"bindings": []}},
+    }
+    with (
+        patch("app.graph.nodes.judge.settings") as settings,
+        patch(
+            "app.graph.nodes.judge.probe_empty_patterns",
+            new=AsyncMock(return_value=["missing link"]),
+        ),
+        patch("app.graph.nodes.judge.get_structured_model") as model,
+    ):
+        settings.empty_probe_enabled = True
+        settings.semantic_judge_enabled = False
+        result = await answer_node(state)
+    model.assert_not_called()
+    assert result["judge_feedback"] is None
 
 
 async def test_answer_empty_probe_no_culprit_falls_through_to_judge():
@@ -774,9 +799,7 @@ async def test_answer_judge_malformed_output_records_caveat():
         ):
             result = await answer_node(state)
 
-    assert (
-        result["confidence"] == "high"
-    )  # base confidence preserved (caveat-only policy)
+    assert result["confidence"] == "medium"
     assert result.get("judge_feedback") is None
     assert any("could not be evaluated" in a for a in result.get("assumptions", []))
 
@@ -801,121 +824,28 @@ async def test_answer_judge_limitation_recorded_as_assumption():
     assert any(
         "apsearch records no language" in a for a in result.get("assumptions", [])
     )
-
-
-# ---------------------------------------------------------------------------
-# Answer node — Layer 3 honest degradation on external-service failure
-# ---------------------------------------------------------------------------
-
-_FEDERATED_SPARQL = (
-    "SELECT ?person ?viaf WHERE { "
-    "{ SELECT ?person ?qid WHERE { "
-    "GRAPH <https://linkedmusic.ca/graphs/ckg-musiconn/> { ?person wdt:P2888 ?qid } "
-    "GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?mb wdt:P2888 ?qid } } } "
-    "SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P214 ?viaf . } } LIMIT 10"
-)
-
-
-async def test_answer_external_service_degrades_to_local_answer():
-    """external_service failure → strip SERVICE, re-run local, report medium + caveat."""
-    local_rows = {"results": {"bindings": [{"person": {"value": "p1"}}, {}, {}]}}
-    state = {
-        **_ANSWER_BASE_STATE,
-        "sparql": _FEDERATED_SPARQL,
-        "is_valid": True,
-        "execution_error": "HTTP 500: SPARQL_REXEC ... 429 Too Many Requests",
-        "error_kind": "external_service",
-        "result_count": 0,
-        "results": None,
-    }
-    with patch(
-        "app.graph.nodes.judge.execute_sparql", new_callable=AsyncMock
-    ) as mock_exec:
-        mock_exec.return_value = {
-            "results": local_rows,
-            "error": None,
-            "error_kind": None,
-        }
-        result = await answer_node(state)
-
-    # Re-ran the SERVICE-stripped query, not the original.
-    reran = mock_exec.call_args[0][0]
-    assert "SERVICE" not in reran.upper()
     assert result["confidence"] == "medium"
-    assert result["execution_error"] is None
-    assert result["result_count"] == 3
-    assert result["results"] == local_rows
-    assert any("Wikidata lookup was unavailable" in a for a in result["assumptions"])
 
 
-async def test_answer_external_service_no_local_part_reports_unavailable():
-    """A whole-answer-in-Wikidata query has no local part → honest 'unavailable', no re-run."""
+# ---------------------------------------------------------------------------
+# Answer node — external constraints must survive service failures
+# ---------------------------------------------------------------------------
+
+
+async def test_external_birthplace_failure_never_becomes_unfiltered_local_results():
     state = {
-        **_ANSWER_BASE_STATE,
-        "sparql": "SELECT ?viaf WHERE { SERVICE <https://query.wikidata.org/sparql> { ?x wdt:P214 ?viaf } } LIMIT 10",
-        "is_valid": True,
-        "execution_error": "HTTP 500: SPARQL_REXEC ... 429",
+        **_JUDGE_STATE,
+        "sparql": "SELECT ?person WHERE { GRAPH <local> { ?person <qid> ?qid } SERVICE <https://query.wikidata.org/sparql> { ?qid <birthplace> <Vienna> } }",
+        "execution_error": "Wikidata HTTP 429",
         "error_kind": "external_service",
     }
-    with patch(
-        "app.graph.nodes.judge.execute_sparql", new_callable=AsyncMock
-    ) as mock_exec:
+    with patch("app.graph.nodes.judge.get_structured_model") as model:
         result = await answer_node(state)
-
-    mock_exec.assert_not_called()  # no GRAPH block → nothing local to salvage
-    assert result["confidence"] == "low"
+    model.assert_not_called()
     assert result["results"] is None
-    assert any("requires live Wikidata data" in a for a in result["assumptions"])
-
-
-async def test_answer_external_service_local_rerun_fails_reports_unavailable():
-    """If the stripped local query also errors, degrade to the honest unavailable result."""
-    state = {
-        **_ANSWER_BASE_STATE,
-        "sparql": _FEDERATED_SPARQL,
-        "is_valid": True,
-        "execution_error": "HTTP 500: SPARQL_REXEC ... 429",
-        "error_kind": "external_service",
-    }
-    with patch(
-        "app.graph.nodes.judge.execute_sparql", new_callable=AsyncMock
-    ) as mock_exec:
-        mock_exec.return_value = {
-            "results": None,
-            "error": "HTTP 500: local fault",
-            "error_kind": "query_fault",
-        }
-        result = await answer_node(state)
-
+    assert result["result_count"] == 0
     assert result["confidence"] == "low"
-    assert result["execution_error"] is None  # no raw error dump surfaced
-    assert any("requires live Wikidata data" in a for a in result["assumptions"])
-
-
-async def test_answer_external_service_degrades_default_graph_local():
-    """A local pattern over the default graph (no GRAPH keyword) is still salvaged."""
-    local_rows = {"results": {"bindings": [{"person": {"value": "p1"}}]}}
-    state = {
-        **_ANSWER_BASE_STATE,
-        "sparql": (
-            "SELECT ?person ?viaf WHERE { ?person wdt:P2888 ?qid . "
-            "SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P214 ?viaf } } LIMIT 10"
-        ),
-        "is_valid": True,
-        "execution_error": "HTTP 500: SPARQL_REXEC ... 429",
-        "error_kind": "external_service",
-    }
-    with patch(
-        "app.graph.nodes.judge.execute_sparql", new_callable=AsyncMock
-    ) as mock_exec:
-        mock_exec.return_value = {
-            "results": local_rows,
-            "error": None,
-            "error_kind": None,
-        }
-        result = await answer_node(state)
-
-    mock_exec.assert_called_once()
-    assert "SERVICE" not in mock_exec.call_args[0][0].upper()
-    assert result["confidence"] == "medium"
-    assert result["result_count"] == 1
+    assert result["execution_error"] == state["execution_error"]
+    assert result["error_kind"] == "external_service"
+    assert result["judge_feedback"] is None
+    assert any("could not be verified" in note for note in result["assumptions"])
