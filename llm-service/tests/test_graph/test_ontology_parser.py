@@ -9,7 +9,9 @@ from app.graph.tools.ontology_parser import (
 
 _CHUNK = """\
 <database name="Demo" graph-iri="https://example.org/g/" prefix="ex:">
-<description>ignored prose</description>
+<description>Database scope and coverage.</description>
+<qid-linking>Only people have QID links.</qid-linking>
+<query-notes>Missing links do not mean missing people.</query-notes>
 <ontology>
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:  <http://www.wikidata.org/prop/direct/> .
@@ -50,6 +52,9 @@ def test_slice_includes_prefixes_and_db_tag():
     # only the requested class block is emitted
     assert "ex:Person" in out
     assert "ex:Event\n" not in out
+    assert "Database scope and coverage." in out
+    assert "Only people have QID links." in out
+    assert "Missing links do not mean missing people." in out
 
 
 def test_slice_empty_selection_still_valid_doc():
@@ -74,3 +79,12 @@ def test_detmold_type_hint_is_comment_not_a_graph_node():
     """The hint is an inline comment: it must not leak wd:Q838948 as a class node."""
     graph = parse_ontology_to_graph(ONTOLOGY_CHUNKS["ckg-detmold"])
     assert all("Q838948" not in n.name for n in graph.nodes)
+
+
+def test_real_reconciliation_notes_survive_class_selection():
+    out = slice_database_ontology(ONTOLOGY_CHUNKS["thesession"], {"ts:Recording"})
+    assert "NOT a local entity" in out
+    assert "ts:Session\n" not in out
+    detmold = slice_database_ontology(ONTOLOGY_CHUNKS["ckg-detmold"], {"detmold:Work"})
+    assert "not a documented performance date" in detmold
+    assert "does not distinguish composer" in detmold

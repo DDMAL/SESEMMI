@@ -20,6 +20,12 @@ diamm:Organization all have wdt:P2888 "exact match" for Wikidata reconciliation.
 diamm:Archive and diamm:Person carry wdt:P5504 "RISM ID", which links
 them to the corresponding rism:Institution and rism:Person entities in the RISM graph.
 </cross-database>
+<query-notes>
+Composition wdt:P86 points to a local Person or an unreconciled composer literal.
+For a known Wikidata person, follow Composition -> P86 -> Person -> P2888 -> QID.
+An identifier-based composer search omits unreconciled literal names; report that
+coverage limit when completeness matters. Composition and Source are different objects.
+</query-notes>
 <ontology>
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:   <http://www.wikidata.org/prop/direct/> .
@@ -121,6 +127,11 @@ node). When joining Session recordings with MusicBrainz artists by performer, bi
 ts:Recording wdt:P175 ?performerQID and match it directly to mb:Artist wdt:P2888
 ?performerQID — do NOT add a wdt:P2888 triple on the ?performerQID variable itself.
 </cross-database>
+<query-notes>
+ts:Session and ts:Events are distinct classes. Dated events use ts:Events wdt:P580;
+the Session class has no documented start-date property. Do not silently substitute
+events for sessions in date-based questions. Tune titles are not unique work identifiers.
+</query-notes>
 <ontology>
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:  <http://www.wikidata.org/prop/direct/> .
@@ -430,6 +441,12 @@ gj:Song links performers and countries of origin via Wikidata URIs
 (wdt:P175 "performer", wdt:P495 "country of origin"), enabling correlation with artists
 and regions in other LinkedMusic databases through shared Wikidata QIDs.
 </cross-database>
+<query-notes>
+Some instrument reconciliation uses broader instrument-family categories when a precise
+Wikidata item was unavailable. A shared instrument QID can therefore indicate the same
+family rather than the same specific instrument. Preserve source labels and disclose
+this distinction for cross-database instrument searches. Reconciliation coverage varies.
+</query-notes>
 <ontology>
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:  <http://www.wikidata.org/prop/direct/> .
@@ -666,6 +683,12 @@ wjazzd:Track has wdt:P4404 "MusicBrainz recording ID", enabling direct
 correlation with MusicBrainz recordings. wjazzd:Solo and wjazzd:Track use
 wdt:P175 "performer" which may reference Wikidata URIs for artist linking.
 </cross-database>
+<query-notes>
+Composition, Track, Record and Solo describe different levels of musical objects.
+A composition with the same title as a track is a title match, not a verified recording
+match. Prefer the documented MusicBrainz recording ID for recording identity when present.
+Check whether a performer/composer value is a URI or a literal before using a QID join.
+</query-notes>
 <ontology>
 @prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:    <http://www.wikidata.org/prop/direct/> .
@@ -834,13 +857,31 @@ Berlin-Brandenburgische Akademie der Wissenschaften. Contains works only. Entity
 use the `apsearch:` prefix; CTO ontology terms (NFDI4Culture) use the `cto:` prefix.
 </description>
 <qid-linking>
-APSearch entities do not carry wdt:P2888 in the current ontology.
+apsearch:Work does not carry wdt:P2888. Its publisher and license objects can carry
+wdt:P2888 links to Wikidata in this graph; those objects are not Work entities.
 </qid-linking>
 <cross-database>
-APSearch has no cross-database join properties. cto:CTO_0001026 stores Getty AAT
-URIs and cto:CTO_0001006 stores NFDI4Culture feed IDs — neither overlaps with the
-Wikidata QIDs used by other LinkedMusic graphs.
+APSearch works have no identity bridge to works or recordings in other databases.
+Publisher/license QIDs support comparisons about publishers/licenses, not recording
+identity. cto:CTO_0001026 stores Getty AAT URIs and cto:CTO_0001006 stores feed IDs.
 </cross-database>
+<auxiliary-links>
+?publisher wdt:P2888 ?publisherQID .
+?license wdt:P2888 ?licenseQID .
+These subjects are the objects of Work wdt:P123 and Work wdt:P275, respectively;
+do not invent an apsearch:Publisher or apsearch:License rdf:type requirement.
+</auxiliary-links>
+<query-notes>
+The feed includes audio, images, video and text, not just music recordings. For audio
+use wdt:P31 wd:Q3302947. It has no structured language, vocal/instrumental distinction,
+performer, country or field-recording flag. A request for Arabic vocal field recordings
+cannot be fully verified from feed membership; explain the missing constraints.
+Some records have only the generic creative-work type wd:Q17537576. An audio-type
+filter excludes these unclassified records; zero audio matches does not prove that
+the archive has no recordings in the requested period.
+wdt:P571 stores creation years as xsd:gYear. Extract the year with
+xsd:integer(SUBSTR(STR(?date), 1, 4)); do not assume YEAR() accepts every stored datatype.
+</query-notes>
 <ontology>
 @prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:      <http://www.wikidata.org/prop/direct/> .
@@ -876,6 +917,14 @@ detmold:Person and detmold:Place have wdt:P2888 "exact match" for Wikidata recon
 detmold:Person and detmold:Place carry wdt:P2888 "exact match", enabling
 correlation with other LinkedMusic databases through shared Wikidata QIDs.
 </cross-database>
+<query-notes>
+cto:CTO_0001009 means related person; it does not distinguish composer, librettist,
+author or translator. Do not describe every related person as the composer.
+wdt:P571 is the work's creation period, not a documented performance date. Dates have
+mixed precision (xsd:date, xsd:gYearMonth, xsd:gYear); extract the first four characters
+for year comparisons. A question about works staged in a decade needs a caveat if
+answered using creation dates. Missing P2888 means the entity is unlinked, not absent.
+</query-notes>
 <ontology>
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:     <http://www.wikidata.org/prop/direct/> .
@@ -921,6 +970,14 @@ musiconn:Person, musiconn:Organization, musiconn:Place, and musiconn:Collection
 carry wdt:P2888 "exact match", enabling correlation with other LinkedMusic databases
 through shared Wikidata QIDs.
 </cross-database>
+<query-notes>
+cto:CTO_0001009 is a role-agnostic related-person link, not proof of composition or
+performance. Event -> cto:CTO_0001019 -> Work -> cto:CTO_0001009 -> Person is the
+path for people associated with programmed works; distinguish it from people linked
+directly to an event. Explain any role assumption required by the user's question.
+Use Event wdt:P585 for event dates; do not substitute creation dates for event dates.
+Archive counts measure documented holdings, not the prevalence of musical activity.
+</query-notes>
 <ontology>
 @prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix wdt:      <http://www.wikidata.org/prop/direct/> .
