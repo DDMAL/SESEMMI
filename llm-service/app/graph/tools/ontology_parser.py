@@ -1,4 +1,5 @@
 import re
+from functools import lru_cache
 
 from app.graph.tools.graph_traverse import Edge, Graph, Node
 
@@ -17,9 +18,11 @@ def _is_class_ref(token: str) -> bool:
     return bool(_CLASS_REF_RE.match(token.strip()))
 
 
+@lru_cache(maxsize=32)
 def parse_ontology_to_graph(ontology_chunk: str) -> Graph:
     """Parse one ONTOLOGY_CHUNKS entry into a Graph of class nodes and property edges.
 
+    The cached graph is read-only to callers; only deterministic parsing is cached.
     Nodes  — entity types (subjects that appear as prefix:ClassName lines).
     Edges  — directed relationships where the object is another class in the ontology,
              labeled with the Wikidata property (e.g. wdt:P86).
