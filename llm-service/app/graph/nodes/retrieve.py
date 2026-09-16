@@ -174,6 +174,10 @@ async def _get_needed_ontologies(
     for db, graph in ontology_graphs.items():
         related = [graph.get_node_by_name(name=n) for n in db_to_selected[db]]
         related = [n for n in related if n is not None]
+        if not related:
+            # Invalid/empty model selections must not silently erase the schema.
+            db_to_ontology[db] = ONTOLOGY_CHUNKS[db]
+            continue
         class_names = _relevant_classes(graph, related)
         # Emit the verbatim authored schema for the relevant classes — direction and
         # literal properties intact — rather than the lossy graph round-trip.

@@ -96,9 +96,9 @@ def extract_class_blocks(ontology_chunk: str) -> dict[str, str]:
 def slice_database_ontology(ontology_chunk: str, class_names: set[str]) -> str:
     """Render a faithful mini-<database> doc for the given classes.
 
-    Keeps the authored <database> tag (graph IRI, prefix), the @prefix block, and the
-    verbatim blocks of the selected classes — so the model sees real directions and
-    real properties instead of a class-to-class skeleton.
+    Keeps all surrounding prose (description, reconciliation and query notes), the
+    prefixes, and selected class blocks. Reconciliation notes are part of the model
+    context, not disposable decoration around the ontology.
     """
     m = _ONTOLOGY_BLOCK_RE.search(ontology_chunk)
     body = m.group(1) if m else ontology_chunk
@@ -109,8 +109,15 @@ def slice_database_ontology(ontology_chunk: str, class_names: set[str]) -> str:
     blocks = extract_class_blocks(ontology_chunk)
     selected = [text for name, text in blocks.items() if name in class_names]
 
+    inner = "\n".join(prefixes + ([""] + selected if selected else []))
+    if m:
+        return (
+            ontology_chunk[: m.start(1)]
+            + "\n"
+            + inner
+            + "\n"
+            + ontology_chunk[m.end(1) :]
+        )
     tag_match = _DB_TAG_RE.search(ontology_chunk)
     db_tag = tag_match.group(0) if tag_match else "<database>"
-
-    inner = "\n".join(prefixes + ([""] + selected if selected else []))
     return f"{db_tag}\n<ontology>\n{inner}\n</ontology>\n</database>"
