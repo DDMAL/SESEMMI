@@ -38,7 +38,7 @@ in companion PRs.
   generated query. Hide those notes after manual query edits, since the earlier
   assessment no longer applies. Headings are translated; generated notes currently
   retain the backend's English, like the other backend diagnostics.
-- Correct RAG's Weimar database key (`weimarjazz`) and preserve relevant examples
+- Correct RAG's Weimar database key (`wjazzd`) and preserve relevant examples
   when filling unused retrieval slots. Fall back to the full database schema when
   the planner selects no valid classes.
 - Cache only deterministic ontology parsing. Model selection, semantic judging,

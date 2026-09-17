@@ -1,0 +1,271 @@
+{
+  "checked_at": "2026-09-16T10:47:07.493254+00:00",
+  "scope": "Data availability probes only. No model evaluation or complete-answer verification.",
+  "checks": [
+    {
+      "id": "ui-1",
+      "question": "Decade by decade, compare the number of public concert events in the musiconn concert database with the number of music recordings released in MusicBrainz, to trace the shift from live performance to recorded music.",
+      "probe": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX cto: <https://nfdi4culture.de/ontology/>\nSELECT ?dataset (SAMPLE(?date) AS ?exampleDate) WHERE { { GRAPH <https://linkedmusic.ca/graphs/ckg-musiconn/> { ?event a <https://linkedmusic.ca/graphs/ckg-musiconn/Event> ; wdt:P585 ?date } BIND(\"musiconn\" AS ?dataset) } UNION { GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?recording a <https://linkedmusic.ca/graphs/musicbrainz/Recording> ; wdt:P577 ?date } BIND(\"musicbrainz\" AS ?dataset) } } GROUP BY ?dataset",
+      "result": {
+        "head": {
+          "link": [],
+          "vars": [
+            "dataset",
+            "exampleDate"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": [
+            {
+              "dataset": {
+                "type": "literal",
+                "value": "musiconn"
+              },
+              "exampleDate": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#date",
+                "value": "1862-11-04"
+              }
+            },
+            {
+              "dataset": {
+                "type": "literal",
+                "value": "musicbrainz"
+              },
+              "exampleDate": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#date",
+                "value": "2025-06-27"
+              }
+            }
+          ]
+        }
+      },
+      "error": null,
+      "duration_ms": 2774
+    },
+    {
+      "id": "ui-2",
+      "question": "Which works by Clara Schumann appear in musiconn concert programmes?",
+      "probe": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX cto: <https://nfdi4culture.de/ontology/>\nSELECT DISTINCT ?work WHERE { GRAPH <https://linkedmusic.ca/graphs/ckg-musiconn/> { ?event a <https://linkedmusic.ca/graphs/ckg-musiconn/Event> ; cto:CTO_0001019 ?work . ?work cto:CTO_0001009 ?person . ?person wdt:P2888 wd:Q132232 } } LIMIT 5",
+      "result": {
+        "head": {
+          "link": [],
+          "vars": [
+            "work"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": [
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://performance.musiconn.de/work/sonaten-klavier-nr-1-op-11-fis-moll-schumann-robert"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://performance.musiconn.de/work/sonaten-klavier-op-53-c-dur-beethoven-ludwig-van"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://performance.musiconn.de/work/arabesken-klavier-op-18-c-dur-schumann-robert"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://performance.musiconn.de/work/studien-klavier-op-56-schumann-robert"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://performance.musiconn.de/work/fantasien-klavier-mwv-u-71-e-moll-mendelssohn-bartholdy-felix"
+              }
+            }
+          ]
+        }
+      },
+      "error": null,
+      "duration_ms": 485
+    },
+    {
+      "id": "ui-3",
+      "question": "What works were staged at the Detmold court theatre in the 1830s?",
+      "probe": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX cto: <https://nfdi4culture.de/ontology/>\nSELECT ?work ?date WHERE { GRAPH <https://linkedmusic.ca/graphs/ckg-detmold/> { ?work a <https://linkedmusic.ca/graphs/ckg-detmold/Work> ; wdt:P571 ?date . FILTER(STR(?date) >= \"1830\" && STR(?date) < \"1840\") } } LIMIT 5",
+      "result": {
+        "head": {
+          "link": [],
+          "vars": [
+            "work",
+            "date"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": [
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://portal.hoftheater-detmold.de/index.html#HoftheaterDetmold:werk_H020019.xml"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1835"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://portal.hoftheater-detmold.de/index.html#HoftheaterDetmold:werk_H020038.xml"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#date",
+                "value": "1837-12-22"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://portal.hoftheater-detmold.de/index.html#HoftheaterDetmold:werk_H020049.xml"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#date",
+                "value": "1830-01-28"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://portal.hoftheater-detmold.de/index.html#HoftheaterDetmold:werk_H020050.xml"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#date",
+                "value": "1834-05-24"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://portal.hoftheater-detmold.de/index.html#HoftheaterDetmold:werk_H020051.xml"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#date",
+                "value": "1832-10-01"
+              }
+            }
+          ]
+        }
+      },
+      "error": null,
+      "duration_ms": 517
+    },
+    {
+      "id": "ui-4",
+      "question": "Show Arabic field recordings of vocal music collected before 1950",
+      "probe": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX cto: <https://nfdi4culture.de/ontology/>\nSELECT ?work ?date WHERE { GRAPH <https://linkedmusic.ca/graphs/ckg-apsearch/> { ?work a <https://linkedmusic.ca/graphs/ckg-apsearch/Work> ; wdt:P31 wd:Q3302947 ; wdt:P571 ?date . FILTER(STR(?date) < \"1950\") } } LIMIT 5",
+      "result": {
+        "head": {
+          "link": [],
+          "vars": [
+            "work",
+            "date"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": []
+        }
+      },
+      "error": null,
+      "duration_ms": 537
+    },
+    {
+      "id": "ui-5",
+      "question": "Which composers performed at musiconn-documented concerts were born in Vienna?",
+      "probe": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX cto: <https://nfdi4culture.de/ontology/>\nSELECT DISTINCT ?person ?qid WHERE { GRAPH <https://linkedmusic.ca/graphs/ckg-musiconn/> { ?event a <https://linkedmusic.ca/graphs/ckg-musiconn/Event> ; cto:CTO_0001009 ?person . ?person a <https://linkedmusic.ca/graphs/ckg-musiconn/Person> ; wdt:P2888 ?qid } } LIMIT 5",
+      "result": {
+        "head": {
+          "link": [],
+          "vars": [
+            "person",
+            "qid"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": [
+            {
+              "person": {
+                "type": "uri",
+                "value": "http://viaf.org/viaf/10034608"
+              },
+              "qid": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q455199"
+              }
+            },
+            {
+              "person": {
+                "type": "uri",
+                "value": "http://viaf.org/viaf/102330531"
+              },
+              "qid": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q125561133"
+              }
+            },
+            {
+              "person": {
+                "type": "uri",
+                "value": "http://viaf.org/viaf/117676981"
+              },
+              "qid": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q63859033"
+              }
+            },
+            {
+              "person": {
+                "type": "uri",
+                "value": "http://viaf.org/viaf/196534380"
+              },
+              "qid": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q227309"
+              }
+            },
+            {
+              "person": {
+                "type": "uri",
+                "value": "http://viaf.org/viaf/272645896"
+              },
+              "qid": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q1608310"
+              }
+            }
+          ]
+        }
+      },
+      "error": null,
+      "duration_ms": 520
+    }
+  ]
+}

@@ -11,7 +11,7 @@ def test_rag_backfill_retains_database_matches_first():
     )
     related = Document(
         page_content="Jazz tracks",
-        metadata={"sparql": "jazz", "databases": ["weimarjazz"]},
+        metadata={"sparql": "jazz", "databases": ["wjazzd"]},
     )
     with (
         patch("app.rag.store.get_vector_store") as store,
@@ -19,5 +19,5 @@ def test_rag_backfill_retains_database_matches_first():
     ):
         settings.rag_top_k = 2
         store.return_value.similarity_search.return_value = [unrelated, related]
-        result = _get_rag_examples("Jazz tracks", ["weimarjazz"])
+        result = _get_rag_examples("Jazz tracks", ["wjazzd"])
     assert [example["sparql"] for example in result] == ["jazz", "other"]

@@ -1,0 +1,401 @@
+{
+  "checked_at": "2026-09-16T10:38:20.336797+00:00",
+  "endpoint": "https://virtuoso.simssa.ca/sparql",
+  "scope": "Convenience sample of asserted Detmold Person links; not a population accuracy estimate. Missing Q5 or authority IDs requires review, not automatic deletion.",
+  "count": 30,
+  "flagged": 0,
+  "authority_ids_confirmed": 30,
+  "with_musicbrainz_overlap": 14,
+  "links": [
+    {
+      "source_uri": "https://d-nb.info/gnd/118563300",
+      "source_label": null,
+      "qid": "Q68143",
+      "wikidata_label": "Ernst August Friedrich Klingemann",
+      "description": "German writer (1777-1831)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/118667424",
+      "source_label": null,
+      "qid": "Q78813",
+      "wikidata_label": "Ignaz Franz Castelli",
+      "description": "Austrian writer",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/119374536",
+      "source_label": null,
+      "qid": "Q602493",
+      "wikidata_label": "Michel Carré",
+      "description": "French librettist (1821–1872)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/116452145",
+      "source_label": null,
+      "qid": "Q1457035",
+      "wikidata_label": "Friederike Ellmenreich",
+      "description": "German stage actor and writer",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/102522359",
+      "source_label": null,
+      "qid": "Q1288681",
+      "wikidata_label": "Eduard Heinrich Gehe",
+      "description": "German writer (1795-1850)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/118796976",
+      "source_label": null,
+      "qid": "Q352725",
+      "wikidata_label": "Richard Brinsley Sheridan",
+      "description": "Irish-British politician, playwright and writer (1751-1816)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/117484881",
+      "source_label": null,
+      "qid": "Q2564908",
+      "wikidata_label": "Alexandre Soumet",
+      "description": "French poet",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/118740709",
+      "source_label": null,
+      "qid": "Q77742",
+      "wikidata_label": "Gottlieb Konrad Pfeffel",
+      "description": "German writer (1736-1809)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/101009135",
+      "source_label": null,
+      "qid": "Q15969800",
+      "wikidata_label": "Émile Chevalet",
+      "description": "French journalist, writer and librettist (1813-1894)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/119466910",
+      "source_label": null,
+      "qid": "Q693052",
+      "wikidata_label": "Johann Baptist Schenk",
+      "description": "Austrian composer",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "http://viaf.org/viaf/44305955",
+      "source_label": null,
+      "qid": "Q2733401",
+      "wikidata_label": "Emmanuel Théaulon",
+      "description": "French playwright (1787–1841)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/119323915",
+      "source_label": null,
+      "qid": "Q1308773",
+      "wikidata_label": "Karl Meisl",
+      "description": "Austrian playwright",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/115843477",
+      "source_label": null,
+      "qid": "Q19277106",
+      "wikidata_label": "Carl Friedrich Solbrig",
+      "description": "actor",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/107968169",
+      "source_label": null,
+      "qid": "Q1505487",
+      "wikidata_label": "Georg Nikolaus Bärmann",
+      "description": "German translator",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/100845908",
+      "source_label": null,
+      "qid": "Q23061863",
+      "wikidata_label": "Friedrich Gustav Hagemann",
+      "description": null,
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/116715081",
+      "source_label": null,
+      "qid": "Q1358145",
+      "wikidata_label": "Ernst von der Malsburg",
+      "description": "German statesman, poet, and translator",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/115602798",
+      "source_label": null,
+      "qid": "Q3308793",
+      "wikidata_label": "Michel-Nicolas Balisson Rougemont",
+      "description": "French journalist",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/1016264410",
+      "source_label": null,
+      "qid": "Q19225754",
+      "wikidata_label": "Robert Emanuel Heinrich Bürkner",
+      "description": null,
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "http://viaf.org/viaf/27108783",
+      "source_label": null,
+      "qid": "Q76459",
+      "wikidata_label": "Wolfgang Franz von Kobell",
+      "description": "German mineralogist and writer (1803-1882)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "http://viaf.org/viaf/8166572",
+      "source_label": null,
+      "qid": "Q19967075",
+      "wikidata_label": "Richard Otto Spazier",
+      "description": null,
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/13367911X",
+      "source_label": null,
+      "qid": "Q1689210",
+      "wikidata_label": "Johann Baptist Henneberg",
+      "description": "Austrian composer and pianist (1768-1822)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/100465137",
+      "source_label": null,
+      "qid": "Q3052692",
+      "wikidata_label": "Emmanuel Dupaty",
+      "description": "French playwright, naval officer, singer and journalist (1775-1851)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/104318759",
+      "source_label": null,
+      "qid": "Q11941335",
+      "wikidata_label": "Peter Ritter",
+      "description": "composer",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/100001718",
+      "source_label": null,
+      "qid": "Q533022",
+      "wikidata_label": "Ferdinando Paer",
+      "description": "Italian composer (1771–1839)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/133536106",
+      "source_label": null,
+      "qid": "Q3131020",
+      "wikidata_label": "Henri Dupin",
+      "description": "French librettist and writer (1787-1887)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/118762109",
+      "source_label": null,
+      "qid": "Q78349",
+      "wikidata_label": "Levin Schücking",
+      "description": "German writer (1814–1883)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/117390046",
+      "source_label": null,
+      "qid": "Q967704",
+      "wikidata_label": "Jules-Henri Vernoy de Saint-Georges",
+      "description": "French librettist (1799–1875)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/119559994",
+      "source_label": null,
+      "qid": "Q1704178",
+      "wikidata_label": "Joseph Alois Gleich",
+      "description": "Austrian author",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/119106698",
+      "source_label": null,
+      "qid": "Q1513808",
+      "wikidata_label": "Germain Delavigne",
+      "description": "French playwright (1790–1868)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 1,
+      "flags": []
+    },
+    {
+      "source_uri": "http://viaf.org/viaf/95267677",
+      "source_label": null,
+      "qid": "Q216112",
+      "wikidata_label": "Heinrich Clauren",
+      "description": "German writer (1771-1854)",
+      "instance_of": [
+        "Q5"
+      ],
+      "authority_id_confirmed": true,
+      "musicbrainz_artists": 0,
+      "flags": []
+    }
+  ]
+}

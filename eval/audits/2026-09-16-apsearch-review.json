@@ -1,0 +1,2967 @@
+{
+  "scope": "Read-only APSearch verification; no model calls",
+  "original_nl": "Find Arabic field recordings in CKG APSearch published by the Berlin-Brandenburg Academy of Sciences and Humanities, with their recording dates",
+  "queries": {
+    "original": {
+      "query": "PREFIX wd:       <http://www.wikidata.org/entity/>\nPREFIX wdt:      <http://www.wikidata.org/prop/direct/>\nPREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>\nSELECT DISTINCT ?work ?date\nWHERE {\n  GRAPH apsearch: {\n    ?work a apsearch:Work ;\n          wdt:P123 ?publisher ;\n          wdt:P571 ?date .\n    ?publisher wdt:P2888 wd:Q219989 .\n  }\n  FILTER(STR(?date) >= \"1900\" && STR(?date) < \"2025\")\n}\nORDER BY ?date\nLIMIT 100",
+      "response": {
+        "head": {
+          "link": [],
+          "vars": [
+            "work",
+            "date"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": [
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/a54c793ea6b6fe92bd7d6290fc2b963ef5cda4b5e2d1897eb76b50345bd6e236"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1900"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/1c070c4609f9e29715cf781419b4b822cb94c65ed462d366ca22b6c77f5ef1a5"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1906"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/c47f1bffc4eae87cba057d8974e4274837a920022597db72dcbe1fb3a1deb1b5"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1906"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/1f73cb2705606914343a381da51bb84207c3c5ad49a230339dbfa649743ceb9c"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1907"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/027479929d1a229b9724a2313e2b1c9c80bfe815d994824d74c7737e4d92f846"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/05d777d16aaad319b04753ff6816936e6d820e08422e4bcd2da9cb60348d6aad"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/0763cb855bae433d72b60888fcadb3c81569dfc6cc19421820c23b94b8fde9b3"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/07ae24a262dfaaec56864da113ee601b5ce0e2bfb6de9ce7181aa54b341e1ed9"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/0883bc7409aef425170ac422fe9bcb46196b5b595138d37c1bca7bbebeb3f291"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/09ec1791f0db32d6f70f7984953692f94063d66233d299c559278930c5f0702d"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/0ebd1e5502eb48a19439181c59a98da44de3bce356ee82d0edac9cbd261915d7"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/10a939c6bc7c36b68b8c462dfbebad89227bf9a99c1a3dcc8fcc65f6707134d3"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/1107e71d9bded07b9cd04da697a95c9b16988982986ba69ac1d60504e2e5202f"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/1158f07a1fec241839530cc399af6dcc61a9635557e0849da71fa6dea75ef1f9"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/116f89455bd3cf6b4dd23b9c45026dd4c82b50d8fa7ecf15c74067344ebc5559"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/1186586a392c6145a39daae3ad91aca85dc759b3f2b6de8f30b659d34cd6ff42"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/15e0a2478c4306b9e6f0862e7ea9ea196ccb69400f0618ca0d8e994ffdbef869"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/167d4dcb0142da120fe2608ee15cd71a74700f9520c6c153c794ab6a132435ed"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/202870761054fec15814d42122f8b776e8906ca331af45916a4939145449d257"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/24262e0ff1a86d03fd0e43356a8b2d09bfc4b6b63dbb9e29acdb647c3aac9577"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2ab60ac93682d9bfb2964c1832a211d3d4301250329ca43d7a9907e477401364"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2e5e6e9b51c8119b6cbf298f2f4b02b1ed00b61be1e107e0b27dc6fa54b4d999"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2ec1521e387d36cdb8251e1e61a38a0b519fc25f44a6c77699ed7bc733be3b90"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2f63ad13998122501ced355883cb4442235bb83f2a42c7a58dd28254dcff2f9d"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2fdf7718cd4569308eb1a602daf43aab88f8699ceba41c1655bfac6aafbaad09"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/33894976d8279217802f5f315a7803d810fb28af9b709893838359b9d4ca00d1"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/3595b47ee43391359528de0aecffef184ef6ddcb56290a327134ee66ef08b370"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/36e2717ad218c5d46b4ec2839bb2df02a2b929860d9a1af3bdfe6077f50fa069"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/3b1fd676d91c8040136d15d78ee0f6e00513fd44b62406e2222bbdbc594ae5b2"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/419461fd419ef18c379f459df434aab070d3c2fdafb46db196738d3b27ef5254"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/47ef0e761e6d0e97a7523388506c4df9cc41201231509b7ad800b88a4facb290"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/535c210daac59a968eb06f52c05e9dcc365b4ce4c9f0455af22f95f7f5390241"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5421a353dfacd97258bac9539ea9c98ebea296d676b89020b49546998a8932fb"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5925c7e27a8174358fae8917f2e519daa863b33f832b7cb54a03ff4be9308007"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5b0d83458ffd052e381e8edee4672668acd0d06289d08337caa18032bd836115"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5bb8b30cd944d3a93804fcf6e06ce30fec1658153a108b018b881e0439f0250d"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5f07d14941220efc0013e7ecb65f7ffcb0fbd942372710f3e8a1e4b9de242600"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5f7fda9e90d02d12d5db22762712ce9986ea844b432e616eaae3b15fb013451d"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/60fe59224a6916bdf6ad85ce8dcb511f5021b280fcf31882fec396ab7787177a"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/637e56fa2913c20e8f0fd291500e6c5aa544848b90b972704b3e488b65e3f279"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/63e91d80655990a379b640d7bb6feb78f70692c30b5d46964c4ca6f0a23726f2"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/660a4384cf6dfd4af07e42b2d0d7438a549a3b9e29915791ea1acaf454f888fb"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/690a3ef0a47b9dc2f31ebed2fc07ac7594400ff9bd6f491619a6f47b6f402518"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/6a80b00a1e145eee43df503b0d5d7a5e5bea92d7fef227077c9e675f16f6d958"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/721d27a45b2239b5261d4eb6d26b6b86131ed9c0235f88f4bc978f1a8b2d8bdb"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/747cafc05c171677e21284ccd0052026d4da00acb701f178a622f6c501d17bc3"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/75171c2afe19eed063c945620978c4d1a7f446318d061525916d9c12392bd915"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/75581c2cc8e5a54df8366b1af549d3dec4ca99fd45e1d111fc7e25ff379e05f9"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/77329f0a228b002a0289115581fa959fea4e50c8b49a265ccad4f1d9c79bdd75"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/7a3b7fd9f9195616311eb267ffc13a0587edc2e3130b8f3b5b5f1ed0e615b352"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/7f1d68640b6710e3a68d0e4cf14dee744fe916d7dcf4d1a707bd8e48c00b60d1"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/82e9b101be7e5adb700fec4d508b818c1f5c8f0e6711f38ca97bb86e142b2dff"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/830c15a11c48da60751e71d40b9952b61b1b2a237d8e7ecb8ccfb2ddf88261a4"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/8580745210b40e91ff510e979bd996752fd5c886d38b023049f471ce873fb84e"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/858968a05a4e3184797df97bf826b5574ed8f23eed9533831867435bd8e4f89b"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/86f39a4367687e81621fcf1b466e4b0b9671a67343320a67ba3c0868cf91ed7f"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/87b01d50c3b177b24b8fe753fd730339ffd0c5f812ca37094bf84b35aa2bec05"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/8b26efaf20bc16c7a45c5ad1ca2a0e4e86075f02c62b5284168773befa0421a1"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/8d387461a0e44715bdc430d8c3c493480b06cfb43299198ac8cc7f34feadee6e"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/8fabe790483a1f883ba9a2aab3d82801a3b5dedb050e0cc16e1346d92c69fb0f"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/90fcf194cc73d3f1b68b76a68304a9237085a209bb742bc9eff99a24390d9491"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/91074f7a201ef2456e8da6e8998cb4615e32159a5dd4bf860abae1d1704ccb6c"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/9215a4d550606b359d58f31998a37f004297bd659fb21c0a78df9995160dd47b"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/9898b5fb1d1b9cec509f5c2068542031ea28150dc7c8d05b47d098022a23f4d4"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/996acfddc6a06a4b288c2d9753fc44788d8f2add6d306fbc280d06289256a1a0"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/998d097330dc05eee01bc648d8eea11b5a24d0954559d562ace7bfd2900f2bce"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/9cb828c5e9fad06844bc2246df18b193a408d8df5ff9d181b744f60aa0dba6cd"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/9ebfe88af3a91acde343e993ebd4199bd359a23b416cdbb8be0a9f4f75d8ae06"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/a192049b8ee28e755b9a96b57bb6162507646c9ec4e89e21084eb9d2cf31e272"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/a1ede9b2d9317cbf5458600df7fa46df1bdf7b5295c194f0f66ebbd34827287e"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/ad517dc7b1588c85f3571a89e79147252f6f068a2540ee6739287992a787de17"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/ae068ef92a7c4eb915cd21e65d18a0e637ba423b6b91023e065a93c79af3d1a0"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/af38dbf03fbbe2eaa7253f43ce612761421a64d543aa5d0e784cf7ba32df4276"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/afea4636d605707ffdede20fc77c27ca9fe25634f43a54e54e4eaba8ca51c4d2"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/b0ec3f5a574f9e813db68f1d7a550872f1bf20e36ffd53f004f6359f2d4d4d70"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/b239780545e951811cddae48bd3cdc03758aa7fd8c39996d4a92919e8bbdc824"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/b61bac57317491c505678014612e80a88a8b5f8d219e7e1aa0915c3a73f98271"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/b6f6de8a409de5ec42bede9091a0fbbd1ee906fb1a96a4b2bc4c0201fd333c8b"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/b819ac34fa3e641b4fb13958d11ea2e9ec0b9a927ed423b6ac7878de7194c219"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/b8b603cda908044cb32df8536b459884aaeeb2260a24fdf6365b03ef253c2771"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/ba3799c9bce71d64455b2e10f601f038ee4d121f0846589b75d1e076d85b95c6"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/be8a0c8aae5c04160395dd213c699d4651a3dac66fe646931171fd9aad183172"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/c15c1577c9a77ea7cce94eabc842572d5d4bd2ac20205a2bf00da4cfb2644b88"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/c875d7c469834200bd1a1b2c434722b6480faa47aa1e69ad96014bd6d8848780"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/d067fe12b23abe3ccc54e27ed41e71d59bf773521be71a70d2f624a49f854ead"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/d0d4f35ced2acc69dc0a0b3e99dc50ef8fa4917ee72aa5e1709c30865d010110"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/d17dbd8a08f200e198ef339ca3848ef21b0230051ab497c28ca37132f6c82e7d"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/d33f589b6ce4eee440d3dd7496d17fbc575ec644e1f939a4391650c03fb6003b"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/d61b6948ead614a9e44a550e052b765fba1b3e632fb1a19f710b884d9d3ae6c9"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/d830914b4c2dbb178bb9ee544d1863faf0e118e06bada3b1a571f5350232fee8"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/d97ce9c67951682800acac04c3bbbacd71d541a4a7cb4575daa06950031b3fb7"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/da613ff8c9f18ead7b428f87ef47be08ef066e2cf477121a3e57bc0ea5fffe55"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/dc8cc98da4baebec9e4885157b6226ca02cf5cde5b45d9f5421829c1c3b1b7e0"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/de503ea473679c551bffe9d7529be0395abcf18dc9fab35811d7617325396734"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/de6b40545444b9a4770f7c0d1a6c02283ddd9fd8baa5dd0b57aec7752ea2f9c3"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/e2f3e99d7d3bc73bd3e3477b4a277a6b506723ec0154ade7dca51b6d2a368396"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/e4e47a08b11349f1abed815c8604369f023b8e9b06af92f0f2ba8fc77ebd0d0d"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/e701091fa5670fbbfafb83623c1da87d976ea1658e58b6d772f694a00d34f4f0"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/ea0889ce17d8dfbc02ae045d1e8cbf9dd442907413dfd3514b4b016031388618"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/ed37d3d624beb32613be3413b095e860bfae25ac4d02adc928488ed75f3fc9e0"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              }
+            }
+          ]
+        }
+      },
+      "seconds": 0.64
+    },
+    "original_first100_types": {
+      "query": "PREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>\nSELECT ?type (COUNT(DISTINCT ?work) AS ?works) WHERE {\n{ SELECT DISTINCT ?work ?date WHERE { GRAPH apsearch: {\n?work a apsearch:Work ; wdt:P123 ?publisher ; wdt:P571 ?date .\n?publisher wdt:P2888 wd:Q219989 . }\nFILTER(STR(?date) >= \"1900\" && STR(?date) < \"2025\") }\nORDER BY ?date LIMIT 100 }\nGRAPH apsearch: { ?work wdt:P31 ?type } } GROUP BY ?type",
+      "response": {
+        "head": {
+          "link": [],
+          "vars": [
+            "type",
+            "works"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": [
+            {
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q17537576"
+              },
+              "works": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "100"
+              }
+            }
+          ]
+        }
+      },
+      "seconds": 0.58
+    },
+    "publisher_media_dates": {
+      "query": "PREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>\nSELECT ?publisher ?publisherQid ?type\n(COUNT(DISTINCT ?work) AS ?works) (COUNT(DISTINCT ?datedWork) AS ?datedWorks)\n(MIN(STR(?date)) AS ?earliest) (MAX(STR(?date)) AS ?latest)\nWHERE { GRAPH apsearch: {\n?work a apsearch:Work ; wdt:P123 ?publisher ; wdt:P31 ?type .\nOPTIONAL { ?publisher wdt:P2888 ?publisherQid }\nOPTIONAL { ?work wdt:P571 ?date . BIND(?work AS ?datedWork) }\n} } GROUP BY ?publisher ?publisherQid ?type ORDER BY DESC(?works)",
+      "response": {
+        "head": {
+          "link": [],
+          "vars": [
+            "publisher",
+            "publisherQid",
+            "type",
+            "works",
+            "datedWorks",
+            "earliest",
+            "latest"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": [
+            {
+              "publisher": {
+                "type": "uri",
+                "value": "https://nfdi4culture.de/id/E2431"
+              },
+              "publisherQid": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q219989"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q3302947"
+              },
+              "works": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "3005"
+              },
+              "datedWorks": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "2409"
+              },
+              "earliest": {
+                "type": "literal",
+                "value": "1970"
+              },
+              "latest": {
+                "type": "literal",
+                "value": "9009"
+              }
+            },
+            {
+              "publisher": {
+                "type": "uri",
+                "value": "https://nfdi4culture.de/id/E2431"
+              },
+              "publisherQid": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q219989"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q17537576"
+              },
+              "works": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "2472"
+              },
+              "datedWorks": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "1134"
+              },
+              "earliest": {
+                "type": "literal",
+                "value": "1900"
+              },
+              "latest": {
+                "type": "literal",
+                "value": "2020"
+              }
+            },
+            {
+              "publisher": {
+                "type": "uri",
+                "value": "https://nfdi4culture.de/id/E2431"
+              },
+              "publisherQid": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q219989"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q478798"
+              },
+              "works": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "523"
+              },
+              "datedWorks": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "376"
+              },
+              "earliest": {
+                "type": "literal",
+                "value": "2012"
+              },
+              "latest": {
+                "type": "literal",
+                "value": "2018"
+              }
+            },
+            {
+              "publisher": {
+                "type": "uri",
+                "value": "https://nfdi4culture.de/id/E2431"
+              },
+              "publisherQid": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q219989"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q30070675"
+              },
+              "works": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "454"
+              },
+              "datedWorks": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "437"
+              },
+              "earliest": {
+                "type": "literal",
+                "value": "1985"
+              },
+              "latest": {
+                "type": "literal",
+                "value": "2020"
+              }
+            },
+            {
+              "publisher": {
+                "type": "uri",
+                "value": "https://nfdi4culture.de/id/E2431"
+              },
+              "publisherQid": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q219989"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q691783"
+              },
+              "works": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "84"
+              },
+              "datedWorks": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "0"
+              }
+            },
+            {
+              "publisher": {
+                "type": "uri",
+                "value": "https://nfdi4culture.de/id/E2431"
+              },
+              "publisherQid": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q219989"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q234460"
+              },
+              "works": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "52"
+              },
+              "datedWorks": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "0"
+              }
+            }
+          ]
+        }
+      },
+      "seconds": 0.93
+    },
+    "predicates": {
+      "query": "PREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>\nSELECT ?predicate (COUNT(*) AS ?triples) WHERE {\nGRAPH apsearch: { ?s ?predicate ?o } } GROUP BY ?predicate ORDER BY DESC(?triples)",
+      "response": {
+        "head": {
+          "link": [],
+          "vars": [
+            "predicate",
+            "triples"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": [
+            {
+              "predicate": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/prop/direct/P31"
+              },
+              "triples": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "6590"
+              }
+            },
+            {
+              "predicate": {
+                "type": "uri",
+                "value": "https://nfdi4culture.de/ontology/CTO_0001006"
+              },
+              "triples": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "6271"
+              }
+            },
+            {
+              "predicate": {
+                "type": "uri",
+                "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+              },
+              "triples": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "6271"
+              }
+            },
+            {
+              "predicate": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/prop/direct/P123"
+              },
+              "triples": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "6271"
+              }
+            },
+            {
+              "predicate": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/prop/direct/P275"
+              },
+              "triples": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "6271"
+              }
+            },
+            {
+              "predicate": {
+                "type": "uri",
+                "value": "http://www.w3.org/2000/01/rdf-schema#label"
+              },
+              "triples": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "6269"
+              }
+            },
+            {
+              "predicate": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/prop/direct/P571"
+              },
+              "triples": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "4214"
+              }
+            },
+            {
+              "predicate": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/prop/direct/P953"
+              },
+              "triples": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "3783"
+              }
+            },
+            {
+              "predicate": {
+                "type": "uri",
+                "value": "https://nfdi4culture.de/ontology/CTO_0001026"
+              },
+              "triples": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "260"
+              }
+            },
+            {
+              "predicate": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/prop/direct/P2888"
+              },
+              "triples": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#integer",
+                "value": "3"
+              }
+            }
+          ]
+        }
+      },
+      "seconds": 0.44
+    },
+    "early_samples": {
+      "query": "PREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>\nSELECT ?work ?label ?date ?type ?url ?classifier WHERE {\nGRAPH apsearch: { ?work a apsearch:Work ; rdfs:label ?label ; wdt:P571 ?date ; wdt:P31 ?type .\nOPTIONAL { ?work wdt:P953 ?url }\nOPTIONAL { ?work <https://nfdi4culture.de/ontology/CTO_0001026> ?classifier }\nFILTER(STR(?date) < \"1950\") } } ORDER BY ?date ?work LIMIT 8",
+      "response": {
+        "head": {
+          "link": [],
+          "vars": [
+            "work",
+            "label",
+            "date",
+            "type",
+            "url",
+            "classifier"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": [
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/a54c793ea6b6fe92bd7d6290fc2b963ef5cda4b5e2d1897eb76b50345bd6e236"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "Kamāl fi al-milāḥ sadaq, El kamal fil melah, El kamal fil melah"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1900"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q17537576"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/1c070c4609f9e29715cf781419b4b822cb94c65ed462d366ca22b6c77f5ef1a5"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "[Title in Arabic]"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1906"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q17537576"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/c47f1bffc4eae87cba057d8974e4274837a920022597db72dcbe1fb3a1deb1b5"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "[Title in Arabic]"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1906"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q17537576"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/1f73cb2705606914343a381da51bb84207c3c5ad49a230339dbfa649743ceb9c"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "Qaṣīdat Allāhu akbar, Hayyamatnī tayyamatnī, قصيدة الله أكبر ؛, هيمتني تيمتني, Hayyamatnī tayyamatnī, هيمتني تيمتني"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1907"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q17537576"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/027479929d1a229b9724a2313e2b1c9c80bfe815d994824d74c7737e4d92f846"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "Ṣadr al-majālis, Sadrel magales, In yamzougil chahdou, In yamzuju al-shahd, صدر المجالس ؛ ‪‪‪‪‪‪‪‪‪‪, ان يمزج الشهد‪‪‪‪‪‪‪‪‪‪, In yamzuju al-shahd, ان يمزج الشهد / ‪‪‪‪‪‪‪‪‪‪"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q17537576"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/05d777d16aaad319b04753ff6816936e6d820e08422e4bcd2da9cb60348d6aad"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "Khudhūnī yamma dār al-wilf (mijānā wa-ʻatābā), Mirr bi-ḥiwālī, خذوني يم دار الولف (مجانا وعتابا) ؛ ‪‪‪‪‪‪‪‪‪‪, مر بحوالي‪‪‪‪‪‪‪‪‪‪, Mirr bi-ḥiwālī, مر بحوالي /  ‪‪‪‪‪‪‪‪‪‪"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q17537576"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/0763cb855bae433d72b60888fcadb3c81569dfc6cc19421820c23b94b8fde9b3"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "Raqṣ badīʻah, Dance Badea (desert song), رقص بديعة  ‪‪‪‪‪‪‪‪‪‪, Dance Badea (desert song), Dance Badea (desert song)"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q17537576"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/07ae24a262dfaaec56864da113ee601b5ce0e2bfb6de9ce7181aa54b341e1ed9"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "Qadd al-raṣd wa-taqsīm, Taqsīm raṣd, قد الرصد وتقسيم ؛ ‪‪‪‪‪, تقسيم الرصد‪‪‪‪‪, Taqsīm raṣd, تقسيم الرصد / ‪‪‪‪‪"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1909"
+              },
+              "type": {
+                "type": "uri",
+                "value": "http://www.wikidata.org/entity/Q17537576"
+              }
+            }
+          ]
+        }
+      },
+      "seconds": 0.52
+    },
+    "audio_samples": {
+      "query": "PREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>\nSELECT ?work ?label ?date ?url WHERE { GRAPH apsearch: {\n?work a apsearch:Work ; wdt:P31 wd:Q3302947 ; rdfs:label ?label ; wdt:P571 ?date .\nOPTIONAL { ?work wdt:P953 ?url }\n} } ORDER BY ?date ?work LIMIT 8",
+      "response": {
+        "head": {
+          "link": [],
+          "vars": [
+            "work",
+            "label",
+            "date",
+            "url"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": [
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/04e7a34473a020d369080fb4194c2780cfb4dd99dbcae6280dec19ff87bb7bd3"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "going on journeys and hunting game"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              },
+              "url": {
+                "type": "uri",
+                "value": "https://hdl.loc.gov/hdl:2196/00-0000-0000-000F-AA4F-3"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/061dbdfe9f8fa2eb9a1d7c221b165a4df681f5bb45f4c2c838a55dfb2a803f1e"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "making and using kohl"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              },
+              "url": {
+                "type": "uri",
+                "value": "https://hdl.loc.gov/hdl:2196/00-0000-0000-000F-AA72-7"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/092d0a716d82ad5bd6de5e1c42f9c3ddb0d444808c95a12f2aa21e076c88c659"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "hairstyles and face mask"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              },
+              "url": {
+                "type": "uri",
+                "value": "https://hdl.loc.gov/hdl:2196/00-0000-0000-000F-AA51-E"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/0dff5896c9470803a3b591093e67bb0f60f01ab407f0b665e24cdcdd26900398"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "fishing"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              },
+              "url": {
+                "type": "uri",
+                "value": "https://hdl.loc.gov/hdl:2196/00-0000-0000-000F-AA43-0"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/1045503dc2e5bdacd03e39137b2d484ffd756af97c311d94f593fab7018f3dbb"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "sweetness"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              },
+              "url": {
+                "type": "uri",
+                "value": "https://hdl.loc.gov/hdl:2196/00-0000-0000-000F-AB7A-2"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/211e148e114d509f201b89b59a3f3f6d7f0102ba7dbc0e747913ba028e771574"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "creation story of the Batahirah"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              },
+              "url": {
+                "type": "uri",
+                "value": "https://hdl.loc.gov/hdl:2196/00-0000-0000-000F-AA2A-6"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2d8d60b8bd2ca93012cea94f8a4895e2de79dec76d996dc70d10549c72d31da9"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "fish chant"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              },
+              "url": {
+                "type": "uri",
+                "value": "https://hdl.loc.gov/hdl:2196/00-0000-0000-000F-AA41-8"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2f6666fde9c8f56ec92dc37c193004f28bd0eab54f5b1436e4d867be5cc14059"
+              },
+              "label": {
+                "type": "literal",
+                "xml:lang": "en",
+                "value": "monsoon food"
+              },
+              "date": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              },
+              "url": {
+                "type": "uri",
+                "value": "https://hdl.loc.gov/hdl:2196/00-0000-0000-000F-AA98-8"
+              }
+            }
+          ]
+        }
+      },
+      "seconds": 0.45
+    },
+    "corrected": {
+      "query": "PREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nPREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>\nSELECT DISTINCT ?work ?creationYear\nWHERE {\n  GRAPH apsearch: {\n    ?work a apsearch:Work ;\n          wdt:P31 wd:Q3302947 ;\n          wdt:P123 ?publisher ;\n          wdt:P571 ?creationYear .\n    ?publisher wdt:P2888 wd:Q219989 .\n  }\n}\nORDER BY ?creationYear ?work\nLIMIT 100",
+      "response": {
+        "head": {
+          "link": [],
+          "vars": [
+            "work",
+            "creationYear"
+          ]
+        },
+        "results": {
+          "distinct": false,
+          "ordered": true,
+          "bindings": [
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/04e7a34473a020d369080fb4194c2780cfb4dd99dbcae6280dec19ff87bb7bd3"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/061dbdfe9f8fa2eb9a1d7c221b165a4df681f5bb45f4c2c838a55dfb2a803f1e"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/092d0a716d82ad5bd6de5e1c42f9c3ddb0d444808c95a12f2aa21e076c88c659"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/0dff5896c9470803a3b591093e67bb0f60f01ab407f0b665e24cdcdd26900398"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/1045503dc2e5bdacd03e39137b2d484ffd756af97c311d94f593fab7018f3dbb"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/211e148e114d509f201b89b59a3f3f6d7f0102ba7dbc0e747913ba028e771574"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2d8d60b8bd2ca93012cea94f8a4895e2de79dec76d996dc70d10549c72d31da9"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2f6666fde9c8f56ec92dc37c193004f28bd0eab54f5b1436e4d867be5cc14059"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2fe077811e98f8fed593ffee96c3da5469668a52701903597dcda135366584ea"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/382836ceaa80bc32344a49582faf5a04b0e9b52023e923bdd8566fd2284488fa"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/3863dabb8fcb8dbddab94c0b8b583a913857b4eecf08ffbfdf60ac34225889c1"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/43615ddbd529279b94dbd069a20a977c669a816a056ea1f500d4e071893f9962"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/480349d6b01327dc30ced1fb6cdec6ff7d7ed13530c1fd7514a6b0a86bc1a48c"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/4d87e54b5fb67bb5d45c6ab2c2caa08858d3390fdfb12c14294e9a4f417e724a"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/51e35507fc919d48d2f52f0cd9e88dcd8e8340b4085340145355279b26f85488"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/53b80a0c23469973116e22122ff94ff8245cea82961436a0518b32d25ebc918f"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5b6e0bcf2fc37dda6b88b4e1740808ffea8431e1c22dee2fb9e40803c74aafdc"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/632c32ccea4b9b37e9f033150ec35d6e9ee1bbd53c82db9933e9c16dc97e0a10"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/6acc253e910607801d8d123f856c85da6debd8a4ef6410907079f92bbe3ffabe"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/7d2721c5c6e56e38335bc8a654318ad77ad4f1fc9d88d327bfbd3ffc5a3e064d"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/9034426f98c1a563bec2d6c86c78910dfe29ec526f63c8ff32f7ac43e3491529"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/a50c2d882c83851400c92ff001e7a22e1f903b279d61cb24e27fc126a0ff2647"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/b4a4903d7f34b6d0db31928d0cacbe80eafc58ba22774eb6cae403fc0b65f766"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/b5193c3f02f146c9c4554cacd8132a9c3fad81af8f98adf928a85b4da3500144"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/bf147a1b87db793d376efefa3e7fab9b85184951402fda15aa1e1ffbd0a29e77"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/c69f9619e3d4269200da01cfbe83a79d555f70743117801fffaa1c03cd40928f"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/d4e904aff4602d672afee3bd476c4a935c38edf4c377427f75f59d2e7f48840f"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/df0b1bee9832a952ea5ecbaa0f7ad4c2fb4b8d226cb4d080db74da93e72d142d"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/e41ad8e53054c29bbf19ab105d1b78fcdbdbaa0b67e15fb0cf40e5c89f7e896a"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/f78dde04e03caf716b54db768422bed9a1e09bb8bf3d812a9ab199989f3541fd"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1970"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/013ed346efa596b5cb6397c13c4d1fded9ec1c423fd97bc1153872e7f5d20d7f"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2a5f0f6dbedd75546bf65d886e542c730bcc53e75863845b84e66c005ce9f652"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2dec43fa3a59a7a635cdf3af8df445c53799e1f2441046c20122a143c3821de1"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/3bb35dd62267bc12812d138ecb0a8c1ebb1e036f2c60a861d9008d0c9947b10d"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/436aded3633da31ba5d7e57316a73affe6910d5ea64ba987a49e3f986b01a8f9"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/496827b2dd1d3e1ef3cb3c0d5fd39fdc60508122692c0c2c79a3bda86b26a026"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/4a30b00022ad8ae89170a4478bd24a9e345dcd5031637a29ffdc5ac122119ada"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/4c3df62a31ce757422996e767b4c2985311361b029c4c391683142878de4d130"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/4d462613e7438f7a5efdff6689ec3b1df4178b4173ee9e2973577ecb6ff7bde0"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/535af9484c203a00d0bd1e02ee1011d281b72de7df1159fb99571e19f2c60dcc"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/64c8f64fc32a144f8921c7069b2ea65125d940ad5e275a704883a9069e7f694e"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/6b172c9c0e2f3cc7051da968011fc35c63ed525ba7dce4c817428f5980b4c299"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/7c0e7a82cd2b018a489a21f207b4df29ad03720190ad6e786c132ffc1ae063f5"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/839bb2fe08c0248c213d05f6988825422fa6bf68a8200d74efead2af5c78015a"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/85a4063b5920ab9f956f2a5a5f20378c5111c588d0c8827ed6887a0467d2b783"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/88921fab3dd7845b1d1d1de0ea0f96905ba3874eeb98ba0012d044371391e48f"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/8b343dd5d69d30441e5d31ed8717230b7bb2b55a75f83a171739344f30d76f0c"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/94d50bd3167b2b024c25d620c21ea6c634447be6f6babe0fe56dd1aafbee93f3"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/a58fdc35b20debcaabe5380d7afe18b25ece7149db3827fcc495ecd5437d9b25"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/b4b51534bf884a8a867f3d6686bcf1126735e459b18d262aafa1643de6ec0c1a"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/ba9d87f4403f54269344ad3109b7c93c7eee55452396206145483483dae734f1"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/bc290cd18ac401b43b546e841eca5b09c9e935c31da758b2ddbc6692bcf3481e"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/c01830573abdfe7d92a185d29d965630fff64adc11ffb1619a66d40a60de273e"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/c0625544adec98094cb034aa57f3d76c14c4811e136ae5d1c99bbb34d31c9e7e"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/c49aa26b9fe28082eadb3215b3735824d22e134af04e7f9146318f23b1b9edc9"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/ce8af723ecac6dd06ee03cb9558070a3bb27c9e211e97f8058f19359554699d3"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/cf188381c1e3e64f143acb355e50345855952bb7d6833555d2b2290bdc6044a8"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/d95f2adbff83452b1dfdf28cc454d85a73d583138e6829e7de78c7c01f815eed"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/e657ef7dea1ec2f8961de6dcedcc1c1c3aef05d11e692793c563ac90a0673e2d"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/e896171dfe585430a274c457f832c16c69f2a9eec17f5ca38daf12635e05b540"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/ed663cfbd5dccbf82e290baa700f41864ce8f8750f205bea34027e7f394309fe"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1980"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/02516ef58e00706156bf0284b21d2d3d279a299897354e077cd1576d58d0bb38"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/0901fda7edd6cd5646c4e9bfa3bd0f581dafb34f059aeb02ed888ea644ab13c3"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/0b48e66633d128e3a730850fc04fde3ba0423c667b9a589bf2ff4e74f5b321c0"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/11e92b8228f87026cabd070bf9f65cd6c07a89d1c39bb2c4a7d9f1b6cd8f4746"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/128f84ef09ee3199951fd5dc8d803bfb130d6a3bdcac92b6017a407625ecf190"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/14427175b2cc956f8b9333fe116a7e39bffc324804998b78d27c3b7da236e9f7"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/1738404ffb41fe9c6dd01ed0847bfda104a937523b7020d0781f50ae27aa2b5e"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/1ac3e62eec90d8ebfaa7e34a418841c8e4008c5d61d8e563074dd7683289973f"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2006b044b6923d8346c3dfa21ba159a426d467cceabbb819f512f10e32436495"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/207ef9827f414d9ecea3a02d148b0e3fbd909752aa4b84015659f35c0fc63581"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/232e3a93573472f339e928d1db690b7a6e2ac006d8e7994ab7618cef87b64004"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2633a52967574d838926e83295d1d484718144489c59a84047f3ba0983f37ad5"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/29166ed9face88408dde815656c0b995f38c29c2386c4538b97233ac7052265d"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/29f6f648095d1610973fb4a95cd1aa8e708fc7181fe74e9f6fe5e68810ef645e"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/2f0f7219ad9c930182d032f960933f39d7344a1b9ee2b1f044dc8882360e0d96"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/32231f04761b17f40da49d70941f142ef40c66e1a78c84e884113984c403c83b"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/386c86cc9d8688fc7b5172ea0f992761dce1b39c89314d0da2a7f928b4507175"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/38b2d5de432e9d1f0bc8e7777c4b8526d076599cda1c69a7835a7a8cd0bbba14"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/3bddf9bfa7859941b179a1a3ff9c0ec7fadffcfab0a70c1701eb3cf1cd98097b"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/3fc1cd42e3d6e0f8b620d5e9300611cf8b757bf855f3777384195eaf51651874"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/41e54ceaca912a430b3e6750c19116e07b230af18c68523f8048fc8ef89a2d67"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/453e38dd674d6d55e39ac1944c00dd46957966a8198aa041eee5dd0437d87e58"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/457a516d3617205dcf09ec60730b534dd75491df97f52e158521bdaa29cc8854"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/4b390e55a6d7cf6156bbbef628079c757baeca2fcc52b06aaea57a10fd589477"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/4d103697c534a307ed72db340ab47c4bac96801a3f346a69fa6773b5e7ce811a"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/4d2828c9cad076aa5475346d9e85313eedbbc0397e30919500d05df039e1c15f"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5926a080e786fba01fb2fa91d70fcce21a83c5763fd7b4f0bd73fce0e0d5cd1b"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5aff700e6ccba0599b3b53b2b714424ab1ae5788bff84401ba0b6e9d202a6539"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5b91a6557c8b8b288435ded3837466bc513dbed0d989dc904b2164bc3dd7d318"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5d252004589216ad5de3b6ad9cf367f2d70d200fd5bf2c8578c7428b4dd53331"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5d928b215a510b15006aaa3520f071bc76f0221a99d28ed6460cf2d5b7a97aa2"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/5d9c43e250d47914df4e89037e5fbfc6fe91d1fb942aa55cf6011d6cee51fbd5"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/61fdee7aa9a41dcbd6f15196a5fb2978dbbf2d17a383e19cc03461b154e82d27"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/64bdda44cf2bd7f8730584e738f374db909ff4e5548e00181ffd098efd5a73b8"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/68495660f0681d09e351929ab701c7cc8386cda2a39af60eb0b3018b915c9ef6"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/6e34467aa95fde5eb10bb2acf82663b1e044c03387eaae880de8068d0a74486a"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/76ec9bb841660f48461b1541dfc8d32a569c78bf5d3d8820a5c06f947bf29098"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/8af4065f5fc690c58d4eb885680d572e25d4123c0ed94d599dfd5437668af91f"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            },
+            {
+              "work": {
+                "type": "uri",
+                "value": "https://apsearch.org/record/91a686dc1f0c245645e1d1fe16bac41406a7d393c11d2e96d192d56a2950ab33"
+              },
+              "creationYear": {
+                "type": "literal",
+                "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+                "value": "1984"
+              }
+            }
+          ]
+        }
+      },
+      "seconds": 0.58
+    }
+  }
+}

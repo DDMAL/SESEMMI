@@ -1,0 +1,43 @@
+{
+  "checked_at": "2026-09-16T10:39:39.085904+00:00",
+  "endpoint": "https://virtuoso.simssa.ca/sparql",
+  "scope": "Targeted follow-up of suspected Detmold Person links.",
+  "count": 2,
+  "flagged": 2,
+  "authority_ids_confirmed": 0,
+  "with_musicbrainz_overlap": 0,
+  "links": [
+    {
+      "source_uri": "https://d-nb.info/gnd/4655598-5",
+      "source_label": "Les deux journées",
+      "qid": "Q972277",
+      "wikidata_label": "Les deux journées, ou Le porteur de l'eau",
+      "description": "opera in three acts by Luigi Cherubini",
+      "instance_of": [
+        "Q58483083"
+      ],
+      "authority_id_confirmed": false,
+      "musicbrainz_artists": 0,
+      "flags": [
+        "authority_id_not_confirmed",
+        "local_person_not_marked_human_on_wikidata"
+      ]
+    },
+    {
+      "source_uri": "https://d-nb.info/gnd/4658394-4",
+      "source_label": "Una cosa rara",
+      "qid": "Q3781653",
+      "wikidata_label": "Una cosa rara",
+      "description": "opera by Vicente Martín y Soler",
+      "instance_of": [
+        "Q58483083"
+      ],
+      "authority_id_confirmed": false,
+      "musicbrainz_artists": 0,
+      "flags": [
+        "authority_id_not_confirmed",
+        "local_person_not_marked_human_on_wikidata"
+      ]
+    }
+  ]
+}

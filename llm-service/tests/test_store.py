@@ -12,7 +12,7 @@ def test_weimar_metadata_matches_intake_database_name():
             "sparql": "SELECT ?s WHERE { GRAPH <https://linkedmusic.ca/graphs/wjazzd/> { ?s ?p ?o } }"
         }
     )
-    assert metadata["databases"] == ["weimarjazz"]
+    assert metadata["databases"] == ["wjazzd"]
 
 
 @contextmanager

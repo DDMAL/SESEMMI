@@ -1,0 +1,40 @@
+{
+  "query": "PREFIX apsearch: <https://linkedmusic.ca/graphs/ckg-apsearch/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nSELECT ?work ?date ?label ?url WHERE { GRAPH apsearch: {\n?work a apsearch:Work ; wdt:P571 ?date . FILTER(STR(?date) > \"2026\")\nOPTIONAL { ?work rdfs:label ?label } OPTIONAL { ?work wdt:P953 ?url }\n} } ORDER BY ?date ?work LIMIT 10",
+  "response": {
+    "head": {
+      "link": [],
+      "vars": [
+        "work",
+        "date",
+        "label",
+        "url"
+      ]
+    },
+    "results": {
+      "distinct": false,
+      "ordered": true,
+      "bindings": [
+        {
+          "work": {
+            "type": "uri",
+            "value": "https://apsearch.org/record/d9f3f3f7131bed76a35ee736d67ba1b810da415b23e1c92dd3f36dcde271912e"
+          },
+          "date": {
+            "type": "literal",
+            "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+            "value": "9009"
+          },
+          "label": {
+            "type": "literal",
+            "xml:lang": "en",
+            "value": "Sudan Situation"
+          },
+          "url": {
+            "type": "uri",
+            "value": "https://hdl.loc.gov/hdl:2196/00-0000-0000-0008-9FE0-C"
+          }
+        }
+      ]
+    }
+  }
+}

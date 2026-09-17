@@ -680,7 +680,7 @@ rism:Person
 </ontology>
 </database>\
 """,
-    "weimarjazz": """\
+    "wjazzd": """\
 <database name="Weimar Jazz Database" graph-iri="https://linkedmusic.ca/graphs/wjazzd/" prefix="wjazzd:">
 <description>
 All triples for the Weimar Jazz Database are stored in the
