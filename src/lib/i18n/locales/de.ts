@@ -114,8 +114,10 @@ export const de: Dictionary = {
       generate: { short: "Generieren", friendly: "SPARQL-Abfrage schreiben" },
       validate: { short: "Prüfen", friendly: "Gültigkeit prüfen" },
       execute: { short: "Ausführen", friendly: "Auf der Datenbank ausführen" },
-      judge: { short: "Bewerten", friendly: "Vertrauen bewerten" },
+      judge: { short: "Prüfen", friendly: "Antwort prüfen" },
     },
+    judgeDescription:
+      "Vergleicht die Abfrage und eine Auswahl der Ergebnisse mit der von Ihnen bestätigten Frage. Nutzt die Datenbankbeschreibungen, um Einschränkungen zu erkennen und die Zuverlässigkeit einzuschätzen.",
     confidence: {
       high: { label: "Hohe Zuverlässigkeit", hint: "Sieht korrekt aus." },
       medium: { label: "Mittlere Zuverlässigkeit", hint: "Wahrscheinlich korrekt — bitte prüfen." },
@@ -187,7 +189,7 @@ export const de: Dictionary = {
       ],
       judge: [
         "Die Ergebnisse werden überprüft",
-        "Die Antwort wird eingeschätzt",
+        "Die Ergebnisse werden mit Ihrer Frage verglichen",
         "Das Vertrauen wird gemessen",
         "Die Treffer werden abgewogen",
         "Die Ausgabe wird auf Plausibilität geprüft",

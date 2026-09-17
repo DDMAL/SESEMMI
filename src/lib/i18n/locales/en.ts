@@ -114,8 +114,10 @@ export const en = {
       generate: { short: "Generate", friendly: "Writing the SPARQL query" },
       validate: { short: "Validate", friendly: "Checking it's valid" },
       execute: { short: "Run", friendly: "Running on the database" },
-      judge: { short: "Score", friendly: "Scoring confidence" },
+      judge: { short: "Review", friendly: "Checking the answer" },
     },
+    judgeDescription:
+      "Compares the query and a sample of results with the question you approved. Uses the database descriptions to identify limitations and estimate confidence.",
     confidence: {
       high: { label: "High confidence", hint: "Looks accurate." },
       medium: { label: "Medium confidence", hint: "Likely correct — worth a review." },
@@ -184,7 +186,7 @@ export const en = {
       ],
       judge: [
         "Reviewing the results",
-        "Sizing up the answer",
+        "Comparing results with your question",
         "Gauging confidence",
         "Weighing the matches",
         "Sanity-checking the output",
