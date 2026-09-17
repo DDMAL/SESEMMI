@@ -242,6 +242,7 @@ async def translate_stream(req: TranslateRequest):
             }
             sparql = ""
             confidence = "medium"
+            assumptions = []
             async for event in graph.astream_events(initial_state, version="v2"):
                 etype = event["event"]
                 name = event.get("name", "")
@@ -253,6 +254,8 @@ async def translate_stream(req: TranslateRequest):
                         sparql = out["sparql"]
                     if "confidence" in out:
                         confidence = out["confidence"]
+                    if "assumptions" in out:
+                        assumptions = out["assumptions"]
                     detail = _step_detail(name, out)
                     yield f"event: step_done\ndata: {json.dumps({'step': name, 'label': _STEP_LABELS[name], 'detail': detail})}\n\n"
                 elif etype == "on_chat_model_stream":
@@ -277,7 +280,7 @@ async def translate_stream(req: TranslateRequest):
                             text = ""
                         if text:
                             yield f"event: token\ndata: {json.dumps({'text': text})}\n\n"
-            yield f"event: done\ndata: {json.dumps({'sparql': sparql, 'confidence': confidence})}\n\n"
+            yield f"event: done\ndata: {json.dumps({'sparql': sparql, 'confidence': confidence, 'assumptions': assumptions})}\n\n"
         except Exception as e:
             yield f"event: error\ndata: {json.dumps({'message': str(e)})}\n\n"
 

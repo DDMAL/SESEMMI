@@ -79,6 +79,7 @@ export const es: Dictionary = {
     thinking: "Pensando…",
   },
   results: {
+    searchNotes: "Notas y limitaciones de la búsqueda",
     title: "Resultados",
     emptyState: "Ejecuta una consulta para explorar los metadatos musicales",
     queryFailed: "La consulta falló",

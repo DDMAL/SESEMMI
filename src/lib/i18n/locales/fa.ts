@@ -78,6 +78,7 @@ export const fa: Dictionary = {
     thinking: "در حال فکر کردن…",
   },
   results: {
+    searchNotes: "یادداشت‌ها و محدودیت‌های جستجو",
     title: "نتایج",
     emptyState: "برای کاوش در فراداده‌های موسیقی یک پرس‌وجو اجرا کنید",
     queryFailed: "پرس‌وجو ناموفق بود",

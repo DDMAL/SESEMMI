@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ConversationPanel } from "@/components/ConversationPanel";
 import { SparqlEditor } from "@/components/SparqlEditor";
 import { ResultsTable } from "@/components/ResultsTable";
+import { SearchNotes } from "@/components/SearchNotes";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useClarifyFlow } from "@/hooks/useClarifyFlow";
@@ -123,6 +124,7 @@ export default function Home() {
         <section ref={conversationRef} className="rounded-2xl p-5" style={glassPanel}>
           <ConversationPanel flow={flow} highlight={highlightNL} />
           {flow.error && <p className="mt-2 text-xs text-red-500">{flow.error.message}</p>}
+          <SearchNotes assessment={flow.assessment} sparql={sparql} />
         </section>
 
         {/* SPARQL Editor glass panel */}

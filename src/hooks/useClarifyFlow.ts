@@ -25,6 +25,7 @@ export interface ClarifyFlow {
   isPending: boolean;
   error: Error | null;
   steps: ReturnType<typeof useTranslate>["steps"];
+  assessment: ReturnType<typeof useTranslate>["result"];
   /** True while the assistant is waiting for the user to answer a question. */
   awaitingAnswer: boolean;
   /** True after the user clicked "Needs adjustment" on an approval card. */
@@ -252,6 +253,7 @@ export function useClarifyFlow(opts: {
   );
 
   return {
+    assessment: phase === "done" ? translate.result : null,
     messages,
     phase,
     isPending: clarify.isPending || translate.isPending,

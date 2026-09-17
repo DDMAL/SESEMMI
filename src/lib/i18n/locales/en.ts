@@ -79,6 +79,7 @@ export const en = {
     thinking: "Thinking…",
   },
   results: {
+    searchNotes: "Search notes and limitations",
     title: "Results",
     emptyState: "Run a query to explore music metadata",
     queryFailed: "Query failed",
