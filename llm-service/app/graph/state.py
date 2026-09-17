@@ -28,14 +28,15 @@ class GraphState(TypedDict, total=False):
 
     # Execution
     execution_error: str | None
-    # "external_service" (a federated SERVICE call failed transiently — repair is futile) |
+    # "external_service" (a federated call failed — stop without dropping constraints) |
     # "query_fault" (a fault in the query itself — a repair may help) | None
     error_kind: str | None
     result_count: int
     results: dict | None
 
     # Semantic judge (judge node, optional)
-    judge_feedback: str | None  # LLM judge's reason if results don't satisfy intent
+    # None means no repair; even an empty reason requests one.
+    judge_feedback: str | None
 
     # Loop control
     repair_count: int

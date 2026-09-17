@@ -8,7 +8,7 @@ from langchain_core.messages import AIMessage
 from app.graph.nodes.execute import execute_node
 from app.graph.nodes.generate import clean_sparql, generate_node
 from app.graph.nodes.intake import IntakeClassification, intake_node
-from app.graph.nodes.judge import judge_node as answer_node
+from app.graph.nodes.judge import _JudgeVerdict, judge_node
 from app.graph.nodes.retrieve import retrieve_node
 from app.graph.nodes.validate import validate_node
 
@@ -502,10 +502,10 @@ async def test_execute_error():
 
 
 # ---------------------------------------------------------------------------
-# Answer node — no semantic judge
+# Judge node — no semantic judge
 # ---------------------------------------------------------------------------
 
-_ANSWER_BASE_STATE = {
+_JUDGE_BASE_STATE = {
     "user_query": "Find manuscripts",
     "sparql": _VALID_SPARQL,
     "resolved_qids": {},
@@ -515,10 +515,10 @@ _ANSWER_BASE_STATE = {
 }
 
 
-async def test_answer_execution_alone_is_medium_confidence():
+async def test_judge_execution_alone_is_medium_confidence():
     """Execution success without a semantic check does not verify the answer."""
     state = {
-        **_ANSWER_BASE_STATE,
+        **_JUDGE_BASE_STATE,
         "is_valid": True,
         "execution_error": None,
         "result_count": 3,
@@ -526,18 +526,16 @@ async def test_answer_execution_alone_is_medium_confidence():
     }
     with patch("app.graph.nodes.judge.settings") as mock_settings:
         mock_settings.semantic_judge_enabled = False
-        mock_settings.llm_model = "gemini-2.5-flash-lite"
-        mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
-        result = await answer_node(state)
+        result = await judge_node(state)
 
     assert result["confidence"] == "medium"
 
 
-async def test_answer_low_confidence_max_repairs():
+async def test_judge_low_confidence_max_repairs():
     """Invalid query with no remaining repairs → confidence=low."""
     state = {
-        **_ANSWER_BASE_STATE,
+        **_JUDGE_BASE_STATE,
         "is_valid": False,
         "execution_error": "syntax error",
         "result_count": 0,
@@ -546,20 +544,18 @@ async def test_answer_low_confidence_max_repairs():
     }
     with patch("app.graph.nodes.judge.settings") as mock_settings:
         mock_settings.semantic_judge_enabled = False
-        mock_settings.llm_model = "gemini-2.5-flash-lite"
-        mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
-        result = await answer_node(state)
+        result = await judge_node(state)
 
     assert result["confidence"] == "low"
 
 
 # ---------------------------------------------------------------------------
-# Answer node — semantic judge enabled
+# Judge node — semantic judge enabled
 # ---------------------------------------------------------------------------
 
 _JUDGE_STATE = {
-    **_ANSWER_BASE_STATE,
+    **_JUDGE_BASE_STATE,
     "is_valid": True,
     "execution_error": None,
     "result_count": 2,
@@ -567,39 +563,36 @@ _JUDGE_STATE = {
 }
 
 
-def _mock_judge_llm(satisfied: bool, reason: str = "test reason", limitation=None):
-    """Return the mock structured chain (what get_structured_model returns) for answer_node."""
-    verdict = MagicMock()
-    verdict.satisfied = satisfied
-    verdict.reason = reason
-    verdict.limitation = limitation
-    mock_judge_chain = AsyncMock()
-    mock_judge_chain.ainvoke.return_value = verdict
-    return mock_judge_chain
+def _mock_judge_llm(
+    satisfied: bool, reason: str = "test reason", limitation: str | None = None
+) -> AsyncMock:
+    model = AsyncMock()
+    model.ainvoke.return_value = _JudgeVerdict(
+        satisfied=satisfied, reason=reason, limitation=limitation
+    )
+    return model
 
 
-async def test_answer_judge_satisfied():
+async def test_judge_satisfied():
     """Judge satisfied=True → confidence=high, judge_feedback cleared."""
     mock_chain = _mock_judge_llm(satisfied=True)
     state = {**_JUDGE_STATE, "repair_count": 0}
 
     with patch("app.graph.nodes.judge.settings") as mock_settings:
         mock_settings.semantic_judge_enabled = True
-        mock_settings.llm_model = "gemini-2.5-flash-lite"
-        mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
         with patch(
             "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
         ):
-            result = await answer_node(state)
+            result = await judge_node(state)
 
     assert result["confidence"] == "high"
     assert result.get("judge_feedback") is None
 
 
-async def test_answer_judge_unsatisfied_empty_repairs_left():
+async def test_judge_unsatisfied_empty_repairs_left():
     """Judge unsatisfied on a ZERO-row result + repairs remaining → judge_feedback set to trigger
-    re-generation. Repair is reserved for empty results (a nonempty result is trusted).
+    re-generation. Nonempty results retain the rejected verdict as a caveat instead.
     """
     mock_chain = _mock_judge_llm(satisfied=False, reason="Missing time filter")
     state = {
@@ -615,18 +608,16 @@ async def test_answer_judge_unsatisfied_empty_repairs_left():
         mock_settings.empty_probe_enabled = (
             False  # isolate the semantic-judge path (no network)
         )
-        mock_settings.llm_model = "gemini-2.5-flash-lite"
-        mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
         with patch(
             "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
         ):
-            result = await answer_node(state)
+            result = await judge_node(state)
 
     assert result["judge_feedback"] == "Missing time filter"
 
 
-async def test_answer_judge_unsatisfied_nonempty_is_advisory():
+async def test_judge_unsatisfied_nonempty_is_advisory():
     """Judge unsatisfied but the query RETURNED ROWS → no repair loop: judge_feedback stays None,
     confidence is low, and the concern is recorded as an assumption.
     """
@@ -639,20 +630,18 @@ async def test_answer_judge_unsatisfied_nonempty_is_advisory():
 
     with patch("app.graph.nodes.judge.settings") as mock_settings:
         mock_settings.semantic_judge_enabled = True
-        mock_settings.llm_model = "gemini-2.5-flash-lite"
-        mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
         with patch(
             "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
         ):
-            result = await answer_node(state)
+            result = await judge_node(state)
 
     assert result.get("judge_feedback") is None
     assert result["confidence"] == "low"
     assert any("Prefers a wdt:P2888 join" in a for a in result.get("assumptions", []))
 
 
-async def test_answer_judge_unsatisfied_exhausted():
+async def test_judge_unsatisfied_exhausted():
     """Judge unsatisfied on a ZERO-row result + repairs exhausted → confidence=low, reason in
     assumptions (no more repair rounds available)."""
     mock_chain = _mock_judge_llm(satisfied=False, reason="Still wrong")
@@ -669,20 +658,18 @@ async def test_answer_judge_unsatisfied_exhausted():
         mock_settings.empty_probe_enabled = (
             False  # isolate the semantic-judge path (no network)
         )
-        mock_settings.llm_model = "gemini-2.5-flash-lite"
-        mock_settings.llm_api_key = "test-key"
         mock_settings.max_repair_iterations = 3
         with patch(
             "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
         ):
-            result = await answer_node(state)
+            result = await judge_node(state)
 
     assert result["confidence"] == "low"
     assert result.get("judge_feedback") is None
     assert any("Still wrong" in a for a in result.get("assumptions", []))
 
 
-async def test_answer_judge_receives_schema_context():
+async def test_judge_receives_schema_context():
     """The judge prompt includes the schema_context the generator saw."""
     mock_chain = _mock_judge_llm(satisfied=True)
     state = {
@@ -697,14 +684,14 @@ async def test_answer_judge_receives_schema_context():
         with patch(
             "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
         ):
-            await answer_node(state)
+            await judge_node(state)
 
     judge_user = mock_chain.ainvoke.call_args[0][0][1].content
     assert "musiconn ontology chunk" in judge_user
 
 
 @pytest.mark.parametrize("repair_count, max_repairs", [(0, 3), (3, 3), (0, 0)])
-async def test_answer_empty_probe_missing_link_preserves_empty_result(
+async def test_judge_empty_probe_missing_link_preserves_empty_result(
     repair_count: int, max_repairs: int
 ) -> None:
     """A missing QID link is not an instruction to drop the requested person."""
@@ -729,7 +716,7 @@ async def test_answer_empty_probe_missing_link_preserves_empty_result(
         settings.empty_probe_enabled = True
         settings.semantic_judge_enabled = True
         settings.max_repair_iterations = 3
-        result = await answer_node(state)
+        result = await judge_node(state)
     probe.assert_awaited_once_with(state["sparql"])
     assert result["judge_feedback"] is None
     assert result["confidence"] == "medium"
@@ -738,7 +725,7 @@ async def test_answer_empty_probe_missing_link_preserves_empty_result(
     assert "<Q123>" in judge.ainvoke.call_args[0][0][1].content
 
 
-async def test_answer_empty_probe_with_judge_disabled_never_forces_repair():
+async def test_judge_empty_probe_with_judge_disabled_never_forces_repair():
     state = {
         **_JUDGE_STATE,
         "result_count": 0,
@@ -754,16 +741,16 @@ async def test_answer_empty_probe_with_judge_disabled_never_forces_repair():
     ):
         settings.empty_probe_enabled = True
         settings.semantic_judge_enabled = False
-        result = await answer_node(state)
+        result = await judge_node(state)
     model.assert_not_called()
     assert result["judge_feedback"] is None
     assert any("Missing data" in note for note in result["assumptions"])
 
 
-async def test_answer_empty_probe_no_culprit_falls_through_to_judge():
+async def test_judge_empty_probe_no_culprit_falls_through_to_judge():
     """Zero rows but every pattern is individually satisfiable (join-empty) → LLM judge runs."""
     state = {
-        **_ANSWER_BASE_STATE,
+        **_JUDGE_BASE_STATE,
         "is_valid": True,
         "execution_error": None,
         "result_count": 0,
@@ -783,12 +770,12 @@ async def test_answer_empty_probe_no_culprit_falls_through_to_judge():
             with patch(
                 "app.graph.nodes.judge.get_structured_model", return_value=judge_chain
             ):
-                result = await answer_node(state)
+                result = await judge_node(state)
 
     assert result["judge_feedback"] == "join is empty"
 
 
-async def test_answer_judge_malformed_output_records_caveat():
+async def test_judge_malformed_output_records_caveat():
     """Judge structured output fails to parse (27b emits a non-object) → base confidence is kept
     (a judge crash is not evidence the query is wrong), but a caveat is recorded so a
     judge-crashed result can't be mistaken for an independently-confirmed one."""
@@ -804,7 +791,7 @@ async def test_answer_judge_malformed_output_records_caveat():
         with patch(
             "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
         ):
-            result = await answer_node(state)
+            result = await judge_node(state)
 
     assert result["confidence"] == "medium"
     assert result.get("judge_feedback") is None
@@ -814,7 +801,7 @@ async def test_answer_judge_malformed_output_records_caveat():
     )
 
 
-async def test_answer_judge_limitation_recorded_as_assumption():
+async def test_judge_limitation_recorded_as_assumption():
     """Satisfied verdict with a schema limitation surfaces it as an assumption, no repair."""
     mock_chain = _mock_judge_llm(
         satisfied=True,
@@ -828,7 +815,7 @@ async def test_answer_judge_limitation_recorded_as_assumption():
         with patch(
             "app.graph.nodes.judge.get_structured_model", return_value=mock_chain
         ):
-            result = await answer_node(state)
+            result = await judge_node(state)
 
     assert result.get("judge_feedback") is None
     assert any(
@@ -838,24 +825,25 @@ async def test_answer_judge_limitation_recorded_as_assumption():
 
 
 # ---------------------------------------------------------------------------
-# Answer node — external constraints must survive service failures
+# Judge node — external constraints must survive service failures
 # ---------------------------------------------------------------------------
 
 
-async def test_external_birthplace_failure_never_becomes_unfiltered_local_results():
+async def test_judge_external_failure_preserves_execution_state() -> None:
     state = {
         **_JUDGE_STATE,
         "sparql": "SELECT ?person WHERE { GRAPH <local> { ?person <qid> ?qid } SERVICE <https://query.wikidata.org/sparql> { ?qid <birthplace> <Vienna> } }",
+        "results": None,
+        "result_count": 0,
         "execution_error": "Wikidata HTTP 429",
         "error_kind": "external_service",
     }
     with patch("app.graph.nodes.judge.get_structured_model") as model:
-        result = await answer_node(state)
+        assessment = await judge_node(state)
     model.assert_not_called()
-    assert result["results"] is None
-    assert result["result_count"] == 0
-    assert result["confidence"] == "low"
-    assert result["execution_error"] == state["execution_error"]
-    assert result["error_kind"] == "external_service"
-    assert result["judge_feedback"] is None
-    assert any("could not be verified" in note for note in result["assumptions"])
+    assert assessment["confidence"] == "low"
+    assert assessment["judge_feedback"] is None
+    assert any("could not be verified" in note for note in assessment["assumptions"])
+    assert assessment.keys().isdisjoint(
+        {"sparql", "results", "result_count", "execution_error", "error_kind"}
+    )

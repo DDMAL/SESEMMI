@@ -112,10 +112,10 @@ def _build_user(state: GraphState, is_repair: bool, repair_count: int) -> str:
 
 
 async def generate_node(state: GraphState) -> dict:
-    is_repair = bool(
-        state.get("validation_errors")
-        or state.get("execution_error")
-        or state.get("judge_feedback")
+    is_repair = (
+        bool(state.get("validation_errors"))
+        or state.get("execution_error") is not None
+        or state.get("judge_feedback") is not None
     )
     repair_count = state.get("repair_count", 0)
     if is_repair:

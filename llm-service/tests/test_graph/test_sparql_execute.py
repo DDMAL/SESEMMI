@@ -143,8 +143,7 @@ async def test_http_error_classified_query_fault():
 async def test_external_service_429_classified_not_retried():
     """A WDQS 429 (wrapped as a Virtuoso 500) → error_kind='external_service', failed fast.
 
-    We don't retry: a volume-driven 429 won't clear in seconds, so we degrade immediately rather
-    than make the user wait."""
+    Preserve the failure for the caller without an immediate retry."""
     mock_inner_response = MagicMock()
     mock_inner_response.status_code = 500
     mock_inner_response.text = (

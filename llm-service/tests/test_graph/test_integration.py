@@ -1,12 +1,14 @@
-"""End-to-end integration tests for the LangGraph StateGraph (Step 13)."""
+"""Integration tests for query execution, assessment, and bounded repair."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from langchain_core.messages import AIMessage
 
 from app.graph.builder import build_graph
 from app.graph.nodes.intake import IntakeClassification
+from app.graph.nodes.judge import _JudgeVerdict
 
 # ---------------------------------------------------------------------------
 # Shared SPARQL fixtures
@@ -44,11 +46,6 @@ _VIRTUOSO_SUCCESS = {
     "error": None,
 }
 
-_VIRTUOSO_ERROR = {
-    "results": None,
-    "error": "Virtuoso SPARQL syntax error",
-}
-
 _VIRTUOSO_EMPTY = {
     "results": {"results": {"bindings": []}},
     "error": None,
@@ -77,55 +74,34 @@ _DIAMM_AGGREGATION = IntakeClassification(
 # ---------------------------------------------------------------------------
 
 
-def _intake_mock(classification: IntakeClassification):
+def _intake_mock(classification: IntakeClassification) -> AsyncMock:
     """get_structured_model mock for intake_node (returns the structured chain)."""
     chain = AsyncMock()
     chain.ainvoke.return_value = classification
     return chain
 
 
-def _generate_mock(*sparql_responses: str):
-    """
-    ChatGoogleGenerativeAI mock for generate_node.
-    Successive ainvoke() calls return successive sparql_responses.
-    Works for both entities (bind_tools path) and no-entities (direct path).
-    """
-    responses = [AIMessage(content=s) for s in sparql_responses]
-    inner_model = AsyncMock()
-    inner_model.ainvoke.side_effect = responses
-    chat = MagicMock()
-    chat.bind_tools.return_value = inner_model
-    # Also wire ainvoke directly for the no-entities path
-    chat.ainvoke = AsyncMock(side_effect=responses)
-    return chat
+def _generate_mock(*sparql_responses: str) -> AsyncMock:
+    model = AsyncMock()
+    model.ainvoke.side_effect = [AIMessage(content=s) for s in sparql_responses]
+    return model
 
 
-def _judge_mock(*verdicts: tuple[bool, str]):
-    """
-    ChatGoogleGenerativeAI mock for answer_node judge (uses with_structured_output).
-    Each (satisfied, reason) pair is returned on successive ainvoke() calls.
-    """
-    verdict_objects = []
-    for satisfied, reason in verdicts:
-        v = MagicMock()
-        v.satisfied = satisfied
-        v.reason = reason
-        v.limitation = None
-        verdict_objects.append(v)
-    chain = AsyncMock()
-    chain.ainvoke.side_effect = verdict_objects
-    return chain
+def _judge_mock(*verdicts: tuple[bool, str]) -> AsyncMock:
+    model = AsyncMock()
+    model.ainvoke.side_effect = [
+        _JudgeVerdict(satisfied=satisfied, reason=reason)
+        for satisfied, reason in verdicts
+    ]
+    return model
 
 
-def _answer_settings(*, semantic_judge_enabled: bool = False):
-    """Return a settings mock suitable for patching app.graph.nodes.judge.settings."""
-    s = MagicMock()
-    s.semantic_judge_enabled = semantic_judge_enabled
-    s.empty_probe_enabled = False  # keep tests hermetic — the probe would hit Virtuoso
-    s.llm_model = "gemini-2.5-flash-lite"
-    s.llm_api_key = "test-key"
-    s.max_repair_iterations = 3
-    return s
+def _judge_settings(*, semantic_judge_enabled: bool = False) -> SimpleNamespace:
+    return SimpleNamespace(
+        semantic_judge_enabled=semantic_judge_enabled,
+        empty_probe_enabled=False,
+        max_repair_iterations=3,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -149,7 +125,7 @@ async def test_happy_path():
         ),
         patch(
             "app.graph.nodes.judge.settings",
-            new=_answer_settings(semantic_judge_enabled=False),
+            new=_judge_settings(semantic_judge_enabled=False),
         ),
         patch(
             "app.graph.nodes.execute.execute_sparql",
@@ -177,7 +153,7 @@ async def test_repair_loop_invalid_then_valid():
     """
     Repair loop: first generate returns invalid SPARQL (rdflib rejects it),
     second generate returns valid SPARQL.
-    Final repair_count=1, confidence='high'.
+    Final repair_count=1, confidence='medium' without semantic assessment.
     """
     with (
         patch(
@@ -190,7 +166,7 @@ async def test_repair_loop_invalid_then_valid():
         ),
         patch(
             "app.graph.nodes.judge.settings",
-            new=_answer_settings(semantic_judge_enabled=False),
+            new=_judge_settings(semantic_judge_enabled=False),
         ),
         patch(
             "app.graph.nodes.execute.execute_sparql",
@@ -240,10 +216,11 @@ async def test_max_repairs_exceeded():
     assert final["is_valid"] is False
 
 
-async def test_execution_error_triggers_repair():
+@pytest.mark.parametrize("error", ["Virtuoso SPARQL syntax error", ""])
+async def test_execution_error_triggers_repair(error: str) -> None:
     """
     Execution error on first Virtuoso call routes back to generate.
-    Second generate + second execute succeed → confidence='high', repair_count=1.
+    Second generate + second execute succeed → confidence='medium', repair_count=1.
     """
     with (
         patch(
@@ -256,12 +233,12 @@ async def test_execution_error_triggers_repair():
         ),
         patch(
             "app.graph.nodes.judge.settings",
-            new=_answer_settings(semantic_judge_enabled=False),
+            new=_judge_settings(semantic_judge_enabled=False),
         ),
         patch(
             "app.graph.nodes.execute.execute_sparql",
             new_callable=AsyncMock,
-            side_effect=[_VIRTUOSO_ERROR, _VIRTUOSO_SUCCESS],
+            side_effect=[{"results": None, "error": error}, _VIRTUOSO_SUCCESS],
         ),
     ):
         graph = build_graph()
@@ -281,7 +258,7 @@ async def test_execution_error_triggers_repair():
 async def test_structural_intent_check_triggers_repair():
     """
     aggregation intent + SPARQL without COUNT fails validate_intent.
-    Repair produces SPARQL with COUNT → validate passes → confidence='high'.
+    Repair produces SPARQL with COUNT → validate passes → confidence='medium'.
     """
     with (
         patch(
@@ -296,7 +273,7 @@ async def test_structural_intent_check_triggers_repair():
         ),
         patch(
             "app.graph.nodes.judge.settings",
-            new=_answer_settings(semantic_judge_enabled=False),
+            new=_judge_settings(semantic_judge_enabled=False),
         ),
         patch(
             "app.graph.nodes.execute.execute_sparql",
@@ -323,8 +300,7 @@ async def test_semantic_judge_triggers_repair_then_satisfied():
     """
     Semantic judge enabled: an empty first result makes the judge unsatisfied → repair → the
     second result has rows and the judge is satisfied. Final repair_count=1, confidence='high',
-    judge_feedback cleared. (Repair is reserved for zero-row results; a nonempty result is
-    trusted — see the unit test test_answer_judge_unsatisfied_nonempty_is_advisory.)
+    judge_feedback cleared. Nonempty rejected results keep a caveat without another repair.
     """
     with (
         patch(
@@ -344,7 +320,7 @@ async def test_semantic_judge_triggers_repair_then_satisfied():
         ),
         patch(
             "app.graph.nodes.judge.settings",
-            new=_answer_settings(semantic_judge_enabled=True),
+            new=_judge_settings(semantic_judge_enabled=True),
         ),
         patch(
             "app.graph.nodes.execute.execute_sparql",
@@ -367,7 +343,10 @@ async def test_semantic_judge_triggers_repair_then_satisfied():
     assert "A previous query used the wrong date range." not in final["assumptions"]
 
 
-async def test_external_outage_preserves_required_filter_without_retry() -> None:
+@pytest.mark.parametrize("error", ["Wikidata HTTP 429", ""])
+async def test_external_outage_preserves_required_filter_without_retry(
+    error: str,
+) -> None:
     sparql = (
         "SELECT ?person WHERE { "
         "GRAPH <https://linkedmusic.ca/graphs/diamm/> { "
@@ -389,7 +368,7 @@ async def test_external_outage_preserves_required_filter_without_retry() -> None
             new=AsyncMock(
                 return_value={
                     "results": None,
-                    "error": "Wikidata HTTP 429",
+                    "error": error,
                     "error_kind": "external_service",
                 }
             ),
@@ -409,17 +388,18 @@ async def test_external_outage_preserves_required_filter_without_retry() -> None
     probe.assert_not_called()
     assert final["sparql"] == sparql
     assert final["repair_count"] == 0
-    assert final["execution_error"] == "Wikidata HTTP 429"
+    assert final["execution_error"] == error
     assert final["results"] is None
     assert final["confidence"] == "low"
     assert any("could not be verified" in note for note in final["assumptions"])
 
 
 @pytest.mark.parametrize("max_repairs", [0, 1, 3])
-async def test_semantic_repair_stops_at_budget(max_repairs: int) -> None:
+@pytest.mark.parametrize("reason", ["Missing required date filter", ""])
+async def test_semantic_repair_stops_at_budget(max_repairs: int, reason: str) -> None:
     attempts = max_repairs + 1
     generator = _generate_mock(*([_VALID_SPARQL] * attempts))
-    judge = _judge_mock(*([(False, "Missing required date filter")] * attempts))
+    judge = _judge_mock(*([(False, reason)] * attempts))
     with (
         patch(
             "app.graph.nodes.intake.get_structured_model",
@@ -429,7 +409,7 @@ async def test_semantic_repair_stops_at_budget(max_repairs: int) -> None:
         patch("app.graph.nodes.judge.get_structured_model", return_value=judge),
         patch(
             "app.graph.nodes.judge.settings",
-            new=_answer_settings(semantic_judge_enabled=True),
+            new=_judge_settings(semantic_judge_enabled=True),
         ),
         patch(
             "app.graph.nodes.execute.execute_sparql",
@@ -450,4 +430,7 @@ async def test_semantic_repair_stops_at_budget(max_repairs: int) -> None:
     assert final["repair_count"] == max_repairs
     assert final["judge_feedback"] is None
     assert final["confidence"] == "low"
-    assert any("Missing required date filter" in note for note in final["assumptions"])
+    assert any(
+        "may not fully answer" in note and reason in note
+        for note in final["assumptions"]
+    )

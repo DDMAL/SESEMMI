@@ -19,31 +19,7 @@ def _base_assumptions(state: GraphState) -> list[str]:
     return list(dict.fromkeys(assumptions))
 
 
-async def _degrade_external_service(state: GraphState) -> dict:
-    """Report an unavailable answer without dropping external constraints.
-
-    A SERVICE block can restrict birthplace, nationality, roles or identity, not
-    just add display fields. Stripping it cannot generally preserve the question.
-    Keep the failed query and error so callers distinguish unavailable from empty.
-    """
-    assumptions = _base_assumptions(state)
-    assumptions.append(
-        "This answer requires live Wikidata data, which was unavailable (the federated "
-        "query service could not be reached). The requested conditions could not be "
-        "verified; please try again later."
-    )
-    return {
-        "judge_feedback": None,
-        "execution_error": state.get("execution_error"),
-        "error_kind": "external_service",
-        "results": None,
-        "result_count": 0,
-        "confidence": "low",
-        "assumptions": assumptions,
-    }
-
-
-def _empty_probe_feedback(empties: list[str]) -> str:
+def _format_empty_diagnostics(empties: list[str]) -> str:
     patterns = "\n".join(f"- {e}" for e in empties)
     return (
         "The query returned no results. These independently probed patterns matched "
@@ -122,95 +98,81 @@ _JUDGE_USER_TEMPLATE = """\
 
 
 async def judge_node(state: GraphState) -> dict:
-    updates: dict = {"judge_feedback": None}  # clear prior judge signal by default
-
-    # An unavailable external constraint must not become an unfiltered local answer.
-    if state.get("error_kind") == "external_service" and state.get("execution_error"):
-        return await _degrade_external_service(state)
-
-    # Determine base confidence
-    if state.get("is_valid") and not state.get("execution_error"):
-        confidence = "medium"
-    else:
-        confidence = "low"
-
+    """Assess the query without changing its execution results or errors."""
     assumptions = _base_assumptions(state)
-    updates.update({"confidence": confidence, "assumptions": assumptions})
+    execution_error = state.get("execution_error")
+    updates: dict = {
+        "judge_feedback": None,
+        "confidence": (
+            "medium" if state.get("is_valid") and execution_error is None else "low"
+        ),
+        "assumptions": assumptions,
+    }
 
-    # A failed ASK is evidence of missing data, not automatic permission to repair.
+    if execution_error is not None:
+        if state.get("error_kind") == "external_service":
+            # SERVICE can enforce required filters, so a local-only answer is unsafe.
+            assumptions.append(
+                "This answer requires live Wikidata data, which was unavailable (the federated "
+                "query service could not be reached). The requested conditions could not be "
+                "verified; please try again later."
+            )
+        return updates
+
+    # Empty probes explain missing data even when no repair attempts remain.
     empty_diagnostics = "Not probed."
-    if (
-        settings.empty_probe_enabled
-        and not state.get("execution_error")
-        and state.get("result_count", 0) == 0
-    ):
+    if settings.empty_probe_enabled and state.get("result_count", 0) == 0:
         try:
             empties = await probe_empty_patterns(state.get("sparql", ""))
         except Exception:
             logger.exception("empty-probe failed, skipping")
             empties = []
         if empties:
-            empty_diagnostics = _empty_probe_feedback(empties)
+            empty_diagnostics = _format_empty_diagnostics(empties)
             assumptions.append(
                 "No records matched one or more requested relationships. Missing data "
                 "or reconciliation links may explain the empty result."
             )
 
-    # Semantic judge (only when enabled and execution succeeded)
-    if (
-        settings.semantic_judge_enabled
-        and not state.get("execution_error")
-        and state.get("results")
-    ):
-        bindings = state["results"].get("results", {}).get("bindings", [])
-        sample = bindings[:5]
+    if not settings.semantic_judge_enabled or not state.get("results"):
+        return updates
 
-        judge_model = get_structured_model(_JudgeVerdict)
-
-        judge_user = _JUDGE_USER_TEMPLATE.format(
-            schema_context=state.get("schema_context", "") or "(no schema provided)",
-            user_query=state["user_query"],
-            sparql=state.get("sparql", ""),
-            sample_results=sample if sample else "(no results)",
-            empty_diagnostics=empty_diagnostics,
+    bindings = state["results"].get("results", {}).get("bindings", [])
+    judge_user = _JUDGE_USER_TEMPLATE.format(
+        schema_context=state.get("schema_context", "") or "(no schema provided)",
+        user_query=state["user_query"],
+        sparql=state.get("sparql", ""),
+        sample_results=bindings[:5] or "(no results)",
+        empty_diagnostics=empty_diagnostics,
+    )
+    judge_model = get_structured_model(_JudgeVerdict)
+    try:
+        verdict = await judge_model.ainvoke(
+            [SystemMessage(content=_JUDGE_SYSTEM), HumanMessage(content=judge_user)]
         )
+    except Exception:
+        logger.exception("Semantic judge failed, skipping")
+        assumptions.append(
+            "These results could not be checked against your question. "
+            "Review them before relying on them."
+        )
+        return updates
 
-        try:
-            verdict = await judge_model.ainvoke(
-                [SystemMessage(content=_JUDGE_SYSTEM), HumanMessage(content=judge_user)]
-            )
-        except Exception:
-            # An unavailable judge cannot promote execution success to high confidence.
-            logger.exception("Semantic judge failed, skipping")
-            updates["assumptions"] = assumptions + [
-                "These results could not be checked against your question. "
-                "Review them before relying on them."
-            ]
-            return updates
-
-        if not verdict.satisfied:
-            has_rows = state.get("result_count", 0) > 0
-            max_repairs = state.get("max_repairs", settings.max_repair_iterations)
-            # Regenerate only when the query returned NO rows — there a repair can find data.
-            # Keep nonempty results available for review, but mark a rejected answer low.
-            # Do not repeatedly regenerate on a judge's potentially spurious preference.
-            # The 27b judge routinely false-flags cross-graph rdfs:label joins as needing an
-            # impossible wdt:P2888, so looping on that just discards correct answers.
-            if not has_rows and state.get("repair_count", 0) < max_repairs:
-                updates["judge_feedback"] = verdict.reason
-                return updates
+    has_rows = state.get("result_count", 0) > 0
+    if not verdict.satisfied:
+        max_repairs = state.get("max_repairs", settings.max_repair_iterations)
+        # The judge can falsely reject valid joins. Keep nonempty results for review;
+        # only empty results are eligible for another generation attempt.
+        if not has_rows and state.get("repair_count", 0) < max_repairs:
+            updates["judge_feedback"] = verdict.reason
+        else:
             updates["confidence"] = "low"
-            assumptions_new = list(assumptions)
-            assumptions_new.append(
+            assumptions.append(
                 f"These results may not fully answer your question: {verdict.reason}"
             )
-            updates["assumptions"] = assumptions_new
-        elif verdict.limitation:
-            # Accepted the closest supported query; surface the schema gap instead of churning.
-            assumptions_new = list(assumptions)
-            assumptions_new.append(verdict.limitation)
-            updates["assumptions"] = assumptions_new
-        elif state.get("result_count", 0) > 0:
-            updates["confidence"] = "high"
+    elif verdict.limitation:
+        assumptions.append(verdict.limitation)
+    elif has_rows:
+        updates["confidence"] = "high"
 
     return updates

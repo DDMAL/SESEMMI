@@ -29,13 +29,10 @@ def after_judge(state: GraphState) -> str:
         "max_repairs", settings.max_repair_iterations
     ):
         return END
-    if state.get("judge_feedback") is not None:
-        return "intake"
-    # A query fault may be repaired. An external outage is reported above without
-    # deleting constraints or spending model calls to rewrite a valid question.
-    if state.get("execution_error") is not None and state.get(
-        "repair_count", 0
-    ) < state.get("max_repairs", settings.max_repair_iterations):
+    if (
+        state.get("judge_feedback") is not None
+        or state.get("execution_error") is not None
+    ):
         return "intake"
     return END
 
