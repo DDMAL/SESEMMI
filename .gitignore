@@ -48,6 +48,8 @@ __pycache__/
 .langgraph_api/
 
 # eval
+# Generated local audit output
+/eval/audits/
 eval/runs/
 
 # llm

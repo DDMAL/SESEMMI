@@ -2,6 +2,7 @@
 
 import re
 
+import pytest
 from pyparsing import ParseResults
 from rdflib import Dataset, RDF, URIRef
 from rdflib.plugins.sparql.algebra import translateQuery
@@ -13,6 +14,7 @@ from app.graph.schema_corpus import ONTOLOGY_CHUNKS
 
 
 def schema_inventory(chunks):
+    """Index the documented classes and predicates of each local graph."""
     inventory = {}
     for chunk in chunks.values():
         prefixes = dict(re.findall(r"@prefix\s+(\w+):\s*<([^>]+)>", chunk))
@@ -20,6 +22,7 @@ def schema_inventory(chunks):
         body = re.search(r"<ontology>(.*?)</ontology>", chunk, re.S).group(1)
 
         def expand(token):
+            """Expand an ontology name using this chunk's prefix declarations."""
             prefix, name = token.split(":", 1)
             return prefixes[prefix] + name
 
@@ -39,6 +42,7 @@ def schema_inventory(chunks):
 
 
 def local_triples(node, graph=None):
+    """Yield local triple patterns with their graph scope, excluding SERVICE."""
     if not isinstance(node, CompValue):
         return
     if node.name in ("Service", "ServiceGraphPattern"):
@@ -59,6 +63,7 @@ def local_triples(node, graph=None):
 
 
 def used_prefixes(node):
+    """Find explicit prefixed names, including RDFLib's implicit namespaces."""
     if isinstance(node, CompValue):
         if node.name == "pname":
             yield node.prefix or ""
@@ -70,7 +75,13 @@ def used_prefixes(node):
 
 
 def audit_errors(examples, chunks):
+    """Check syntax and documented terms, without claiming semantic correctness."""
     inventory = schema_inventory(chunks)
+    # Without a fixed named graph, any documented local graph may supply a term.
+    unscoped = {
+        key: set().union(*(known[key] for known in inventory.values()))
+        for key in ("classes", "predicates")
+    }
     failures = []
     for index, example in enumerate(examples, 1):
         query = example["sparql"]
@@ -84,19 +95,18 @@ def audit_errors(examples, chunks):
                 flags.append(f"undeclared_prefix: {prefix}")
             algebra = translateQuery(parsed).algebra
             for graph, (_, predicate, obj) in local_triples(algebra):
-                if not isinstance(graph, URIRef):
-                    continue
-                known = inventory.get(str(graph))
+                scope = str(graph) if isinstance(graph, URIRef) else "unscoped"
+                known = inventory.get(scope) if isinstance(graph, URIRef) else unscoped
                 if known is None:
                     flags.append(f"undocumented_graph: {graph}")
                 elif predicate == RDF.type and isinstance(obj, URIRef):
                     if str(obj) not in known["classes"]:
-                        flags.append(f"undocumented_class: {graph} -> {obj}")
+                        flags.append(f"undocumented_class: {scope} -> {obj}")
                 elif (
                     isinstance(predicate, URIRef)
                     and str(predicate) not in known["predicates"]
                 ):
-                    flags.append(f"undocumented_predicate: {graph} -> {predicate}")
+                    flags.append(f"undocumented_predicate: {scope} -> {predicate}")
         except Exception as exc:
             flags.append(f"parse_error: {exc}")
         if flags:
@@ -124,6 +134,34 @@ def test_audit_keeps_external_types_separate_from_local_schema():
         audit_errors([{"nl": "External lookup", "sparql": query}], ONTOLOGY_CHUNKS)
         == []
     )
+
+
+@pytest.mark.parametrize(
+    "graph", [None, "?graph", "<https://linkedmusic.ca/graphs/diamm/>"]
+)
+@pytest.mark.parametrize(
+    "pattern,expected",
+    [
+        ("?archive a diamm:Archive", None),
+        ("?archive a diamm:UndocumentedClass", "undocumented_class"),
+        ("?archive wdt:P2888 ?qid", None),
+        ("?archive diamm:undocumentedPredicate ?x", "undocumented_predicate"),
+    ],
+)
+def test_audit_checks_terms_with_or_without_a_fixed_graph(graph, pattern, expected):
+    body = f"GRAPH {graph} {{ {pattern} }}" if graph else pattern
+    query = f"""PREFIX diamm: <https://linkedmusic.ca/graphs/diamm/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+SELECT * WHERE {{ {body} }}"""
+    failures = audit_errors(
+        [{"nl": "Archive lookup", "sparql": query}], ONTOLOGY_CHUNKS
+    )
+    if expected is None:
+        assert failures == []
+    else:
+        assert len(failures) == 1
+        assert len(failures[0]["flags"]) == 1
+        assert failures[0]["flags"][0].startswith(expected + ":")
 
 
 def test_verified_musicbrainz_questions_remain_in_runtime_corpus():

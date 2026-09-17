@@ -1,0 +1,54 @@
+[
+  {
+    "id": "ui-1",
+    "question": "Decade by decade, compare the number of public concert events in the musiconn concert database with the number of music recordings released in MusicBrainz, to trace the shift from live performance to recorded music.",
+    "evaluation_role": "Existing UI regression case; not a held-out accuracy benchmark",
+    "expected_behavior": [
+      "Compare distinct event and recording counts using their respective date predicates.",
+      "Coverage reflects archive holdings; it cannot establish a historical shift in musical activity.",
+      "Event dates do not establish a public/private distinction. This probe checks date availability, not counts."
+    ],
+    "data_probe": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX cto: <https://nfdi4culture.de/ontology/>\nSELECT ?dataset (SAMPLE(?date) AS ?exampleDate) WHERE { { GRAPH <https://linkedmusic.ca/graphs/ckg-musiconn/> { ?event a <https://linkedmusic.ca/graphs/ckg-musiconn/Event> ; wdt:P585 ?date } BIND(\"musiconn\" AS ?dataset) } UNION { GRAPH <https://linkedmusic.ca/graphs/musicbrainz/> { ?recording a <https://linkedmusic.ca/graphs/musicbrainz/Recording> ; wdt:P577 ?date } BIND(\"musicbrainz\" AS ?dataset) } } GROUP BY ?dataset"
+  },
+  {
+    "id": "ui-2",
+    "question": "Which works by Clara Schumann appear in musiconn concert programmes?",
+    "evaluation_role": "Existing UI regression case; not a held-out accuracy benchmark",
+    "expected_behavior": [
+      "Keep Clara Schumann Q132232 and the Event -> Work -> related Person path.",
+      "The related-person predicate does not independently establish the composer role."
+    ],
+    "data_probe": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX cto: <https://nfdi4culture.de/ontology/>\nSELECT DISTINCT ?work WHERE { GRAPH <https://linkedmusic.ca/graphs/ckg-musiconn/> { ?event a <https://linkedmusic.ca/graphs/ckg-musiconn/Event> ; cto:CTO_0001019 ?work . ?work cto:CTO_0001009 ?person . ?person wdt:P2888 wd:Q132232 } } LIMIT 5"
+  },
+  {
+    "id": "ui-3",
+    "question": "What works were staged at the Detmold court theatre in the 1830s?",
+    "evaluation_role": "Existing UI regression case; not a held-out accuracy benchmark",
+    "expected_behavior": [
+      "Keep the 1830 <= year < 1840 interval.",
+      "P571 is a creation date. A creation-date result must not be described as evidence of staging in that decade."
+    ],
+    "data_probe": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX cto: <https://nfdi4culture.de/ontology/>\nSELECT ?work ?date WHERE { GRAPH <https://linkedmusic.ca/graphs/ckg-detmold/> { ?work a <https://linkedmusic.ca/graphs/ckg-detmold/Work> ; wdt:P571 ?date . FILTER(STR(?date) >= \"1830\" && STR(?date) < \"1840\") } } LIMIT 5"
+  },
+  {
+    "id": "ui-4",
+    "question": "Show Arabic field recordings of vocal music collected before 1950",
+    "evaluation_role": "Existing UI regression case; not a held-out accuracy benchmark",
+    "expected_behavior": [
+      "Preserve the before-1950 constraint and use the audio-recording type.",
+      "The feed has no structured language, vocal-music or field-recording distinctions. Any returned audio candidates require those caveats."
+    ],
+    "data_probe": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX cto: <https://nfdi4culture.de/ontology/>\nSELECT ?work ?date WHERE { GRAPH <https://linkedmusic.ca/graphs/ckg-apsearch/> { ?work a <https://linkedmusic.ca/graphs/ckg-apsearch/Work> ; wdt:P31 wd:Q3302947 ; wdt:P571 ?date . FILTER(STR(?date) < \"1950\") } } LIMIT 5"
+  },
+  {
+    "id": "ui-5",
+    "question": "Which composers performed at musiconn-documented concerts were born in Vienna?",
+    "evaluation_role": "Existing UI regression case; not a held-out accuracy benchmark",
+    "expected_behavior": [
+      "Preserve Vienna Q1741 and the birthplace condition in an eventual generated query.",
+      "A related-person edge does not prove composer or performer status.",
+      "The saved probe checks local candidate availability only. It does not verify birthplace and does not use live federation."
+    ],
+    "data_probe": "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\nPREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX cto: <https://nfdi4culture.de/ontology/>\nSELECT DISTINCT ?person ?qid WHERE { GRAPH <https://linkedmusic.ca/graphs/ckg-musiconn/> { ?event a <https://linkedmusic.ca/graphs/ckg-musiconn/Event> ; cto:CTO_0001009 ?person . ?person a <https://linkedmusic.ca/graphs/ckg-musiconn/Person> ; wdt:P2888 ?qid } } LIMIT 5"
+  }
+]
