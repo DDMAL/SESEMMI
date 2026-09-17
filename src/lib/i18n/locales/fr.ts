@@ -117,7 +117,7 @@ export const fr: Dictionary = {
       generate: { short: "Générer", friendly: "Rédaction de la requête SPARQL" },
       validate: { short: "Valider", friendly: "Vérification de la validité" },
       execute: { short: "Exécuter", friendly: "Exécution sur la base de données" },
-      judge: { short: "Examiner", friendly: "Examen de la réponse" },
+      judge: { short: "Vérifier", friendly: "Vérification de la réponse" },
     },
     judgeDescription:
       "Compare la requête et un échantillon des résultats à la question que vous avez approuvée. Utilise les descriptions des bases de données pour repérer les limites et estimer la confiance.",
