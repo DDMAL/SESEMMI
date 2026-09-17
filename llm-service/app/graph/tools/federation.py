@@ -1,16 +1,14 @@
 """Helpers for reasoning about federated (SERVICE) SPARQL queries.
 
-Dependency-free (only ``re``) so it can be imported from the executor, the validator, and
-the judge without risking an import cycle. Brace matching is best-effort and does not account
-for braces inside string literals — callers treat every result as advisory and fall back
-gracefully on a parse miss.
+Used by the executor to classify failures and the validator to inspect SERVICE structure.
+Brace matching is best-effort and does not account for braces inside string literals.
 """
 
 import re
 
 # A failure of the federated SERVICE call to public Wikidata. Virtuoso reports it with an
 # SPARQL_REXEC wrapper that names the remote endpoint and echoes the remote HTTP status. We don't
-# distinguish 429 / 5xx / timeout — all are external and degrade the same way — so "did the remote
+# distinguish 429 / 5xx / timeout — all end the run without rewriting the query — so "did the remote
 # SERVICE fail?" is the only question. We match only evidence Virtuoso *adds* to describe a remote
 # failure, NOT the bare endpoint URL: Virtuoso echoes the offending query (which always contains
 # `SERVICE <…wikidata…>`) in many local compile errors (e.g. SP031), so keying on the URL would
@@ -31,8 +29,8 @@ def classify_execution_error(query: str, error_text: str) -> str:
     """Classify a failed execution so the pipeline can route it.
 
     "external_service" — the federated SERVICE call to Wikidata failed (a SPARQL_REXEC wrapping a
-    remote error, or a timeout on a query that federates); the remote call can't be fixed by
-    rewriting, so the pipeline degrades to the local part. "query_fault" — a fault in the query
+    remote error, or a timeout on a query that federates); the pipeline preserves the error
+    and stops without dropping external constraints. "query_fault" — a fault in the query
     itself (syntax, Virtuoso SP031, missing variable); a repair may fix it.
     """
     text = error_text or ""
@@ -71,8 +69,10 @@ def service_block_spans(sparql: str) -> list[tuple[int, int]]:
 
 
 def strip_service_blocks(sparql: str) -> str:
-    """Remove every SERVICE …{ … } block, returning the local-only remainder. Used to salvage
-    the local part of a federated query whose external SERVICE call failed."""
+    """Remove SERVICE blocks so validation can inspect the local query structure.
+
+    The remainder is not an executable fallback: SERVICE may enforce required filters.
+    """
     out: list[str] = []
     i = 0
     while True:
@@ -87,14 +87,3 @@ def strip_service_blocks(sparql: str) -> str:
             break
         i = _match_brace(sparql, brace) + 1
     return "".join(out)
-
-
-def has_local_pattern(sparql: str) -> bool:
-    """True if a graph pattern survives once SERVICE blocks are stripped — i.e. there is a local
-    subquery worth running on its own. Detects a variable in the WHERE body (after the opening
-    brace, so the SELECT projection doesn't count), which reads as absent for a query whose only
-    content was the SERVICE block. More robust than a bare ``"GRAPH" in ...`` check, which misses
-    a local pattern over the default graph."""
-    body = strip_service_blocks(sparql)
-    brace = body.find("{")
-    return bool(re.search(r"[?$][A-Za-z_]", body[brace:] if brace != -1 else body))

@@ -2,9 +2,9 @@
 
 Runs only on empty results (so it never perturbs a query that returned data). For each
 triple pattern inside a LinkedMusic GRAPH block (SERVICE/federated blocks are skipped), it
-asks the store whether that pattern alone matches anything. A pattern that matches nothing
-is the concrete reason the query is empty — e.g. an entity the graph doesn't reconcile, or
-an over-specified filter. Deterministic and grounded in the live data, unlike the LLM judge.
+asks the store whether that pattern alone matches anything. An empty pattern is a diagnostic
+clue (for example an unreconciled entity), not proof that the query is wrong or permission to
+remove a requested constraint. Patterns in different UNION branches need contextual review.
 """
 
 import asyncio

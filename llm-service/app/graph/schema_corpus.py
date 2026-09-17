@@ -1050,11 +1050,12 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
 """,
     "output_format_rules": """\
 <rules category="output-format">
-- Return exactly one column — the URI that answers the question. Add a label column
-  only when the question explicitly asks for a name, title, or label.
-- When a label IS requested, return one label column and filter to the language of
-  the question with FILTER(LANG(?label) = "en"). String matching inside the query
-  may use other languages as needed (e.g. Latin titles in Cantus DB).
+- For entity lookups, return the URI that answers the question, adding labels or other
+  fields when requested. For counts, comparisons and grouped summaries, return the
+  requested values and grouping columns instead of forcing a single URI column.
+- When labels are requested, use the stored labels. Prefer a requested language where
+  available and retain untagged source labels unless the user explicitly requires a
+  language restriction. Do not require English language tags on untagged source titles.
 - For any entity searched within the LinkedMusic graph, add a triple using rdf:type
   to explicitly verify its class.
 - Add LIMIT 100 unless the question specifies a different count.
@@ -1115,16 +1116,34 @@ INSTRUCTION_CHUNKS: dict[str, str] = {
   it, e.g. GRAPH g1 { ?a wdt:P2888 ?qid } GRAPH g2 { ?b wdt:P2888 ?qid }. Never write
   ?a wdt:P2888 ?b directly, and never chain wdt:P2888 off a variable that already holds a
   Wikidata URI.
-- Fallback bridge — shared literal: when either side's class does NOT expose wdt:P2888
-  (check the ontology slice — e.g. wjazzd:Composition and ts:Tune have no wdt:P2888),
-  there is no QID to join on. Join on a shared literal instead — an exact rdfs:label match
-  for a title/name, or a shared year/decade for a temporal correspondence, e.g.
-  GRAPH g1 { ?a rdfs:label ?title } GRAPH g2 { ?b rdfs:label ?title }. This is the correct
-  and intended cross-database link when no shared QID exists; it is NOT a Cartesian product
-  and must not be treated as an error or as "unreliable" — it is the only bridge the schema
-  supports for those classes.
+- Also use documented authority identifiers (e.g. RISM ID, MusicBrainz recording ID)
+  when available. Local URIs in different namespaces are not interchangeable.
+- A shared title/name is evidence of a candidate match, not proof of entity identity.
+  For a question explicitly asking which records share a title, an rdfs:label join is
+  correct. For a question asking for the same work/recording/person, a title/name-only
+  join is approximate and must be disclosed as a limitation. Work identity and recording
+  identity are different. Do not claim that title agreement verifies the same recording.
+- Shared years/decades, countries, genres or instrument categories support comparisons
+  on those attributes only; they never establish that two records are the same entity.
+- Missing reconciliation links limit coverage. A successful identifier join does not
+  demonstrate completeness or independently verify the source's reconciliation.
 - Do not demand or add wdt:P2888 on a class whose ontology slice does not list it; doing so
   makes the query impossible to satisfy.
+</rules>\
+""",
+    "answer_quality_rules": """\
+<rules category="answer-quality">
+- Preserve the user's required entities, dates, places, types, roles and relationships,
+  including during repairs. Never remove a requirement just to obtain nonempty results.
+- Zero rows can be a correct answer. Missing data or a missing reconciliation link is
+  not evidence that the requested entity does not exist in the source or in the world.
+- Fix invented predicates, reversed edges and incorrect query syntax using the schema.
+  If the schema cannot express a requirement, keep every supported requirement and make
+  the missing distinction explicit to the judge. A broader query is only a partial answer.
+- Resolved QIDs are search candidates, not independently verified identities. Do not
+  replace an explicitly requested entity with a more popular one to obtain results.
+- Few-shot examples illustrate query structure. Follow the current schema and the
+  current question when an example uses an unavailable class or different constraints.
 </rules>\
 """,
     "entity_type_rules": """\

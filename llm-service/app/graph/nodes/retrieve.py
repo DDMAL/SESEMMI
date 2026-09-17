@@ -39,7 +39,12 @@ def _build_schema_context(
     # Values are already faithful <database>…</database> docs (see slice_database_ontology).
     ontologies = "\n\n".join(db_to_ontology.values())
 
-    keys = ["named_graph_rules", "output_format_rules", "entity_type_rules"]
+    keys = [
+        "named_graph_rules",
+        "output_format_rules",
+        "entity_type_rules",
+        "answer_quality_rules",
+    ]
     if has_entities:
         keys += ["qid_resolution_rules", "string_matching_rules"]
     if needs_federation or len(db_to_ontology) > 1:

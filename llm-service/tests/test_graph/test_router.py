@@ -4,14 +4,11 @@ from app.graph.builder import after_judge, after_validate
 
 
 def test_after_judge_external_service_does_not_reroute():
-    """A persistent external-SERVICE failure ends the run — it must not loop back to intake.
-
-    Layer 3 in judge degrades such a failure and clears execution_error, so by the time the
-    router sees the state there is no error to repair and it finalizes."""
+    """An external outage ends the run even if stale judge feedback remains."""
     state = {
-        "judge_feedback": None,
-        "execution_error": None,  # judge's _degrade_external_service cleared it
-        "error_kind": None,
+        "judge_feedback": "Try again",
+        "execution_error": "Wikidata HTTP 429",
+        "error_kind": "external_service",
         "repair_count": 0,
         "max_repairs": 3,
     }
@@ -55,6 +52,26 @@ def test_after_judge_clean_success_ends():
         "max_repairs": 3,
     }
     assert after_judge(state) == "__end__"
+
+
+def test_after_judge_feedback_cannot_exceed_repair_budget():
+    assert (
+        after_judge({"judge_feedback": "retry", "repair_count": 3, "max_repairs": 3})
+        == "__end__"
+    )
+
+
+def test_after_judge_external_error_is_preserved_without_retry():
+    assert (
+        after_judge(
+            {
+                "execution_error": "Wikidata HTTP 429",
+                "error_kind": "external_service",
+                "repair_count": 0,
+            }
+        )
+        == "__end__"
+    )
 
 
 def test_after_validate_valid_goes_to_execute():

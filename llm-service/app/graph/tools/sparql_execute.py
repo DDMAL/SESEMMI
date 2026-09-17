@@ -12,10 +12,9 @@ async def execute_sparql(query: str, endpoint: str | None = None) -> dict:
     """POST a SPARQL query to Virtuoso and return parsed JSON results.
 
     On failure returns ``{"results": None, "error": <text>, "error_kind": ...}`` where
-    ``error_kind`` is ``"external_service"`` (the federated SERVICE call to Wikidata failed — the
-    local part may still be salvageable) or ``"query_fault"`` (a fault in the query itself). We do
-    not retry: a WDQS 429/5xx/timeout is volume-driven and won't clear in seconds, so failing fast
-    to graceful degradation beats making the user wait on a low-odds retry.
+    ``error_kind`` is ``"external_service"`` (a federated call failed) or ``"query_fault"``
+    (a fault in the query itself). The graph decides whether to repair a query fault;
+    external failures are reported without dropping constraints or retrying here.
     """
     url = endpoint or settings.virtuoso_endpoint
     headers = {

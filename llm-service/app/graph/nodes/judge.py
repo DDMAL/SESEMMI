@@ -7,8 +7,6 @@ from app.config import settings
 from app.graph.state import GraphState
 from app.graph.model import get_structured_model
 from app.graph.tools.empty_probe import probe_empty_patterns
-from app.graph.tools.federation import has_local_pattern, strip_service_blocks
-from app.graph.tools.sparql_execute import execute_sparql
 
 logger = logging.getLogger(__name__)
 
@@ -18,67 +16,19 @@ def _base_assumptions(state: GraphState) -> list[str]:
     assumptions = list(state.get("assumptions") or [])
     for name, qid in (state.get("resolved_qids") or {}).items():
         assumptions.append(f"Assumed QID {qid} for {name}")
-    return assumptions
+    return list(dict.fromkeys(assumptions))
 
 
-async def _degrade_external_service(state: GraphState) -> dict:
-    """Layer 3 — turn a transient federated-SERVICE failure into an honest answer.
-
-    The external enrichment (e.g. a live Wikidata VIAF lookup) was unreachable, but the local
-    part of the query is still answerable. Strip the SERVICE block and re-run the local subquery
-    (no model call), then report the partial result with a downgraded confidence and a caveat.
-    If there is no local part, degrade to an explicit "requires live Wikidata data" result rather
-    than surfacing the raw error.
-    """
-    assumptions = _base_assumptions(state)
-
-    sparql = state.get("sparql", "")
-    local_query = strip_service_blocks(sparql)
-    salvaged: dict | None = None
-    if has_local_pattern(sparql):  # a local part exists to answer
-        try:
-            res = await execute_sparql(local_query)
-            if res["error"] is None:
-                salvaged = res["results"]
-        except Exception:
-            logger.exception("Layer-3 strip-and-rerun failed")
-
-    cleared = {"judge_feedback": None, "execution_error": None, "error_kind": None}
-    if salvaged is not None:
-        bindings = salvaged.get("results", {}).get("bindings", [])
-        assumptions.append(
-            "The live Wikidata lookup was unavailable, so externally-enriched fields could "
-            "not be attached; results reflect the local graphs only."
-        )
-        return {
-            **cleared,
-            "results": salvaged,
-            "result_count": len(bindings),
-            "confidence": "medium",
-            "assumptions": assumptions,
-        }
-
-    assumptions.append(
-        "This answer requires live Wikidata data, which was unavailable (the federated "
-        "query service could not be reached)."
-    )
-    return {
-        **cleared,
-        "results": None,
-        "result_count": 0,
-        "confidence": "low",
-        "assumptions": assumptions,
-    }
-
-
-def _empty_probe_feedback(empties: list[str]) -> str:
+def _format_empty_diagnostics(empties: list[str]) -> str:
     patterns = "\n".join(f"- {e}" for e in empties)
     return (
-        "The query executed but returned no results. Each of these triple patterns "
-        "individually matches no data in the target graph, so they are the reason the "
-        f"result is empty:\n{patterns}\n"
-        "The entity or value may not exist in this graph, or the constraint may be "
-        "over-specified. Remove or relax the unsupported pattern(s) and rewrite the query."
+        "The query returned no results. These independently probed patterns matched "
+        f"no data:\n{patterns}\n"
+        "This is diagnostic evidence, not proof that the query is wrong. It can reflect "
+        "missing data or reconciliation links. Check for a concrete schema or syntax "
+        "mistake. Preserve all requirements in the user's question; never remove an "
+        "entity, date, place, type, role or relationship merely to obtain rows. If no "
+        "fixable mistake is supported by the schema, accept the empty result."
     )
 
 
@@ -101,19 +51,28 @@ schema can express.
 <instructions>
 1. Relevance — does the query express the user's intent as faithfully as the schema allows,
    using the right classes and predicates in the direction the ontology declares?
-2. Schema honesty — if the question asks for a property, class, or filter the ontology does not
-   contain, do NOT demand it. Accept the closest supported query and record the gap in
-   "limitation" (e.g. the graph stores no language, so results cannot be narrowed to one). A
-   limitation does NOT make the query unsatisfied.
-3. Empty results — if a valid query returns no rows for a question that should match data,
-   inspect the triples for an inverted edge direction or a predicate/class not in the schema;
-   if you find one, set satisfied=false and name the triple to fix.
-4. Column shape — default to a single URI column; expect a label column only when the question
-   explicitly asks for a name, title, or label.
+2. Schema honesty — when the schema cannot express a required distinction, record it in
+   "limitation" and describe the result as partial. Do not invent a property to fill the gap.
+   Preserve every requirement that CAN be expressed. Dropping a supported date, entity,
+   location or relationship is a fixable fault even when the query returns rows.
+3. Empty results — zero rows is not itself a fault. Missing entities or reconciliation links
+   do not justify relaxing the question. Set satisfied=false only if the schema supports a
+   concrete correction, such as a reversed edge or invented predicate/class. Do not infer
+   that results ought to exist from world knowledge or from the wording of the question.
+4. Column shape — entity lookups should return the answer URI plus requested fields.
+   Counts, comparisons and grouped summaries need their requested values and grouping
+   columns, not a forced single URI. Do not reject these columns as a shape error.
+5. Match evidence — shared titles/names alone establish candidate matches, not identity of
+   people, works or recordings. Record a limitation if identity was requested but only text
+   was matched. A question explicitly asking for shared titles is correctly answered by a
+   title join; do not demand unavailable identifiers for that question. Shared years or
+   categories are comparisons only. Role-agnostic related-person links do not prove that
+   someone composed a work or performed at an event; record that distinction as a limitation.
 
 Set "satisfied" false only for a fixable fault — wrong edge direction, invented predicate/class,
 wrong columns, or off-target results — and put the concrete fix in "reason". Otherwise set it true.
-Note: wdt:P2888 is an exact-match link (owl:sameAs equivalent in Wikidata).
+Note: wdt:P2888 records an asserted reconciliation link; it does not independently verify
+the match, its completeness, or the local entity's type.
 </instructions>"""
 
 _JUDGE_USER_TEMPLATE = """\
@@ -131,104 +90,89 @@ _JUDGE_USER_TEMPLATE = """\
 
 <sample_results description="up to 5 rows">
 {sample_results}
-</sample_results>"""
+</sample_results>
+
+<empty_result_diagnostics>
+{empty_diagnostics}
+</empty_result_diagnostics>"""
 
 
 async def judge_node(state: GraphState) -> dict:
-    updates: dict = {"judge_feedback": None}  # clear prior judge signal by default
-
-    # Layer 3 — honest degradation: an external federated call failed transiently. Salvage the
-    # local part and report it with a caveat rather than surfacing the raw external error.
-    if state.get("error_kind") == "external_service" and state.get("execution_error"):
-        return await _degrade_external_service(state)
-
-    # Determine base confidence
-    if (
-        state.get("is_valid")
-        and not state.get("execution_error")
-        and state.get("result_count", 0) > 0
-    ):
-        confidence = "high"
-    elif state.get("is_valid") and not state.get("execution_error"):
-        confidence = "medium"
-    else:
-        confidence = "low"
-
+    """Assess the query without changing its execution results or errors."""
     assumptions = _base_assumptions(state)
-    updates.update({"confidence": confidence, "assumptions": assumptions})
+    execution_error = state.get("execution_error")
+    updates: dict = {
+        "judge_feedback": None,
+        "confidence": (
+            "medium" if state.get("is_valid") and execution_error is None else "low"
+        ),
+        "assumptions": assumptions,
+    }
 
-    # Zero-row diagnostic: ASK-probe the query for the specific unsatisfiable pattern and
-    # repair with that concrete signal, before falling back to the coarser LLM judge.
-    if (
-        settings.empty_probe_enabled
-        and not state.get("execution_error")
-        and state.get("result_count", 0) == 0
-        and state.get("repair_count", 0)
-        < state.get("max_repairs", settings.max_repair_iterations)
-    ):
+    if execution_error is not None:
+        if state.get("error_kind") == "external_service":
+            # SERVICE can enforce required filters, so a local-only answer is unsafe.
+            assumptions.append(
+                "This answer requires live Wikidata data, which was unavailable (the federated "
+                "query service could not be reached). The requested conditions could not be "
+                "verified; please try again later."
+            )
+        return updates
+
+    # Empty probes explain missing data even when no repair attempts remain.
+    empty_diagnostics = "Not probed."
+    if settings.empty_probe_enabled and state.get("result_count", 0) == 0:
         try:
             empties = await probe_empty_patterns(state.get("sparql", ""))
         except Exception:
             logger.exception("empty-probe failed, skipping")
             empties = []
         if empties:
-            updates["judge_feedback"] = _empty_probe_feedback(empties)
-            return updates
-
-    # Semantic judge (only when enabled and execution succeeded)
-    if (
-        settings.semantic_judge_enabled
-        and not state.get("execution_error")
-        and state.get("results")
-    ):
-        bindings = state["results"].get("results", {}).get("bindings", [])
-        sample = bindings[:5]
-
-        judge_model = get_structured_model(_JudgeVerdict)
-
-        judge_user = _JUDGE_USER_TEMPLATE.format(
-            schema_context=state.get("schema_context", "") or "(no schema provided)",
-            user_query=state["user_query"],
-            sparql=state.get("sparql", ""),
-            sample_results=sample if sample else "(no results)",
-        )
-
-        try:
-            verdict = await judge_model.ainvoke(
-                [SystemMessage(content=_JUDGE_SYSTEM), HumanMessage(content=judge_user)]
+            empty_diagnostics = _format_empty_diagnostics(empties)
+            assumptions.append(
+                "No records matched one or more requested relationships. Missing data "
+                "or reconciliation links may explain the empty result."
             )
-        except Exception:
-            # The 27b judge intermittently emits non-object structured output (bare "42", '){ ')
-            # that fails to parse. Keep the base confidence — a judge crash is not evidence the
-            # query is wrong — but record that it was never independently confirmed, so a
-            # judge-crashed result can't be mistaken for a validated one.
-            logger.exception("Semantic judge failed, skipping")
-            updates["assumptions"] = assumptions + [
-                "Semantic judge could not be evaluated (malformed verdict); "
-                "confidence not independently confirmed."
-            ]
-            return updates
 
-        if not verdict.satisfied:
-            has_rows = state.get("result_count", 0) > 0
-            max_repairs = state.get("max_repairs", settings.max_repair_iterations)
-            # Regenerate only when the query returned NO rows — there a repair can find data.
-            # A query that already returned rows is trusted: the semantic judge becomes advisory
-            # (record the concern, drop confidence high→medium) rather than burning repair rounds.
-            # The 27b judge routinely false-flags cross-graph rdfs:label joins as needing an
-            # impossible wdt:P2888, so looping on that just discards correct answers.
-            if not has_rows and state.get("repair_count", 0) < max_repairs:
-                updates["judge_feedback"] = verdict.reason
-                return updates
-            updates["confidence"] = "medium" if has_rows else "low"
-            assumptions_new = list(assumptions)
-            verb = "flagged" if has_rows else "unsatisfied"
-            assumptions_new.append(f"Semantic judge {verb}: {verdict.reason}")
-            updates["assumptions"] = assumptions_new
-        elif verdict.limitation:
-            # Accepted the closest supported query; surface the schema gap instead of churning.
-            assumptions_new = list(assumptions)
-            assumptions_new.append(verdict.limitation)
-            updates["assumptions"] = assumptions_new
+    if not settings.semantic_judge_enabled or not state.get("results"):
+        return updates
+
+    bindings = state["results"].get("results", {}).get("bindings", [])
+    judge_user = _JUDGE_USER_TEMPLATE.format(
+        schema_context=state.get("schema_context", "") or "(no schema provided)",
+        user_query=state["user_query"],
+        sparql=state.get("sparql", ""),
+        sample_results=bindings[:5] or "(no results)",
+        empty_diagnostics=empty_diagnostics,
+    )
+    judge_model = get_structured_model(_JudgeVerdict)
+    try:
+        verdict = await judge_model.ainvoke(
+            [SystemMessage(content=_JUDGE_SYSTEM), HumanMessage(content=judge_user)]
+        )
+    except Exception:
+        logger.exception("Semantic judge failed, skipping")
+        assumptions.append(
+            "These results could not be checked against your question. "
+            "Review them before relying on them."
+        )
+        return updates
+
+    has_rows = state.get("result_count", 0) > 0
+    if not verdict.satisfied:
+        max_repairs = state.get("max_repairs", settings.max_repair_iterations)
+        # The judge can falsely reject valid joins. Keep nonempty results for review;
+        # only empty results are eligible for another generation attempt.
+        if not has_rows and state.get("repair_count", 0) < max_repairs:
+            updates["judge_feedback"] = verdict.reason
+        else:
+            updates["confidence"] = "low"
+            assumptions.append(
+                f"These results may not fully answer your question: {verdict.reason}"
+            )
+    elif verdict.limitation:
+        assumptions.append(verdict.limitation)
+    elif has_rows:
+        updates["confidence"] = "high"
 
     return updates

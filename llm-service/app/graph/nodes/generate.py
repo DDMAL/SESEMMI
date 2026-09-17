@@ -40,7 +40,8 @@ def _build_system(state: GraphState) -> str:
     parts.append(
         "<output_rules>\n"
         "Respond with a valid SPARQL query ONLY. No prose, no explanation.\n"
-        "Return exactly one column — the URI that answers the question. Add a label column only when the question explicitly asks for a name, title, or label.\n"
+        "For entity lookups, return the answer URI and any explicitly requested fields. "
+        "For counts, comparisons or grouped summaries, return the requested values and grouping columns.\n"
         "Add LIMIT 100 unless the question specifies a different count.\n"
         'Do not add ORDER BY unless the question explicitly asks for ordering (e.g. "most", "earliest", "top N").\n'
         "</output_rules>"
@@ -83,9 +84,10 @@ def _build_user(state: GraphState, is_repair: bool, repair_count: int) -> str:
             exec_lines = [exec_error]
             if "timeout" in exec_error.lower() or "ReadTimeout" in exec_error:
                 exec_lines.append(
-                    "The query timed out. Rewrite it to be faster: add LIMIT, "
-                    "restrict to fewer named graphs, remove optional cross-products, "
-                    "or break into a simpler single-graph query."
+                    "The query timed out. Optimize join order, bound external SERVICE "
+                    "inputs and avoid unnecessary cross-products. Preserve the requested "
+                    "databases, entities, filters and counts; do not turn a cross-database "
+                    "question into a single-database question or truncate an aggregate."
                 )
             repair_parts.append(
                 "<execution_error>\n" + "\n".join(exec_lines) + "\n</execution_error>"
@@ -110,10 +112,10 @@ def _build_user(state: GraphState, is_repair: bool, repair_count: int) -> str:
 
 
 async def generate_node(state: GraphState) -> dict:
-    is_repair = bool(
-        state.get("validation_errors")
-        or state.get("execution_error")
-        or state.get("judge_feedback")
+    is_repair = (
+        bool(state.get("validation_errors"))
+        or state.get("execution_error") is not None
+        or state.get("judge_feedback") is not None
     )
     repair_count = state.get("repair_count", 0)
     if is_repair:
@@ -136,4 +138,7 @@ async def generate_node(state: GraphState) -> dict:
     return {
         "sparql": sparql,
         "repair_count": repair_count,
+        # The previous query's assessment does not apply to the regenerated query.
+        # Judge/validate will rebuild it, including the current entity assumptions.
+        "assumptions": [],
     }
