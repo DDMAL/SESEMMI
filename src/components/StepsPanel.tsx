@@ -251,6 +251,9 @@ function NodeDetail({
         </button>
       </div>
       <div className="mt-1.5">
+        {stage.key === "judge" && (
+          <p className="mb-2 text-xs text-slate-500">{t("steps.judgeDescription")}</p>
+        )}
         {!ran ? (
           <p className="text-[11px] text-slate-400">{t("steps.notRun")}</p>
         ) : stage.key === "generate" && tokens ? (

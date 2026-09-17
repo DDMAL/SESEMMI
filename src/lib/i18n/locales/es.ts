@@ -114,8 +114,10 @@ export const es: Dictionary = {
       generate: { short: "Generar", friendly: "Escribiendo la consulta SPARQL" },
       validate: { short: "Validar", friendly: "Comprobando que es válida" },
       execute: { short: "Ejecutar", friendly: "Ejecutando en la base de datos" },
-      judge: { short: "Evaluar", friendly: "Evaluando la confianza" },
+      judge: { short: "Revisar", friendly: "Revisando la respuesta" },
     },
+    judgeDescription:
+      "Compara la consulta y una muestra de los resultados con la pregunta que aprobaste. Usa las descripciones de las bases de datos para identificar limitaciones y estimar la confianza.",
     confidence: {
       high: { label: "Confianza alta", hint: "Parece correcto." },
       medium: { label: "Confianza media", hint: "Probablemente correcto — conviene revisarlo." },
@@ -184,7 +186,7 @@ export const es: Dictionary = {
       ],
       judge: [
         "Revisando los resultados",
-        "Evaluando la respuesta",
+        "Comparando los resultados con tu pregunta",
         "Midiendo la confianza",
         "Ponderando las coincidencias",
         "Comprobando la coherencia del resultado",
