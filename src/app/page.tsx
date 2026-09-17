@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ConversationPanel } from "@/components/ConversationPanel";
 import { SparqlEditor } from "@/components/SparqlEditor";
 import { ResultsTable } from "@/components/ResultsTable";
+import { SearchNotes } from "@/components/SearchNotes";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useClarifyFlow } from "@/hooks/useClarifyFlow";
@@ -40,10 +41,6 @@ export default function Home() {
   };
 
   const isRunning = execute.isPending || flow.isPending;
-  const searchNotes =
-    flow.assessment?.sparql === sparql
-      ? flow.assessment.assumptions.filter((note) => !note.startsWith("Assumed QID "))
-      : [];
 
   return (
     <div
@@ -127,16 +124,7 @@ export default function Home() {
         <section ref={conversationRef} className="rounded-2xl p-5" style={glassPanel}>
           <ConversationPanel flow={flow} highlight={highlightNL} />
           {flow.error && <p className="mt-2 text-xs text-red-500">{flow.error.message}</p>}
-          {searchNotes.length > 0 && (
-            <aside className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-slate-700 dark:border-amber-800 dark:bg-amber-950">
-              <h2 className="font-semibold">{t("results.searchNotes")}</h2>
-              <ul className="mt-1 list-disc space-y-1 ps-5">
-                {searchNotes.map((note, index) => (
-                  <li key={`${index}-${note}`}>{note}</li>
-                ))}
-              </ul>
-            </aside>
-          )}
+          <SearchNotes assessment={flow.assessment} sparql={sparql} />
         </section>
 
         {/* SPARQL Editor glass panel */}
