@@ -72,17 +72,22 @@ def _get_rag_examples(query: str, target_graphs: list[str]) -> list[dict]:
             seen.add(doc.page_content)
             unique_docs.append(doc)
 
-    filtered = [
-        {"nl": doc.page_content, "sparql": doc.metadata["sparql"]}
+    # Keep matching examples first when filling spare slots; the old fallback
+    # discarded the database filter whenever fewer than k matches were found.
+    matching = [
+        doc
         for doc in unique_docs
-        if any(db in doc.metadata.get("databases", []) for db in target_graphs)
+        if set(target_graphs) & set(doc.metadata.get("databases", []))
     ]
-    if len(filtered) < k:
-        filtered = [
-            {"nl": doc.page_content, "sparql": doc.metadata["sparql"]}
-            for doc in unique_docs
-        ]
-    return filtered[:k]
+    others = [
+        doc
+        for doc in unique_docs
+        if not set(target_graphs) & set(doc.metadata.get("databases", []))
+    ]
+    return [
+        {"nl": doc.page_content, "sparql": doc.metadata["sparql"]}
+        for doc in (matching + others)[:k]
+    ]
 
 
 async def _resolve_qids(
