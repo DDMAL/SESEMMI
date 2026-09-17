@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parent
 
 
 def main():
+    """Run the five saved probes sequentially and write their results locally."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()

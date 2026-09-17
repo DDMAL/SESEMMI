@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Bounded, read-only Detmold person-link audit. No model calls or RDF writes.
 
-Takes at most 50 links from Virtuoso, fetches their Wikidata authority IDs/types
-in one API request, and checks MusicBrainz overlap in one bounded VALUES query.
-This is a convenience sample, not an estimate of overall data quality.
+Audits at most 50 links, fetches their Wikidata authority IDs/types in one API
+request, and checks MusicBrainz overlap in one bounded VALUES query. Targeted
+checks fetch at most 51 links to detect overflow and reject incomplete results.
+Convenience samples are not estimates of overall data quality.
 """
 
 import argparse
@@ -18,6 +19,7 @@ ENDPOINT = "https://virtuoso.simssa.ca/sparql"
 
 
 def get_json(url, params):
+    """Fetch a public JSON response with a 30-second timeout and no retries."""
     request = Request(
         url + "?" + urlencode(params),
         headers={
@@ -29,12 +31,14 @@ def get_json(url, params):
 
 
 def sparql(query):
+    """Run a read-only query against the configured public Virtuoso endpoint."""
     return get_json(
         ENDPOINT, {"query": query, "format": "application/sparql-results+json"}
     )["results"]["bindings"]
 
 
 def claim_values(entity, prop):
+    """Extract scalar values or entity IDs from ordinary Wikidata claims."""
     values = []
     for claim in entity.get("claims", {}).get(prop, []):
         snak = claim.get("mainsnak", {})
@@ -47,9 +51,15 @@ def claim_values(entity, prop):
 
 
 def main():
+    """Audit a bounded sample or complete target set and save a local report."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--limit", type=int, default=30, choices=range(1, 51), metavar="1..50"
+        "--limit",
+        type=int,
+        default=30,
+        choices=range(1, 51),
+        metavar="1..50",
+        help="Maximum links in a convenience sample; ignored with --qids",
     )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
@@ -69,6 +79,8 @@ def main():
         if args.qids
         else ""
     )
+    # One extra row detects overflow without fetching an unbounded target set.
+    limit = 51 if args.qids else args.limit
     bindings = sparql(f"""
       SELECT ?person (SAMPLE(?name) AS ?label) ?qid WHERE {{
         {values}
@@ -77,9 +89,17 @@ def main():
             <http://www.wikidata.org/prop/direct/P2888> ?qid .
           OPTIONAL {{ ?person <http://www.w3.org/2000/01/rdf-schema#label> ?name }}
         }}
-      }} GROUP BY ?person ?qid LIMIT {args.limit}
+      }} GROUP BY ?person ?qid LIMIT {limit}
     """)
+    if args.qids and len(bindings) > 50:
+        raise ValueError("Targeted audit exceeds 50 links; request fewer QIDs")
     qids = sorted({row["qid"]["value"].rsplit("/", 1)[-1] for row in bindings})
+    if args.qids:
+        missing = sorted(set(args.qids) - set(qids))
+        if missing:
+            raise ValueError(
+                "Targeted audit did not return requested QIDs: " + ", ".join(missing)
+            )
     if not qids or any(not re.fullmatch(r"Q\d+", qid) for qid in qids):
         raise ValueError("Expected a nonempty sample of Wikidata QIDs")
     entities = get_json(

@@ -199,7 +199,14 @@ The five UI questions have not been rewritten to make them easier to answer.
 In a convenience sample of **30 Detmold Person links**, all 30 source GND/VIAF IDs
 appeared on their linked Wikidata items, and 14 had matching MusicBrainz artists.
 This establishes authority-ID agreement in that sample, not population accuracy.
-Use `audit_links.py --limit 30` to collect a new local sample.
+From the repository root, use
+`llm-service/.venv/bin/python eval/audit_links.py --limit 30 --output eval/audits/links.json`
+to collect a new local sample.
+
+With `--qids`, the sample limit is ignored: all requested QIDs must be returned,
+and the audit accepts at most 50 links. It fetches at most 51 rows to detect overflow.
+Missing targets or overflow fail before authority lookups or report writing;
+split an oversized request into smaller target sets.
 
 A separate follow-up checked two suspicious records encountered in an earlier
 five-row inspection:
@@ -221,12 +228,21 @@ authority records through CKG ingestion before defining a correction.
 
 ## Validation
 
-These results are for the combined change set. Each PR description lists its own
-branch-specific checks.
+The combined change set was checked on 16 September 2026. Each PR description
+lists its own branch-specific checks.
 
 - 153 Python tests pass, with network access blocked.
 - 13 frontend tests pass.
 - TypeScript checking, ESLint, Black and `git diff --check` pass.
+
+On 17 September, PR #48 was rebased onto main after #45 merged. Its **168 backend
+tests** pass with network access blocked, including regressions for unscoped schema
+terms, complete 31–50-QID targeted audits, sample limits, missing targets and overflow.
+Missing or oversized target sets preserve any existing report. Corpus checks now
+validate default-graph and variable-graph terms against all documented local schemas;
+fixed-graph checks retain their graph-specific rules and external SERVICE stays separate.
+Black and diff checks pass. This review used mocked endpoints; no live queries or
+paid model calls were needed.
 
 These checks cover application behavior and static corpus validity. They do not
 measure Qwen answer quality or latency, and the UI has not had a browser-based
