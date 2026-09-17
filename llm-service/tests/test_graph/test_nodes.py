@@ -2,6 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from langchain_core.messages import AIMessage
 
 from app.graph.nodes.execute import execute_node
@@ -702,13 +703,17 @@ async def test_answer_judge_receives_schema_context():
     assert "musiconn ontology chunk" in judge_user
 
 
-async def test_answer_empty_probe_missing_link_preserves_empty_result():
+@pytest.mark.parametrize("repair_count, max_repairs", [(0, 3), (3, 3), (0, 0)])
+async def test_answer_empty_probe_missing_link_preserves_empty_result(
+    repair_count: int, max_repairs: int
+) -> None:
     """A missing QID link is not an instruction to drop the requested person."""
     state = {
         **_JUDGE_STATE,
         "result_count": 0,
         "results": {"results": {"bindings": []}},
-        "repair_count": 0,
+        "repair_count": repair_count,
+        "max_repairs": max_repairs,
     }
     judge = _mock_judge_llm(
         satisfied=True, reason="Valid query; this person is unlinked"
@@ -718,13 +723,14 @@ async def test_answer_empty_probe_missing_link_preserves_empty_result():
         patch(
             "app.graph.nodes.judge.probe_empty_patterns",
             new=AsyncMock(return_value=["?person <P2888> <Q123>"]),
-        ),
+        ) as probe,
         patch("app.graph.nodes.judge.get_structured_model", return_value=judge),
     ):
         settings.empty_probe_enabled = True
         settings.semantic_judge_enabled = True
         settings.max_repair_iterations = 3
         result = await answer_node(state)
+    probe.assert_awaited_once_with(state["sparql"])
     assert result["judge_feedback"] is None
     assert result["confidence"] == "medium"
     assert any("Missing data" in note for note in result["assumptions"])
@@ -751,6 +757,7 @@ async def test_answer_empty_probe_with_judge_disabled_never_forces_repair():
         result = await answer_node(state)
     model.assert_not_called()
     assert result["judge_feedback"] is None
+    assert any("Missing data" in note for note in result["assumptions"])
 
 
 async def test_answer_empty_probe_no_culprit_falls_through_to_judge():
@@ -801,7 +808,10 @@ async def test_answer_judge_malformed_output_records_caveat():
 
     assert result["confidence"] == "medium"
     assert result.get("judge_feedback") is None
-    assert any("could not be evaluated" in a for a in result.get("assumptions", []))
+    assert any(
+        "could not be checked against your question" in a
+        for a in result.get("assumptions", [])
+    )
 
 
 async def test_answer_judge_limitation_recorded_as_assumption():

@@ -2,6 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from langchain_core.messages import AIMessage
 
 from app.graph.builder import build_graph
@@ -364,3 +365,89 @@ async def test_semantic_judge_triggers_repair_then_satisfied():
     assert final["confidence"] == "high"
     assert final.get("judge_feedback") is None
     assert "A previous query used the wrong date range." not in final["assumptions"]
+
+
+async def test_external_outage_preserves_required_filter_without_retry() -> None:
+    sparql = (
+        "SELECT ?person WHERE { "
+        "GRAPH <https://linkedmusic.ca/graphs/diamm/> { "
+        "?person a diamm:Person ; wdt:P2888 ?qid } "
+        "SERVICE <https://query.wikidata.org/sparql> { ?qid wdt:P19 wd:Q1748 } "
+        "} LIMIT 10"
+    )
+    generator = _generate_mock(sparql)
+    with (
+        patch(
+            "app.graph.nodes.intake.get_structured_model",
+            return_value=_intake_mock(_DIAMM_LOOKUP),
+        ),
+        patch("app.graph.nodes.generate.get_chat_model", return_value=generator),
+        patch("app.graph.nodes.judge.get_structured_model") as judge,
+        patch("app.graph.nodes.judge.probe_empty_patterns") as probe,
+        patch(
+            "app.graph.nodes.execute.execute_sparql",
+            new=AsyncMock(
+                return_value={
+                    "results": None,
+                    "error": "Wikidata HTTP 429",
+                    "error_kind": "external_service",
+                }
+            ),
+        ) as execute,
+    ):
+        final = await build_graph().ainvoke(
+            {
+                "user_query": "Find DIAMM people born in Vienna",
+                "repair_count": 0,
+                "max_repairs": 3,
+            }
+        )
+
+    generator.ainvoke.assert_awaited_once()
+    execute.assert_awaited_once_with(sparql)
+    judge.assert_not_called()
+    probe.assert_not_called()
+    assert final["sparql"] == sparql
+    assert final["repair_count"] == 0
+    assert final["execution_error"] == "Wikidata HTTP 429"
+    assert final["results"] is None
+    assert final["confidence"] == "low"
+    assert any("could not be verified" in note for note in final["assumptions"])
+
+
+@pytest.mark.parametrize("max_repairs", [0, 1, 3])
+async def test_semantic_repair_stops_at_budget(max_repairs: int) -> None:
+    attempts = max_repairs + 1
+    generator = _generate_mock(*([_VALID_SPARQL] * attempts))
+    judge = _judge_mock(*([(False, "Missing required date filter")] * attempts))
+    with (
+        patch(
+            "app.graph.nodes.intake.get_structured_model",
+            return_value=_intake_mock(_DIAMM_LOOKUP),
+        ),
+        patch("app.graph.nodes.generate.get_chat_model", return_value=generator),
+        patch("app.graph.nodes.judge.get_structured_model", return_value=judge),
+        patch(
+            "app.graph.nodes.judge.settings",
+            new=_answer_settings(semantic_judge_enabled=True),
+        ),
+        patch(
+            "app.graph.nodes.execute.execute_sparql",
+            new=AsyncMock(return_value=_VIRTUOSO_EMPTY),
+        ) as execute,
+    ):
+        final = await build_graph().ainvoke(
+            {
+                "user_query": "Find DIAMM manuscripts from the 15th century",
+                "repair_count": 0,
+                "max_repairs": max_repairs,
+            }
+        )
+
+    assert generator.ainvoke.await_count == attempts
+    assert execute.await_count == attempts
+    assert judge.ainvoke.await_count == attempts
+    assert final["repair_count"] == max_repairs
+    assert final["judge_feedback"] is None
+    assert final["confidence"] == "low"
+    assert any("Missing required date filter" in note for note in final["assumptions"])

@@ -143,8 +143,6 @@ async def judge_node(state: GraphState) -> dict:
         settings.empty_probe_enabled
         and not state.get("execution_error")
         and state.get("result_count", 0) == 0
-        and state.get("repair_count", 0)
-        < state.get("max_repairs", settings.max_repair_iterations)
     ):
         try:
             empties = await probe_empty_patterns(state.get("sparql", ""))
@@ -185,8 +183,8 @@ async def judge_node(state: GraphState) -> dict:
             # An unavailable judge cannot promote execution success to high confidence.
             logger.exception("Semantic judge failed, skipping")
             updates["assumptions"] = assumptions + [
-                "Semantic judge could not be evaluated (malformed verdict); "
-                "confidence not independently confirmed."
+                "These results could not be checked against your question. "
+                "Review them before relying on them."
             ]
             return updates
 
@@ -203,8 +201,9 @@ async def judge_node(state: GraphState) -> dict:
                 return updates
             updates["confidence"] = "low"
             assumptions_new = list(assumptions)
-            verb = "flagged" if has_rows else "unsatisfied"
-            assumptions_new.append(f"Semantic judge {verb}: {verdict.reason}")
+            assumptions_new.append(
+                f"These results may not fully answer your question: {verdict.reason}"
+            )
             updates["assumptions"] = assumptions_new
         elif verdict.limitation:
             # Accepted the closest supported query; surface the schema gap instead of churning.
