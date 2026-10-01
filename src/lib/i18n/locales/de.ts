@@ -36,8 +36,9 @@ export const de: Dictionary = {
           "Vergleiche Jahrzehnt für Jahrzehnt die Zahl öffentlicher Konzertveranstaltungen in der musiconn-Konzertdatenbank mit der Zahl der in MusicBrainz veröffentlichten Musikaufnahmen, um den Wandel von der Live-Aufführung zur Tonaufnahme nachzuzeichnen.",
       },
       {
-        label: "Werke eines Komponisten in Konzerten",
-        query: "Welche Werke von Clara Schumann erscheinen in musiconn-Konzertprogrammen?",
+        label: "Mit einer Musikerin verknüpfte Werke",
+        query:
+          "Welche mit Clara Schumann verknüpften Werke erscheinen in musiconn-Konzertprogrammen?",
       },
       {
         label: "Hoftheater-Repertoire",

@@ -36,8 +36,9 @@ export const es: Dictionary = {
           "Década a década, compara el número de conciertos públicos en la base de datos de conciertos musiconn con el número de grabaciones musicales publicadas en MusicBrainz, para trazar la transición de la interpretación en vivo a la música grabada.",
       },
       {
-        label: "Obras de un compositor en conciertos",
-        query: "¿Qué obras de Clara Schumann aparecen en los programas de conciertos de musiconn?",
+        label: "Obras vinculadas a un músico",
+        query:
+          "¿Qué obras asociadas a Clara Schumann aparecen en los programas de conciertos de musiconn?",
       },
       {
         label: "Repertorio del teatro de la corte",

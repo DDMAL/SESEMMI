@@ -37,9 +37,9 @@ export const fr: Dictionary = {
           "Décennie par décennie, comparez le nombre de concerts publics dans la base de concerts musiconn avec le nombre d'enregistrements musicaux publiés dans MusicBrainz, afin de retracer le passage du concert vivant à la musique enregistrée.",
       },
       {
-        label: "Œuvres d'un compositeur en concert",
+        label: "Œuvres liées à une musicienne",
         query:
-          "Quelles œuvres de Clara Schumann figurent dans les programmes de concerts musiconn ?",
+          "Quelles œuvres associées à Clara Schumann figurent dans les programmes de concerts musiconn ?",
       },
       {
         label: "Répertoire du théâtre de la cour",
