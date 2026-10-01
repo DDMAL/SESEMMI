@@ -48,6 +48,11 @@ Judge the query against the provided schema — its ontology (classes, predicate
 directions) and generation rules — not against world knowledge. Evaluate only what the
 schema can express.
 
+The query has already passed syntactic validation and executed successfully, so its SPARQL
+syntax is valid by construction — never report a syntax error or flag the query's SPARQL
+form. In particular, a prefixed named-graph reference such as `GRAPH ex:` is valid and
+equivalent to its full IRI. Judge only whether the query's meaning answers the question.
+
 <instructions>
 1. Relevance — does the query express the user's intent as faithfully as the schema allows,
    using the right classes and predicates in the direction the ontology declares?
