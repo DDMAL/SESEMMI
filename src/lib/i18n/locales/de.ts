@@ -36,8 +36,9 @@ export const de: Dictionary = {
           "Vergleiche Jahrzehnt für Jahrzehnt die Zahl öffentlicher Konzertveranstaltungen in der musiconn-Konzertdatenbank mit der Zahl der in MusicBrainz veröffentlichten Musikaufnahmen, um den Wandel von der Live-Aufführung zur Tonaufnahme nachzuzeichnen.",
       },
       {
-        label: "Werke eines Komponisten in Konzerten",
-        query: "Welche Werke von Clara Schumann erscheinen in musiconn-Konzertprogrammen?",
+        label: "Mit einer Musikerin verknüpfte Werke",
+        query:
+          "Welche mit Clara Schumann verknüpften Werke erscheinen in musiconn-Konzertprogrammen?",
       },
       {
         label: "Hoftheater-Repertoire",
@@ -48,9 +49,9 @@ export const de: Dictionary = {
         query: "Zeige arabische Feldaufnahmen von Vokalmusik, die vor 1950 gesammelt wurden",
       },
       {
-        label: "Interpreten geboren in einer Stadt",
+        label: "Geburtsorte der meistgespielten Komponisten",
         query:
-          "Welche Komponisten, die bei musiconn-dokumentierten Konzerten auftraten, wurden in Wien geboren?",
+          "Wo wurden die zehn Komponisten geboren, deren Werke am häufigsten in musiconn-Konzertprogrammen erscheinen?",
       },
     ],
   },

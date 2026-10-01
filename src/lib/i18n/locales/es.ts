@@ -36,8 +36,9 @@ export const es: Dictionary = {
           "Década a década, compara el número de conciertos públicos en la base de datos de conciertos musiconn con el número de grabaciones musicales publicadas en MusicBrainz, para trazar la transición de la interpretación en vivo a la música grabada.",
       },
       {
-        label: "Obras de un compositor en conciertos",
-        query: "¿Qué obras de Clara Schumann aparecen en los programas de conciertos de musiconn?",
+        label: "Obras vinculadas a un músico",
+        query:
+          "¿Qué obras asociadas a Clara Schumann aparecen en los programas de conciertos de musiconn?",
       },
       {
         label: "Repertorio del teatro de la corte",
@@ -49,9 +50,9 @@ export const es: Dictionary = {
         query: "Mostrar grabaciones de campo árabes de música vocal recopiladas antes de 1950",
       },
       {
-        label: "Intérpretes nacidos en una ciudad",
+        label: "Dónde nacieron los compositores más interpretados",
         query:
-          "¿Qué compositores que actuaron en conciertos documentados por musiconn nacieron en Viena?",
+          "¿Dónde nacieron los diez compositores cuyas obras aparecen con más frecuencia en los programas de conciertos de musiconn?",
       },
     ],
   },

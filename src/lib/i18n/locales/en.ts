@@ -38,8 +38,8 @@ export const en = {
           "Decade by decade, compare the number of public concert events in the musiconn concert database with the number of music recordings released in MusicBrainz, to trace the shift from live performance to recorded music.",
       },
       {
-        label: "A composer's works in concerts",
-        query: "Which works by Clara Schumann appear in musiconn concert programmes?",
+        label: "Works linked to a musician",
+        query: "Which works associated with Clara Schumann appear in musiconn concert programmes?",
       },
       {
         label: "Court theatre repertoire",
@@ -50,8 +50,9 @@ export const en = {
         query: "Show Arabic field recordings of vocal music collected before 1950",
       },
       {
-        label: "Performers born in a city",
-        query: "Which composers performed at musiconn-documented concerts were born in Vienna?",
+        label: "Where top composers were born",
+        query:
+          "Where were the ten composers whose works appear most often in musiconn concert programmes born?",
       },
     ],
   },

@@ -59,7 +59,7 @@ make prod    # Production stack
 | Variable | Default | Notes |
 |---|---|---|
 | `LLM_PROVIDER` | `ollama` | `ollama` \| `openai` \| `anthropic` \| `gemini` \| `qwen` |
-| `LLM_MODEL` | `qwen3:1.7b` | **prod `qwen3.6-27b`** (via the `qwen` provider) |
+| `LLM_MODEL` | `qwen3:1.7b` | **prod `qwen3.8-27b`** (via the `qwen` provider) |
 | `QWEN_BASE_URL` | Aliyun MaaS `…/compatible-mode/v1` | OpenAI-compatible endpoint for the `qwen` provider |
 | `DASHSCOPE_API_KEY` | — | auth for the `qwen`/DashScope endpoint (prod uses this) |
 | `OPENAI_/ANTHROPIC_/GEMINI_API_KEY` | — | only the active provider's key is read |
@@ -74,14 +74,15 @@ make prod    # Production stack
 | `SEMANTIC_JUDGE_ENABLED` | `true` | |
 | `EMPTY_PROBE_ENABLED` | `true` | zero-row clause isolation |
 | `CLARIFICATION_ENABLED` | `true` | pre-translation disambiguation (`/clarify`) |
-| `SPARQL_TIMEOUT` / `LLM_REQUEST_TIMEOUT` | `120` | seconds |
+| `SPARQL_TIMEOUT` | `120` | seconds |
+| `LLM_REQUEST_TIMEOUT` | `120` | seconds; **prod `180`** (headroom for slow-endpoint generation) |
 | `LANGSMITH_TRACING` | `false` | **prod `true`** |
 | `LANGSMITH_API_KEY` | `None` | in root `.env` |
 | `LANGSMITH_PROJECT` | `sesemmi-agent` | **prod logs to `sesemmi-prod`** |
 
 ## Working on queries & debugging
 
-**Every real model call costs money — get user approval before each one, and test one query at a time.** Prod runs `qwen3.6-27b` over an Aliyun MaaS / DashScope OpenAI-compatible endpoint (the `qwen` provider; `QWEN_BASE_URL` + `DASHSCOPE_API_KEY` are in the root `.env`; in LangSmith these appear as `ChatOpenAI` calls). There is no local GPU — the `sesemmi-ollama` container only has `qwen3:1.7b`, which is **not** representative of prod, so never judge query quality from it. (`eval/` is stale — not a current benchmark or regression gate.)
+**Every real model call costs money — get user approval before each one, and test one query at a time.** Prod runs `qwen3.8-27b` over an Aliyun MaaS / DashScope OpenAI-compatible endpoint (the `qwen` provider; `QWEN_BASE_URL` + `DASHSCOPE_API_KEY` are in the root `.env`; in LangSmith these appear as `ChatOpenAI` calls). There is no local GPU — the `sesemmi-ollama` container only has `qwen3:1.7b`, which is **not** representative of prod, so never judge query quality from it. (`eval/` is stale — not a current benchmark or regression gate.)
 
 **Validate SPARQL against prod Virtuoso first — free, no LLM.** Before spending a model call, confirm the shape returns rows / the predicate exists:
 
