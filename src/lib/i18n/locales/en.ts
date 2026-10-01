@@ -50,8 +50,9 @@ export const en = {
         query: "Show Arabic field recordings of vocal music collected before 1950",
       },
       {
-        label: "Performers born in a city",
-        query: "Which composers performed at musiconn-documented concerts were born in Vienna?",
+        label: "Where top composers were born",
+        query:
+          "Where were the ten composers whose works appear most often in musiconn concert programmes born?",
       },
     ],
   },

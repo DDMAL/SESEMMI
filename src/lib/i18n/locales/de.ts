@@ -49,9 +49,9 @@ export const de: Dictionary = {
         query: "Zeige arabische Feldaufnahmen von Vokalmusik, die vor 1950 gesammelt wurden",
       },
       {
-        label: "Interpreten geboren in einer Stadt",
+        label: "Geburtsorte der meistgespielten Komponisten",
         query:
-          "Welche Komponisten, die bei musiconn-dokumentierten Konzerten auftraten, wurden in Wien geboren?",
+          "Wo wurden die zehn Komponisten geboren, deren Werke am häufigsten in musiconn-Konzertprogrammen erscheinen?",
       },
     ],
   },

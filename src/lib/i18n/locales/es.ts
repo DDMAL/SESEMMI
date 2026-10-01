@@ -50,9 +50,9 @@ export const es: Dictionary = {
         query: "Mostrar grabaciones de campo árabes de música vocal recopiladas antes de 1950",
       },
       {
-        label: "Intérpretes nacidos en una ciudad",
+        label: "Dónde nacieron los compositores más interpretados",
         query:
-          "¿Qué compositores que actuaron en conciertos documentados por musiconn nacieron en Viena?",
+          "¿Dónde nacieron los diez compositores cuyas obras aparecen con más frecuencia en los programas de conciertos de musiconn?",
       },
     ],
   },
