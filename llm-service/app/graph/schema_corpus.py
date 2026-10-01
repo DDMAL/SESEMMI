@@ -933,6 +933,11 @@ detmold:Person and detmold:Place carry wdt:P2888 "exact match", enabling
 correlation with other LinkedMusic databases through shared Wikidata QIDs.
 </cross-database>
 <query-notes>
+The entire feed is the Detmolder Hoftheater repertoire — every detmold:Work is a
+court-theatre work. "At" or "staged at the Detmold court theatre" therefore means the
+whole graph, not a venue filter: there is no theatre node, and cto:CTO_0001011 links a
+work to a city (GeoNames), not to a performance venue. Never introduce a court-theatre
+Place or invent its QID; scope such a question by date (wdt:P571) alone.
 cto:CTO_0001009 means related person; it does not distinguish composer, librettist,
 author or translator. Do not describe every related person as the composer.
 wdt:P571 is the work's creation period, not a documented performance date. Dates have
