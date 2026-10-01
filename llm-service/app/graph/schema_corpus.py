@@ -889,9 +889,11 @@ The feed includes audio, images, video and text, not just music recordings. For 
 use wdt:P31 wd:Q3302947. It has no structured language, vocal/instrumental distinction,
 performer, country or field-recording flag. A request for Arabic vocal field recordings
 cannot be fully verified from feed membership; explain the missing constraints.
-Some records have only the generic creative-work type wd:Q17537576. An audio-type
-filter excludes these unclassified records; zero audio matches does not prove that
-the archive has no recordings in the requested period.
+The wd:Q3302947 audio type is incomplete: every audio-typed record is catalogued 1970
+or later, yet the archive holds recordings back to 1900 that carry only the generic
+wd:Q17537576 type. Do NOT gate a date-ranged recording query on wd:Q3302947 — it returns
+zero for any pre-1970 period. Select apsearch:Work by wdt:P571 alone and record the audio,
+vocal/instrumental and field-recording distinctions as unverifiable limitations.
 wdt:P571 stores catalogued creation years as xsd:gYear. Source date ranges were
 reduced to their start year; their end year is not retained. These values do not
 establish an exact recording date. Extract the year with
